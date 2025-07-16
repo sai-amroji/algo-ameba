@@ -4,7 +4,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrig
 import { Slider } from "@/components/ui/slider";
 import gsap from "gsap"
 import { useGSAP } from "@gsap/react";
-import {Icon, MinusCircleIcon, MinusIcon, PauseIcon, PlayIcon, PlusCircleIcon, PlusIcon} from "lucide-react";
+import {Icon, MinusCircleIcon, MinusIcon, Pause, PauseIcon, PlayIcon, PlusCircleIcon, PlusIcon} from "lucide-react";
 import Navbar from "@/components/Navbar.tsx";
 import ControllerFooter from "@/components/ControllerFooter.tsx";
 import {
@@ -17,20 +17,28 @@ import {
     CardTitle
 } from "@/components/ui/card.tsx";
 import {Avatar, AvatarFallback, AvatarImage} from "@radix-ui/react-avatar";
+import { useEffect, useRef, useState } from "react";
+import BubbleSortVisualizer from "../components/BubbleSort"
 
 
 const VisualLayout = () => {
 
 
-    useGSAP(() => {
 
-        gsap.from("#black-box",{
-            x:"250px",
-            scale:1.5,
-            rotate:250
-        
-        })
-    },[])
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
 
 
 
@@ -43,21 +51,13 @@ const VisualLayout = () => {
             <Navbar/>
 
 
-            <div>
+            <div className="h-[700px]">
 
-                <Input/>
-                <Avatar>
-                    <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-                    <AvatarFallback>CN</AvatarFallback>
-                </Avatar>
-                <Avatar className="rounded-lg">
-                    <AvatarImage
-                        src="https://github.com/evilrabbit.png"
-                        alt="@evilrabbit"
-                    />
-                    <AvatarFallback>ER</AvatarFallback>
-                </Avatar>
+           <BubbleSortVisualizer/>
+
             </div>
+            
+
 
 
 

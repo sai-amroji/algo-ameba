@@ -14,7 +14,7 @@ const Navbar = () => {
 
 
     return (
-        <nav className="flex w-full green-200 flex-row justify-between p-3 bg-green-300" >
+        <nav className="flex w-full green-200 flex-row justify-between p-3 " >
 
 
             <div className={"flex justify-between align-items content-between"}>
