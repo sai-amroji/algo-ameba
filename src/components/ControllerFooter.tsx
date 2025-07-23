@@ -1,54 +1,62 @@
-import {Button} from "@/components/ui/button.tsx";
+import { Button } from "@/components/ui/button.tsx";
 import {
-    FastForward,
-    FastForwardIcon,
-    ForwardIcon,
-    MinusIcon,
-    PauseIcon,
-    PlayIcon,
-    PlusIcon,
-    Rewind,
-    RewindIcon
+  FastForwardIcon,
+  MinusIcon,
+  PauseIcon,
+  PlayIcon,
+  PlusIcon,
+  RewindIcon,
 } from "lucide-react";
-import {Slider} from "@/components/ui/slider.tsx";
+import { Slider } from "@/components/ui/slider.tsx";
 
+type ControllerFooterProps = {
+  onPlay: () => void;
+  onPause: () => void;
+  onNext: () => void;
+  onPrev: () => void;
+};
 
-const ControllerFooter = () => {
+const ControllerFooter = ({
+  onPlay,
+  onPause,
+  onNext,
+  onPrev,
+}: ControllerFooterProps) => {
+  return (
+    <footer className="flex justify-between items-center p-4 w-full">
+      {/* Speed Controls */}
+      <div className="flex items-center gap-4">
+        <Button variant="secondary" size="icon" className="size-8">
+          <PlusIcon />
+        </Button>
 
-    return(
-        <footer className="flex justify-between  justify-center content-between p-4" >
-            <div className="flex justify-between w-[800px] green justify-between content-between" color="green">
+        <Slider defaultValue={[50]} max={100} step={1} className="w-64" />
 
-                <Button variant="secondary" size="icon" className="size-8">
-                    <PlusIcon />
-                </Button>
+        <Button variant="secondary" size="icon" className="size-8">
+          <MinusIcon />
+        </Button>
+      </div>
 
-                <Slider
-                    defaultValue={[50]}
-                    max={100}
-                    step={1}
-                    color="green"
-                    className={"p-2"}
+      {/* Playback Controls */}
+      <div className="flex items-center gap-2">
+        <Button variant="secondary" size="icon" onClick={onPrev}>
+          <RewindIcon />
+        </Button>
 
-                />
-                <Button variant="secondary" size="icon" className="size-8">
-                    <MinusIcon />
-                </Button>
-            </div>
+        <Button variant="secondary" size="icon" onClick={onPlay}>
+          <PlayIcon />
+        </Button>
 
-            <div className={"justify-between"}>
-                <Button>
+        <Button variant="secondary" size="icon" onClick={onPause}>
+          <PauseIcon />
+        </Button>
 
-                    <RewindIcon />
-                    <PlayIcon/>
-                    <FastForwardIcon/>
-
-                </Button>
-            </div>
-
-        </footer>
-    )
-}
-
+        <Button variant="secondary" size="icon" onClick={onNext}>
+          <FastForwardIcon />
+        </Button>
+      </div>
+    </footer>
+  );
+};
 
 export default ControllerFooter;
