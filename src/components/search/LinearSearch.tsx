@@ -2,6 +2,8 @@ import { useRef, useState, useEffect } from "react";
 import gsap from "gsap";
 import Flip from "gsap/Flip";
 import SharedLayout from "@/components/SharedLayout";
+import {Alert, AlertTitle} from "@/components/ui/alert.tsx";
+import {toast} from "sonner";
 
 gsap.registerPlugin(Flip);
 
@@ -21,7 +23,20 @@ const SearchVisualizer = () => {
     const [currentStep, setCurrentStep] = useState(0);
     // Steps will now store snapshots of Bar arrays
     const [steps, setSteps] = useState<Bar[][]>([]);
+    const  [isntAllowed,setIsntAllowed] = useState(false)
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+
+    useEffect(() => {
+        if (isntAllowed) {
+            const timeout = setTimeout(() => {
+                setIsntAllowed(false);
+            }, 1500); // 3 seconds
+
+            return () => clearTimeout(timeout);
+        }
+    }, [isntAllowed]);
+
 
     // Helper to reset the animation state
     const resetAnimation = () => {
@@ -47,6 +62,11 @@ const SearchVisualizer = () => {
 
     const handleInsert = () => {
         const num = parseInt(inputValue.trim());
+
+        if (num > 50 ||  num < -50){
+            setIsntAllowed(true);
+            return
+        }
         if (!isNaN(num)) {
             const newBar: Bar = { value: num, state: "default", id: Date.now() + Math.random() };
             const updated = [...bars, newBar];
@@ -82,8 +102,13 @@ const SearchVisualizer = () => {
     };
 
     const handleSearch = () => {
+
         const target = parseInt(searchValue.trim());
-        if (isNaN(target)) return;
+        if (isNaN(target) || target > 50 || target < -50) {
+            setIsntAllowed(true);
+            return;
+        }
+
 
         resetAnimation();
         resetBarStates(); // Reset colors before starting a new search
@@ -193,13 +218,21 @@ const SearchVisualizer = () => {
             onNext={nextStep}
             onPrev={prevStep}
         >
+            {
+                isntAllowed &&
+                toast("Invalid Number",{
+                    description: "You can't Enter Number greater than 50 and less than -50",
+                })
+            }
             <div className="flex gap-2 justify-center items-end p-4 min-h-[200px] bar-container">
                 {bars.map((bar) => (
                     <div
                         key={bar.id}
+
                         data-flip-id={bar.id}
                         className={`bar w-10 rounded-sm text-white text-center transition-colors duration-300 ${getBarColor(bar.state)}`}
-                        style={{ height: `${bar.value * 4}px` }}
+                        style={{ height: `${Math.max(bar.value * 4, 30)}px` }}
+
                     >
                         {bar.value}
                     </div>

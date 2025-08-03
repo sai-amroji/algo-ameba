@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/select.tsx";
 import { type ReactNode } from "react";
 import ControllerFooter from "@/components/ControllerFooter.tsx";
+import {Toaster} from "sonner";
 
 interface Algo {
     name: string;
@@ -109,7 +110,9 @@ const SharedLayout = ({
             </div>
 
             {/* Visualization Area */}
-            <div className="flex-grow">{children}</div>
+            <div className="flex-1 flex justify-center items-center">{children}</div>
+            <Toaster className={"bg-red-700" } position={"top-center"}/>
+
 
             {/* Controls */}
             <ControllerFooter
