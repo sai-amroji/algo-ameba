@@ -55,6 +55,7 @@ return (
                     <AlgoCard
                         algoImg={algo.algoImg}
                         algoName={algo.algoName}
+                        algoRoute={algo.algoRoute}
                         algoDesc={algo.algoDesc}
                     />
 
