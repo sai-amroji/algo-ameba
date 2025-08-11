@@ -205,7 +205,8 @@ const SearchVisualizer = () => {
         }
     };
 
-    const algoMap = [{ name: "Linear Search", value: "linear" }];
+    const algoMap = [{ name: "Linear Search", value: "linear" } ,
+        {name:"Binary Search",value: "binary"}];
 
     const getBarColor = (id: number) => {
         switch (barStates[id]) {

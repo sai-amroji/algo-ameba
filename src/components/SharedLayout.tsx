@@ -11,6 +11,7 @@ import {
 import { type ReactNode } from "react";
 import ControllerFooter from "@/components/ControllerFooter.tsx";
 import {Toaster} from "sonner";
+import {useNavigate} from "react-router-dom";
 
 interface Algo {
     name: string;
@@ -50,6 +51,9 @@ const SharedLayout = ({
                           onNext,
                           onPrev
                       }: SharedLayoutProps) => {
+
+
+    const navigate = useNavigate()
     return (
         <div className="flex flex-col w-full min-h-screen">
 
@@ -100,7 +104,7 @@ const SharedLayout = ({
                         <SelectGroup>
                             <SelectLabel>Search Algorithms</SelectLabel>
                             {algoMap.map((algo) => (
-                                <SelectItem key={algo.value} value={algo.value}>
+                                <SelectItem key={algo.value} value={algo.value} onClick={() => navigate(`/${algo.value}`)}>
                                     {algo.name}
                                 </SelectItem>
                             ))}
