@@ -5,6 +5,7 @@
   "tsx": true,
   "tailwind": {
     "config": "",
+     "darkMode": "class",
     "css": "src/index.css",
     "baseColor": "zinc",
     "cssVariables": true,

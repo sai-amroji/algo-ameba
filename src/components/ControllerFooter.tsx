@@ -33,14 +33,14 @@ const ControllerFooter = ({
   };
 
   return (
-      <footer className="flex justify-between items-center p-4 w-full">
+      <footer className="flex justify-between items-center p-4 w-full  ">
         {/* Speed Controls */}
         <div className="flex items-center gap-4">
           <Button variant="secondary" size="icon" className="size-8">
             <PlusIcon />
           </Button>
 
-          <Slider defaultValue={[50]} max={100} step={1} className="w-64" />
+          <Slider defaultValue={[50]} max={100} step={1} className="w-64 " />
 
           <Button variant="secondary" size="icon" className="size-8">
             <MinusIcon />
@@ -48,7 +48,7 @@ const ControllerFooter = ({
         </div>
 
         {/* Playback Controls */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 ">
           <Button variant="secondary" size="icon" onClick={onPrev}>
             <RewindIcon />
           </Button>

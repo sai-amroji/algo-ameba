@@ -53,7 +53,7 @@ const SharedLayout = ({
 }: SharedLayoutProps) => {
   const navigate = useNavigate();
   return (
-    <div className="flex flex-col w-full min-h-screen">
+    <div className="flex flex-col w-full min-h-screen dark:bg-[#151515]">
       <div className="flex flex-wrap justify-between items-center gap-4 px-6 py-4">
         {/* Input Insert */}
         <div className={"flex items-center gap-2"}>
@@ -61,12 +61,12 @@ const SharedLayout = ({
             <Input
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              className="max-w-[150px]"
+              className="max-w-[150px] text-white border-white"
               placeholder="Insert number"
             />
             <button
               onClick={handleInsert}
-              className="bg-green-500 text-white px-3 py-2 rounded"
+              className="bg-green-500 text-white px-3 py-2 rounded border-0"
             >
               Insert
             </button>
@@ -76,7 +76,7 @@ const SharedLayout = ({
             <Input
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
-              className="max-w-[150px]"
+              className="max-w-[150px] text-white"
               placeholder="Search value"
             />
             <button
@@ -98,9 +98,10 @@ const SharedLayout = ({
           {/* Search */}
         </div>
 
+
         {/* Algorithm Dropdown */}
-        <Select onValueChange={() => {}}>
-          <SelectTrigger className="w-[180px]">
+        <Select onValueChange={(value) => {  navigate(`/${value}`);}}>
+          <SelectTrigger className="w-[180px] text-white dark:bg-black">
             <SelectValue placeholder="Select Algorithm" />
           </SelectTrigger>
           <SelectContent>

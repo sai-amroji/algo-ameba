@@ -8,6 +8,7 @@ import logo from '../assets/algo-ameba.png'
 import { useGSAP } from "@gsap/react";
 import { gsap } from "gsap";
 import { SplitText } from "gsap/all";
+import {ModeToggle} from "@/components/mode-toggle.tsx";
 
 
 
@@ -31,15 +32,16 @@ const Homepage = () => {
         })
     })
 return (
-     <div>
+     <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
 
-            <div className="flex w-full text-lightgreen h-20 justify-between">
-                <img src={logo} className={"w-[120px] height-[80px]"} alt={"logo"} />
-                <Input name="search" className='flex h-12 w-[900px] self-center rounded-[40px]' />
+            <div className="flex w-full h-20 justify-between items-center px-4 bg-card">
+                <img src={logo} className="w-[120px] h-[80px]" alt="logo" />
+                <Input name="search" className='flex h-12 w-[900px] rounded-[40px]' />
+                <ModeToggle/>
 
                 <Avatar>
                     <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn"
-                        className={"w-[70px] h-[70px] self-center rounded-full pr-[10px] mr-[10px] align-middle z-auto"} />
+                        className="w-[70px] h-[70px] rounded-full" />
                     <AvatarFallback>CN</AvatarFallback>
                 </Avatar>
             </div>
@@ -50,18 +52,16 @@ return (
 
 
 
-            <div className={"grid px-[15px] mx-[16px] overflow-auto grid-cols-3 gap-4 justify-center content-center"}>
+            <div className="grid px-[15px] mx-[16px] overflow-auto grid-cols-3 gap-4 justify-center content-center">
                 {algos.map((algo) => (
                     <AlgoCard
+                        key={algo.algoName}
                         algoImg={algo.algoImg}
                         algoName={algo.algoName}
                         algoRoute={algo.algoRoute}
                         algoDesc={algo.algoDesc}
                     />
-
-
                 ))}
-
             </div>
 
         </div>
