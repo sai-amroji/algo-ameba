@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from "react";
 import gsap from "gsap";
 import Flip from "gsap/Flip";
-import SharedLayout from "@/components/SharedLayout";
+import SharedLayout from "@/components/search/SharedLayout";
 import { Alert, AlertTitle } from "@/components/ui/alert.tsx";
 import { toast } from "sonner";
 
@@ -18,7 +18,7 @@ type BarState = "default" | "checking";
 
 const BubbleSort = () => {
   const [bars, setBars] = useState<Bar[]>([]);
-  const [barStates, setBarStates] = useState<Record<number, BarState>>({});
+  const [barStates, setBarStates] = useState<Record<string, BarState>>({});
   const [inputValue, setInputValue] = useState("");
   const [isPlaying, setIsPlaying] = useState(false);
   const [isntAllowed, setIsntAllowed] = useState(false);
@@ -53,8 +53,8 @@ const BubbleSort = () => {
       return;
     }
     if (!isNaN(num)) {
-      const val = Date.now() - Math.floor(Math.random() * 100000);
-      const newBar: Bar = { value: num, id: `bar-${val.toString()}` };
+
+      const newBar: Bar = { value: num,id: `bar-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`};
       const updated = [...bars, newBar];
 
       const state = Flip.getState(".bar-container, .bar");
@@ -72,7 +72,8 @@ const BubbleSort = () => {
   const generateRandomArray = () => {
     const random = Array.from({ length: 15 }, () => ({
       value: Math.floor(Math.random() * 50) + 1,
-      id: `bar-${Date.now()}-${Math.floor(Math.random() * 100000)}`,
+      id: `bar-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`
+        ,
     }));
 
     const state = Flip.getState(".bar-container, .bar");
@@ -87,42 +88,40 @@ const BubbleSort = () => {
   };
 
   const swap = (index1: number, index2: number) => {
-    const state = Flip.getState(".bar"); // capture before
-
-    setBars((prev) => {
+    const state = Flip.getState(".bar");
+    setBars(prev => {
       const copy = [...prev];
       [copy[index1], copy[index2]] = [copy[index2], copy[index1]];
       return copy;
     });
-
-    // Animate in next frame
-    timelineRef.current.add(() => {
-      Flip.from(state, {
-        duration: 0.4,
-        ease: "power1.inOut",
+    return new Promise<void>((resolve) => {
+      requestAnimationFrame(() => {
+        Flip.from(state, {
+          targets: ".bar",
+          duration: 0.4,
+          ease: "power1.inOut",
+          onComplete: () => resolve(),
+        });
       });
     });
   };
 
-  const bubbleSteps = () => {
-    const timeline = timelineRef.current;
-    const labels: string[] = [];
-
+  const bubbleSteps = async () => {
     for (let i = 0; i < bars.length; i++) {
-      for (let j = 0; j < bars.length - i - 1; j++) {
-        const label = `step-${i}-${j}`;
-        timeline.addLabel(label);
-        labels.push(label);
-
+      for (let j = i; j < bars.length  - 1; j++) {
         if (bars[j].value > bars[j + 1].value) {
-          // Add swap step to timeline
-          timeline.add(() => swap(j, j + 1));
+          await swap(j, j + 1);
         }
       }
     }
-
-    labelsRef.current = labels;
   };
+
+
+
+  const handleSearch = () => {
+    bubbleSteps()
+    playSteps()
+  }
 
   const playSteps = () => {
     if (!isPlaying) {
@@ -179,6 +178,7 @@ const BubbleSort = () => {
       setInputValue={setInputValue}
       isPlaying={isPlaying}
       handleInsert={handleInsert}
+      handleSearch={handleSearch}
       generateRandomArray={generateRandomArray}
       algoMap={algoMap}
       onPlay={playSteps}

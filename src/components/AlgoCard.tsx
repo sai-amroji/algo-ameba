@@ -13,21 +13,25 @@ const AlgoCard = ({ algoImg, algoName, algoDesc, algoRoute }: AlgoProps) => {
   return (
     <div
       onClick={() => navigate(algoRoute)}
-      className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer overflow-hidden w-[380px]"
+      className="bg-white
+           rounded-2xl
+          px-5 pt-5 w-[397] h-[302]
+          transition-all
+          duration-300
+           cursor-pointer o
+           verflow-hidden backdrop-blur-[10px] shadow-xl w-[380px]"
     >
       <img
         src={algoImg}
         alt={algoName}
-        className="w-full h-[220px] object-cover"
+        className="w-full h-[220px] object-cover rounded-xl"
       />
 
-      <div className="p-6">
-        <h3 className="font-plex font-semibold text-2xl text-gray-900 drop-shadow-sm">
+      <div className="pt-3 pb-6 mb-4 pl-2 pr-5">
+        <h3 className="font-plex justify-start  font-semibold font-mono text-[16px]  text-gray-900 drop-shadow-sm">
           {algoName}
         </h3>
-        <p className="mt-2 text-gray-600 text-base leading-relaxed">
-          {algoDesc}
-        </p>
+
       </div>
     </div>
   );

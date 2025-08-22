@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from "react";
 import gsap from "gsap";
 import Flip from "gsap/Flip";
-import SharedLayout from "@/components/SharedLayout";
+import SharedLayout from "@/components/search/SharedLayout";
 import { Alert, AlertTitle } from "@/components/ui/alert.tsx";
 import { toast } from "sonner";
 

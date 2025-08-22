@@ -27,11 +27,11 @@ const Homepage = () => {
   });
 
   return (
-    <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
+    <div className="min-h-screen bg-background text-foreground transition-colors duration-300 dark:bg-background-[#121212]">
       {/* Navbar */}
       <div className="flex w-full h-20 justify-between items-center px-4 bg-white shadow">
         <img src={logo} className="w-[120px] h-[80px]" alt="logo" />
-        <Input name="search" className="flex h-12 w-[900px] rounded-[40px]" />
+        <Input name="search" className="flex h-12 w-[900px] rounded-[40px] shadow-[9px] shadow-inner-xl backdrop-blur-[5px]" />
         <ModeToggle />
 
         <Avatar>
@@ -46,9 +46,9 @@ const Homepage = () => {
 
       {/* Hero Section */}
       <section id="hero" className="bg-white border-y border-black py-12">
-        <div className="px-12 flex items-center justify-start gap-12">
-          <div className="flex flex-col items-start">
-            <h1 className="text-8xl font-bold font-plex drop-shadow-md">
+        <div className="px-12 flex items-center font-[audiowide] text-[#131313] ml-1.5 justify-start gap-12">
+          <div className="flex flex-col items-start ">
+            <h1 className="text-8xl font-bold font-[audiowide] ">
               Algo
             </h1>
             <h1 className="text-8xl font-bold font-plex drop-shadow-md">
@@ -65,8 +65,8 @@ const Homepage = () => {
 
       {/* Cards Section */}
       <section className="bg-[#f1f9f1] py-16">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 place-items-center">
+        <div className="">
+          <div className="grid grid-cols-3  gap-10 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3  place-items-center">
             {algos.map((algo) => (
               <AlgoCard
                 key={algo.algoName}
