@@ -18,6 +18,12 @@ interface Algo {
   value: string;
 }
 
+// We will use this to track the state for visual rendering
+//
+export type BarState = "default" | "checking" | "found";
+
+
+
 interface SharedLayoutProps {
   inputValue: string;
   setInputValue: (val: string) => void;

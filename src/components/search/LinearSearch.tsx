@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from "react";
 import gsap from "gsap";
 import Flip from "gsap/Flip";
-import SharedLayout from "@/components/search/SharedLayout";
+import SharedLayout, {type BarState} from "@/components/search/SharedLayout";
 import { Alert, AlertTitle } from "@/components/ui/alert.tsx";
 import { toast } from "sonner";
 
@@ -10,11 +10,8 @@ gsap.registerPlugin(Flip);
 // Define a type for our bar objects for better type safety
 type Bar = {
     value: number;
-    id: number; // Use a unique ID for stable keys in React
+    id: string; // Use a unique ID for stable keys in React
 };
-
-// We will use this to track the state for visual rendering
-type BarState = "default" | "checking" | "found";
 
 const SearchVisualizer = () => {
     const [bars, setBars] = useState<Bar[]>([]);
@@ -58,7 +55,8 @@ const SearchVisualizer = () => {
             return;
         }
         if (!isNaN(num)) {
-            const newBar: Bar = { value: num, id: Date.now() + Math.random() };
+            const val = Date.now() + Math.random()
+            const newBar: Bar = { value: num, id: val.toString() };
             const updated = [...bars, newBar];
 
             const state = Flip.getState(".bar-container, .bar");
@@ -76,7 +74,7 @@ const SearchVisualizer = () => {
     const generateRandomArray = () => {
         const random = Array.from({ length: 8 }, () => ({
             value: Math.floor(Math.random() * 50) + 1,
-            id: Math.random(),
+            id: Math.random().toString(),
         }));
 
         const state = Flip.getState(".bar-container, .bar");

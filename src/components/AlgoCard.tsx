@@ -17,9 +17,12 @@ const AlgoCard = ({ algoImg, algoName, algoDesc, algoRoute }: AlgoProps) => {
            rounded-2xl
           px-5 pt-5 w-[397] h-[302]
           transition-all
-          duration-300
+          duration-300'
+          z-10
+          shadow-[8px_8px_8px_rgb(0,0,0,0.45)]
+          hover:scale-75
            cursor-pointer o
-           verflow-hidden backdrop-blur-[10px] shadow-xl w-[380px]"
+           verflow-hidden backdrop-blur-[15px] w-[380px]"
     >
       <img
         src={algoImg}

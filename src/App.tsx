@@ -21,6 +21,8 @@ import { SplitText } from "gsap/all";
 import BubbleSortVisualizer from "@/components/sort/BubbleSort.tsx";
 import SearchVisualizer from "@/components/search/LinearSearch.tsx";
 import BinarySearch from "@/components/search/BinarySearch.tsx";
+import LandingPage from "@/pages/LandingPage.tsx";
+import SelectionSort from "@/components/sort/SelectionSort.tsx";
 gsap.registerPlugin(SplitText);
 
 export const algos: AlgoProps[] = [
@@ -82,12 +84,12 @@ function App() {
 
          <BrowserRouter >
       <Routes>
-        <Route path="/" element={<Homepage />} />
-
+        <Route path="/" element={<LandingPage />} />
+          <Route path={"/home"} element={<Homepage/>}/>
           <Route path= "/sort" element={<BubbleSortVisualizer/>}/>
           <Route path="/search" element={<SearchVisualizer/>}/>
           <Route path="/binary" element={<BinarySearch/>}/>
-
+          <Route path={"/selection"} element={<SelectionSort/>}/>
        
       </Routes>
     </BrowserRouter>

@@ -27,7 +27,7 @@ const Homepage = () => {
   });
 
   return (
-    <div className="min-h-screen bg-background text-foreground transition-colors duration-300 dark:bg-background-[#121212]">
+    <div className="min-h-screen bg--background text-foreground transition-colors duration-300">
       {/* Navbar */}
       <div className="flex w-full h-20 justify-between items-center px-4 bg-white shadow">
         <img src={logo} className="w-[120px] h-[80px]" alt="logo" />
@@ -48,7 +48,7 @@ const Homepage = () => {
       <section id="hero" className="bg-white border-y border-black py-12">
         <div className="px-12 flex items-center font-[audiowide] text-[#131313] ml-1.5 justify-start gap-12">
           <div className="flex flex-col items-start ">
-            <h1 className="text-8xl font-bold font-[audiowide] ">
+            <h1 className="text-8xl font-bold font-[audiowide]">
               Algo
             </h1>
             <h1 className="text-8xl font-bold font-plex drop-shadow-md">

@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from "react";
 import gsap from "gsap";
 import Flip from "gsap/Flip";
-import SharedLayout from "@/components/search/SharedLayout";
+import SharedLayout, {type BarState} from "@/components/search/SharedLayout";
 import { Alert, AlertTitle } from "@/components/ui/alert.tsx";
 import { toast } from "sonner";
 
@@ -13,8 +13,6 @@ type Bar = {
   id: string; // Use a unique ID for stable keys in React
 };
 
-// We will use this to track the state for visual rendering
-type BarState = "default" | "checking" | "found";
 
 const BinarySearch = () => {
   const [bars, setBars] = useState<Bar[]>([]);
