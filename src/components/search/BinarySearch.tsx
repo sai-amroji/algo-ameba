@@ -7,26 +7,26 @@ import { toast } from "sonner";
 
 gsap.registerPlugin(Flip);
 
-// Define a type for our bar objects for better type safety
+
 type Bar = {
   value: number;
-  id: string; // Use a unique ID for stable keys in React
+  id: string;
 };
 
 
 const BinarySearch = () => {
   const [bars, setBars] = useState<Bar[]>([]);
-  // Use a record to map bar IDs to their state
   const [barStates, setBarStates] = useState<Record<number, BarState>>({});
   const [inputValue, setInputValue] = useState("");
   const [searchValue, setSearchValue] = useState("");
   const [isPlaying, setIsPlaying] = useState(false);
   const [isntAllowed, setIsntAllowed] = useState(false);
-
-  // Use a ref for the timeline
+  const [size,setSize] = useState(0)
   const timelineRef = useRef(gsap.timeline({ paused: true }));
-  // We'll use this ref to store the timeline's labels for step-by-step navigation
   const labelsRef = useRef<string[]>([]);
+
+
+
 
   useEffect(() => {
     if (isntAllowed) {
@@ -35,12 +35,18 @@ const BinarySearch = () => {
     }
   }, [isntAllowed]);
 
-  // Cleanup toast and timeline on unmount
+
+
+
+
   useEffect(() => {
     return () => {
       timelineRef.current.kill();
     };
   }, []);
+
+
+
 
   const resetAnimation = () => {
     timelineRef.current.clear().pause(0);
@@ -48,6 +54,9 @@ const BinarySearch = () => {
     setIsPlaying(false);
     setBarStates({});
   };
+
+
+
 
   const handleInsert = () => {
     const num = parseInt(inputValue.trim());
@@ -72,9 +81,32 @@ const BinarySearch = () => {
     }
   };
 
+
+
+
+  const handleSize = () => {
+    const arrsize = parseInt(inputValue.trim());
+
+    if(arrsize > 25 || arrsize <= 0) {
+      setIsntAllowed(true);
+      return;
+    }
+
+    setSize(arrsize)
+
+  }
+
+
+
+
+
   const generateRandomArray = () => {
-    // Generate unique random numbers between 1 and 50
-    const random = Array.from({ length: 15 }, () => ({
+
+    if (size <= 0){
+      setIsntAllowed(true);
+      return;
+    }
+    const random = Array.from({ length: size }, () => ({
       value: Math.floor(Math.random() * 50) + 1,
       id: `bar-${Date.now()}-${Math.floor(Math.random() * 100000)}`,
     })).sort((a, b) => a.value - b.value); // Sort ascending by value
@@ -90,6 +122,8 @@ const BinarySearch = () => {
     resetAnimation();
   };
 
+
+
   const binarySteps = (low: number, high: number, target: number) => {
     if (low > high) return;
 
@@ -97,10 +131,11 @@ const BinarySearch = () => {
     const midVal = bars[mid].value;
     const tl = gsap.timeline();
 
-    // Step 1: Reset all visible bars to default color
+
+
     tl.to(".bar", { backgroundColor: "blue", duration: 0.2 });
 
-    // Step 2: Highlight the range bars (low & high)
+
     tl.to(
       `#bar-${bars[low].id}`,
       { backgroundColor: "yellow", duration: 0.3 },
@@ -112,7 +147,9 @@ const BinarySearch = () => {
       "<"
     );
 
-    // Step 3: Pause so user can see range
+
+
+
     tl.to({}, { duration: 0.5 });
 
     // Step 4: Highlight mid bar
@@ -218,6 +255,9 @@ const BinarySearch = () => {
   return (
     <SharedLayout
       inputValue={inputValue}
+      size={size}
+      setSize={setSize}
+      handleSize={handleSize}
       setInputValue={setInputValue}
       searchValue={searchValue}
       setSearchValue={setSearchValue}

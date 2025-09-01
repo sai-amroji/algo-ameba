@@ -31,7 +31,10 @@ interface SharedLayoutProps {
   setSearchValue?: (val: string) => void;
   handleInsert: () => void;
   handleSearch?: () => void;
+  handleSize:()=>void;
   generateRandomArray: () => void;
+  size:number;
+  setSize:() => void;
   algoMap: Algo[];
   children: ReactNode;
   isPlaying: boolean;
@@ -47,6 +50,9 @@ const SharedLayout = ({
   searchValue,
   setSearchValue,
   handleInsert,
+  size,
+  setSize,
+  handleSize,
   handleSearch,
   generateRandomArray,
   algoMap,
@@ -78,6 +84,22 @@ const SharedLayout = ({
             </button>
           </div>
 
+
+          <div className="flex items-center gap-2">
+            <Input
+                value={size}
+                onChange={(e) => setSize(e.target.value)}
+                className="max-w-[150px] text-white"
+                placeholder="Search value"
+            />
+            <button
+                onClick={handleSize}
+                className="bg-blue-500 text-white px-3 py-2 rounded"
+            >
+              Enter Size
+            </button>
+          </div>
+
           <div className="flex items-center gap-2">
             <Input
               value={searchValue}
@@ -92,6 +114,8 @@ const SharedLayout = ({
               Search
             </button>
           </div>
+
+
 
           {/* Random Button */}
           <button

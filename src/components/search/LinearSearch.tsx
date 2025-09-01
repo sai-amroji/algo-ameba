@@ -21,6 +21,8 @@ const SearchVisualizer = () => {
     const [searchValue, setSearchValue] = useState("");
     const [isPlaying, setIsPlaying] = useState(false);
     const [isntAllowed, setIsntAllowed] = useState(false);
+    const [size,setSize] = useState(0);
+
 
     // Use a ref for the timeline
     const timelineRef = useRef(gsap.timeline({ paused: true }));

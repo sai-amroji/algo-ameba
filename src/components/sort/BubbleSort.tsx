@@ -26,6 +26,8 @@ const BubbleSort = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isntAllowed, setIsntAllowed] = useState(false);
   const [isSorting, setIsSorting] = useState(false);
+  const [size,setSize] = useState(0);
+
 
   const timelineRef = useRef(gsap.timeline({ paused: true }));
   const labelsRef = useRef<string[]>([]);

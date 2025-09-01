@@ -1,4 +1,4 @@
-// import './App.css'
+
 import { algos } from "@/App.js";
 import AlgoCard from "@/components/AlgoCard.tsx";
 import { Input } from "@/components/ui/input.tsx";

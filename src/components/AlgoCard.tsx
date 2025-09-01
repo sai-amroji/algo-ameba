@@ -3,11 +3,10 @@ import { useNavigate } from "react-router-dom";
 export interface AlgoProps {
   algoName: string;
   algoImg: string;
-  algoDesc: string;
   algoRoute: string;
 }
 
-const AlgoCard = ({ algoImg, algoName, algoDesc, algoRoute }: AlgoProps) => {
+const AlgoCard = ({ algoImg, algoName,algoRoute }: AlgoProps) => {
   const navigate = useNavigate();
 
   return (
