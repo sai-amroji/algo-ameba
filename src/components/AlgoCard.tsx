@@ -18,8 +18,8 @@ const AlgoCard = ({ algoImg, algoName,algoRoute }: AlgoProps) => {
           transition-all
           duration-300'
           z-10
-          shadow-[8px_8px_8px_rgb(0,0,0,0.45)]
-          hover:scale-75
+          shadow-[8px_8px_rgb(0,0,0,0.45)]
+
            cursor-pointer o
            verflow-hidden backdrop-blur-[15px] w-[380px]"
     >

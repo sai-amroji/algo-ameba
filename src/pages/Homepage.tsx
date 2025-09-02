@@ -27,9 +27,9 @@ const Homepage = () => {
   });
 
   return (
-    <div className="min-h-screen bg--background text-foreground transition-colors duration-300">
+    <div className="min-h-screen bg-[#F5F5F5] text-foreground transition-colors duration-300">
       {/* Navbar */}
-      <div className="flex w-full h-20 justify-between items-center px-4 bg-white shadow">
+      <div className="flex w-full h-20 justify-between items-center px-4  shadow">
         <img src={logo} className="w-[120px] h-[80px]" alt="logo" />
         <Input name="search" className="flex h-12 w-[900px] rounded-[40px] shadow-[9px] shadow-inner-xl backdrop-blur-[5px]" />
         <ModeToggle />
@@ -45,7 +45,7 @@ const Homepage = () => {
       </div>
 
       {/* Hero Section */}
-      <section id="hero" className="bg-white border-y border-black py-12">
+      <section id="hero" className="bg-[#F5F5F5]  py-12">
         <div className="px-12 flex items-center font-[audiowide] text-[#131313] ml-1.5 justify-start gap-12">
           <div className="flex flex-col items-start ">
             <h1 className="text-8xl font-bold font-[audiowide]">
@@ -64,7 +64,7 @@ const Homepage = () => {
       </section>
 
       {/* Cards Section */}
-      <section className="bg-[#f1f9f1] py-16">
+      <section className=" py-16">
         <div className="">
           <div className="grid grid-cols-3  gap-10 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3  place-items-center">
             {algos.map((algo) => (
@@ -73,7 +73,6 @@ const Homepage = () => {
                 algoImg={algo.algoImg}
                 algoName={algo.algoName}
                 algoRoute={algo.algoRoute}
-                algoDesc={algo.algoDesc}
               />
             ))}
           </div>
