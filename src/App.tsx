@@ -28,13 +28,12 @@ gsap.registerPlugin(SplitText);
 export const algos: AlgoProps[] = [
     {
         algoName: "Sorting Algorithms",
-        algoDesc: "Watch how data gets sorted step-by-step using visualizations of Bubble Sort, Merge Sort, Quick Sort, and more. Great for building core intuition.",
         algoImg: sortingLogo,
         algoRoute:"/sort"
     },
     {
         algoName: "Dynamic Programming",
-        algoDesc: "Understand how overlapping subproblems are solved visually — see memoization and tabulation in action for problems like Fibonacci, Knapsack, and Grid Paths.",
+
         algoImg: dpLogo,
         algoRoute:"/dp"
     },

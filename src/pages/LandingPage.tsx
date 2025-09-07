@@ -1,207 +1,207 @@
-import {ArrowBigDownDashIcon, ArrowBigLeft, ArrowBigRight, GithubIcon} from "lucide-react";
-import {useNavigate} from "react-router-dom";
-import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar.tsx";
-import {Separator} from "@/components/ui/separator.tsx";
-
+import { GithubIcon } from "lucide-react";
+import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
+import { useNavigate } from "react-router-dom";
+import { useRef, useEffect } from "react";
+import { gsap } from "gsap";
+import {Toggle} from "@/components/ui/toggle.tsx";
+import {ModeToggle} from "@/components/mode-toggle.tsx";
 
 const LandingPage = () => {
+    const navigate = useNavigate();
 
+    const titleRef = useRef(null);
+    const cardsRef = useRef([]);
+    const buttonRef = useRef(null);
+    const buttonBgRef = useRef(null);
 
+    useEffect(() => {
+        // Title animation (letter by letter)
+        if (titleRef.current) {
+            const letters = titleRef.current.querySelectorAll("span");
+            gsap.from(letters, {
+                opacity: 0,
+                y: 50,
+                stagger: 0.1,
+                duration: 0.6,
+                ease: "power3.out",
+            });
+        }
 
+        // Cards animation (line by line)
+        cardsRef.current.forEach((card) => {
+            const lines = card.querySelectorAll("h2, div");
+            gsap.from(lines, {
+                opacity: 0,
+                x: -30,
+                stagger: 0.2,
+                duration: 0.6,
+                ease: "power2.out",
+            });
+        });
 
-
-
-     const navigate = useNavigate();
+        // Get Started button animation
+        if (buttonRef.current && buttonBgRef.current) {
+            const tl = gsap.timeline();
+            tl.from(buttonRef.current, {
+                y: -100,
+                opacity: 0,
+                duration: 0.8,
+                ease: "power2.out",
+            }).from(
+                buttonBgRef.current,
+                {
+                    x: "-100%",
+                    duration: 0.8,
+                    ease: "power2.inOut",
+                },
+                "-=0.5"
+            );
+        }
+    }, []);
 
     return (
-        <div className={"w-full h-full bg-[#F5F5F5]"}>
-
-            <nav className={"flex w-full justify-end  p-2 text-lime-400 text-shadow-sm backdrop-blur-2xl  font-[audiowide] font-regular text-[24px]"}>
-
-                <div className="flex justify-between gap-4 text-shadow-[3px_3px_rgb(0,0,0,1)]">
-
-                    <div>
-                        Home
-                    </div>
-                    <div>
-                        Algoritms
-                    </div>
-                    <div>
-                        About Us
-                    </div>
-                </div>
-
-
+        <div className={"w-full h-full bg-background"}>
+            <nav className={"flex w-full justify-end gap-8 p-4 text--primary text-shadow-[8px] backdrop-blur-2xl  font-[audiowide] font-regular text-[24px]"}>
+                <ModeToggle />
+                <p className="relative cursor-pointer border-b-2 border-transparent hover:border-[#00ff08] transition-all duration-300"
+                   onClick={() => navigate("/home")}>
+                    Home
+                </p>
+                <p className="relative cursor-pointer border-b-2 border-transparent hover:border-[#00ff08] transition-all duration-300"
+                   onClick={() => navigate("/algorithms")}>
+                    Algorithms
+                </p>
+                <p className="relative cursor-pointer border-b-2 border-transparent hover:border-[#00ff08] transition-all duration-300"
+                   onClick={() => navigate("/about")}>
+                    About Us
+                </p>
             </nav>
 
-            <header className={"w-full"}>
-                <h1 className={"font-bold " +
-                    "font-[audiowide] " +
-                    "m-5 " +
-                    "text-[160px] " +
-                    "shadow-inner-[5px_5px_rgb(0,0,0)] " +
-                    "text-shadow-[5px_5px_rgb(0,0,0)] text-lime-300"}
+            <header className={"flex justify-around items-center w-full p-0 my-20"}>
+                <h1
+                    ref={titleRef}
+                    className={"font-bold font-[audiowide] m-5 translate-x-[100px] text-[160px] text-white text-shadow-[0px_5px_5px_rgb(0,0,0)]"}
                 >
-                    Algo Ameba
+                    {"Algo  Ameba".split(" ").map((letter, i) => (
+                        <span key={i} className="inline-block">
+
+              {letter}
+            </span>
+                    ))}
                 </h1>
             </header>
 
 
+            <div className={"flex flex-row justify-around"}>
 
-            <div className={"flex flex-row justify-around items-between content-around"}>
 
-                <div className="flex flex-col items-between ">
 
-                    <div className={"w-[400px] h-[200px] rounded-xs p-5 text-black shadow-[4px_4px_rgb(0,0,0)]  border-black border-2"}>
-
-                        <div className="font-extrabold pb-4">
-                            <h2>Easy</h2>
-                            <h2>And</h2>
-                            <h3>Fast</h3>
-                        </div>
-                        <div>
-                            <div>User Friendly Experience and very Intuitive to use
+                <div className={"flex flex-col gap-8 m-10 justify-between"}>
+                    {[
+                        { title1: "Modern and", title2: "Fluid Animations", text: "Animations which are butter smooth using modern animation GSAP Animate and learn anything" },
+                        { title1: "Easy and", title2: "Fast Animations", text: "Animations which are butter smooth using modern animation GSAP Animate and learn anything" },
+                    ].map((card, i) => (
+                        <div
+                            key={i}
+                            ref={(el) => (cardsRef.current[i] = el)}
+                            className="w-full sm:w-[80%] md:w-[400px] h-auto rounded-3xl shadow-2xl backdrop-blur-2xl border-[3px] border-[#007f04] p-4 gap-4 hover:scale-100 transition ease-in-out duration-300"
+                        >
+                            <div className="text-3xl text-primary font-[baijamjuri]">
+                                <h2>{card.title1}</h2>
+                                <h2>{card.title2}</h2>
+                            </div>
+                            <br />
+                            <div className="text-lg text-primary font-[arima] space-y-1 mt-2">
+                                <div>{card.text}</div>
                             </div>
                         </div>
-
-                     </div>
-
-                    <div className={"h-[500px]"}>
-
-                    </div>
+                    ))}
 
 
-                     <div className={"w-[400px] h-[200px] rounded-xs p-5 text-black shadow-[4px_4px_rgb(0,0,0)]  border-black border-2"}>
+                </div>
 
-                        <div className="font-extrabold pb-4">
-                            <h2>Bars</h2>
-                            <h2>To</h2>
-                            <h3>Graphs</h3>
-                        </div>
-                        <div>
-                            <div>Imagine Anything from Simple bars Sorting , Searching To Complex Network Graph
+
+                <div className={"flex flex-col gap-8 m-10 h-[1000px] justify-around content-center items-center"}>
+                    {[
+
+                        { title1: "Simple and", title2: "Complex Animations", text: "Animations which are butter smooth using modern animation GSAP Animate and learn anything" },
+
+                    ].map((card, i) => (
+                        <div
+                            key={i}
+                            ref={(el) => (cardsRef.current[i] = el)}
+                            className="w-full sm:w-[80%] md:w-[400px] h-auto rounded-3xl shadow-2xl backdrop-blur-2xl border-[3px] border-[#007f04] p-4 gap-4 hover:scale-105 transition ease-in-out duration-300"
+                        >
+                            <div className="text-3xl text- font-[baijamjuri]">
+                                <h2>{card.title1}</h2>
+                                <h2>{card.title2}</h2>
+                            </div>
+                            <br />
+                            <div className="text-lg text-[#ffffff] font-[arima] space-y-1 mt-2">
+                                <div>{card.text}</div>
                             </div>
                         </div>
-
-                    </div>
-
-
-
-
-
-
-
+                    ))}
                 </div>
-
-                <div className="flex flex-col   items-between w-[100px]">
-
-                    <div className="w-[40px] h-[40px] justify-start align-middle items-center content-center bg-lime-300 rounded-xs p-5 text-black shadow-[4px_4px_rgb(0,0,0)]  border-black border-2">
-                        <h3>1</h3>
-                    </div>
-                    <div className={"flex flex-col  items-center justify-center w-[100px] h-[100px] bg-black"}/ >
-
-                    <div className="w-[40px] h-[40px] justify-start align-middle items-center content-center bg-lime-300 rounded-xs p-5 text-black shadow-[4px_4px_rgb(0,0,0)]  border-black border-2">
-                        <h3>2</h3>
-                    </div>
-                    <Separator orientation={"vertical"} color={"black"}/>
-                    <div className="w-[40px] h-[40px] justify-start align-middle items-center content-center bg-lime-300 rounded-xs p-5 text-black shadow-[4px_4px_rgb(0,0,0)]  border-black border-2">
-                        <h3>3</h3>
-                    </div>
-                </div>
-
-                <div className="flex flex-col items-center">
-
-                    <div className={"h-[400px]"}>
-
-                    </div>
-
-
-                    <div className={"w-[400px] h-[200px] rounded-xs p-5 text-black shadow-[4px_4px_rgb(0,0,0)]  border-black border-2"}>
-
-                        <div className="font-extrabold pb-4">
-                            <h2>Simple</h2>
-                            <h2>To</h2>
-                            <h3>Complex Animation</h3>
-                        </div>
-                        <div>
-                            <div>Imagine Simple to
-                                Complex Animation with Modern Powerful library With <span className="text-lime-400 font-extrabold">GSAP</span>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-
-                <div className={"h-[400px]"}>
-
-                </div>
-
-
 
 
             </div>
 
-
-            <footer className={"bg-pink-400 mt-5 pt-5"}>
-
-
-
-            <div className="flex flex-col items-center justify-center">
-
-
-
-            <span >
-                <button onClick={() => navigate("/home")} className={" h-[50px]  px-4 flex gap-2 justify-between color-white items-center bg-green-400 font-bold font-size-[24px] rounded-[20px] shadow-[4px_4px_rgb(0,0,0)] border-2 border-black"}>Get Started <svg xmlns="http://www.w3.org/2000/svg" width="24"  color={"white"} height="24"><path d="M7.293 4.707 14.586 12l-7.293 7.293 1.414 1.414L17.414 12 8.707 3.293 7.293 4.707z"/></svg></button>
-
-            </span>
-
-
-
-
-
+            <div
+                ref={buttonRef}
+                className="relative flex justify-center items-center text-2xl text-white font-[arima] gap-4 rounded-full border-2 border-[#007f04] w-[200px] h-[60px] m-auto shadow-2xl overflow-hidden cursor-pointer"
+                onClick={() => navigate("/home")}
+            >
+                <div
+                    ref={buttonBgRef}
+                    className="absolute inset-0 bg-[#007f04] -z-10"
+                ></div>
+                <span>Get Started</span>
             </div>
 
-            <div className={" flex justify-around items-center mx-25"}>
+            <footer>
 
-                <div className={"flex flex-col font-semibold font-size-[32px] items-center"}>
+                <div className={" flex justify-around items-center mx-25"}>
+
+                    <div className={"flex flex-col font-semibold font-size-[32px] items-center"}>
 
 
                  <span className={"bg-black w-[50px] h-[50px] rounded-[20px] flex justify-center items-center py-2"}>
                      <GithubIcon/>
 
                  </span>
-                <span className={"text-black"}>Contribute Here</span>
+                        <span className={"text-black"}>Contribute Here</span>
 
-                </div>
-
-
-              <div className={"font-size-[32px] font-semibold flex flex-col items-center"}>
+                    </div>
 
 
-                <div className="*:data-[slot=avatar]:ring-background flex -space-x-2 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:grayscale">
-                    <Avatar>
-                        <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-                        <AvatarFallback>CN</AvatarFallback>
-                    </Avatar>
-                    <Avatar>
-                        <AvatarImage src="https://github.com/leerob.png" alt="@leerob" />
-                        <AvatarFallback>LR</AvatarFallback>
-                    </Avatar>
-                    <Avatar>
-                        <AvatarImage
-                            src="https://github.com/evilrabbit.png"
-                            alt="@evilrabbit"
-                        />
-                        <AvatarFallback>ER</AvatarFallback>
-                    </Avatar>
+                    <div className={"font-size-[32px] font-semibold flex flex-col items-center"}>
 
-                </div>
-                 <span className={"text-black"}>
+
+                        <div className="*:data-[slot=avatar]:ring-background flex -space-x-2 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:grayscale">
+                            <Avatar>
+                                <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
+                                <AvatarFallback>CN</AvatarFallback>
+                            </Avatar>
+                            <Avatar>
+                                <AvatarImage src="https://github.com/leerob.png" alt="@leerob" />
+                                <AvatarFallback>LR</AvatarFallback>
+                            </Avatar>
+                            <Avatar>
+                                <AvatarImage
+                                    src="https://github.com/evilrabbit.png"
+                                    alt="@evilrabbit"
+                                />
+                                <AvatarFallback>ER</AvatarFallback>
+                            </Avatar>
+
+                        </div>
+                        <span className={"text-black"}>
 
                      Contributers
                  </span>
 
-              </div>
+                    </div>
 
 
 
@@ -210,13 +210,10 @@ const LandingPage = () => {
 
 
 
-            </div>
+                </div>
             </footer>
         </div>
+    );
+};
 
-    )
-}
-
-
-
-export  default LandingPage;
+export default LandingPage;

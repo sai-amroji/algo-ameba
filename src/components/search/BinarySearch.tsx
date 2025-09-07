@@ -14,13 +14,15 @@ type Bar = {
 };
 
 
+
+
 const BinarySearch = () => {
   const [bars, setBars] = useState<Bar[]>([]);
   const [barStates, setBarStates] = useState<Record<number, BarState>>({});
   const [inputValue, setInputValue] = useState("");
   const [searchValue, setSearchValue] = useState("");
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isntAllowed, setIsntAllowed] = useState(false);
+
   const [size,setSize] = useState(0)
   const timelineRef = useRef(gsap.timeline({ paused: true }));
   const labelsRef = useRef<string[]>([]);
@@ -28,12 +30,6 @@ const BinarySearch = () => {
 
 
 
-  useEffect(() => {
-    if (isntAllowed) {
-      const timeout = setTimeout(() => setIsntAllowed(false), 1500);
-      return () => clearTimeout(timeout);
-    }
-  }, [isntAllowed]);
 
 
 
@@ -61,7 +57,12 @@ const BinarySearch = () => {
   const handleInsert = () => {
     const num = parseInt(inputValue.trim());
     if (num > 50 || num < -50) {
-      setIsntAllowed(true);
+      toast("Invalid Number", {
+            description:
+                "You can't Enter Number greater than 50 and less than -50",
+            duration:3000
+          }
+      )
       return;
     }
     if (!isNaN(num)) {
@@ -88,7 +89,14 @@ const BinarySearch = () => {
     const arrsize = parseInt(inputValue.trim());
 
     if(arrsize > 25 || arrsize <= 0) {
-      setIsntAllowed(true);
+      toast("Size is Invalid", {
+            description:
+                "You can't Enter Number greater than 50 and less than -50",
+            duration:3000
+          }
+
+
+      )
       return;
     }
 
@@ -103,7 +111,14 @@ const BinarySearch = () => {
   const generateRandomArray = () => {
 
     if (size <= 0){
-      setIsntAllowed(true);
+      toast("Size is 0 metion any size", {
+            description:
+                "Size",
+            duration:3000
+          }
+
+
+      )
       return;
     }
     const random = Array.from({ length: size }, () => ({
@@ -188,7 +203,7 @@ const BinarySearch = () => {
   const handleSearch = () => {
     const target = parseInt(searchValue.trim());
     if (isNaN(target) || target > 50 || target < -50) {
-      setIsntAllowed(true);
+
       return;
     }
 
@@ -271,11 +286,7 @@ const BinarySearch = () => {
       onNext={nextStep}
       onPrev={prevStep}
     >
-      {isntAllowed &&
-        toast("Invalid Number", {
-          description:
-            "You can't Enter Number greater than 50 and less than -50",
-        })}
+
       <div className="flex gap-2 justify-center items-end p-4 min-h-[200px] bar-container">
         {bars.map((bar) => (
           <div

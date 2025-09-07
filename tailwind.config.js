@@ -13,7 +13,7 @@ export default {
       colors: {
         // Base colors
         dark: {
-          a0: '#000000',
+          a0: '#121212',
         },
         light: {
           a0: '#ffffff',

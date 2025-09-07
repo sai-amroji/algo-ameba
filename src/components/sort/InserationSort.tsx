@@ -4,7 +4,6 @@ import Flip from "gsap/Flip";
 import SharedLayout from "@/components/search/SharedLayout";
 import { Alert, AlertTitle } from "@/components/ui/alert.tsx";
 import { toast } from "sonner";
-import selectionSort from "@/components/sort/SelectionSort.tsx";
 
 gsap.registerPlugin(Flip);
 
@@ -17,7 +16,7 @@ type Bar = {
 // We will use this to track the state for visual rendering
 type BarState = "default" | "checking" | "comparing" | "sorted";
 
-const InserationSort = () => {
+const SelectionSort = () => {
     const [bars, setBars] = useState<Bar[]>([]);
     const [barStates, setBarStates] = useState<Record<string, BarState>>({});
     const [inputValue, setInputValue] = useState("");
@@ -121,7 +120,7 @@ const InserationSort = () => {
 
     const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-    const InserationSteps = async () => {
+    const SelectionSteps = async () => {
         if (sortingRef.current) return;
 
         sortingRef.current = true;
@@ -132,65 +131,43 @@ const InserationSort = () => {
 
         try {
             for (let i = 0; i < n - 1; i++) {
-                let min_index = i
-                for (let j = i; j < n ; j++) {
-                    if (!sortingRef.current) return; // Allow cancellation
+                let min_index = i;
 
-                    // Highlight bars being compared
+                for (let j = i + 1; j < n; j++) {
+                    if (!sortingRef.current) return;
+
+                    // Highlight comparison
                     setBarStates({
-                        [currentBars[i].id]: "comparing",
+                        [currentBars[min_index].id]: "comparing",
                         [currentBars[j].id]: "comparing",
                     });
-
-                    await delay(300); // Pause to show comparison
-
+                    await delay(300);
 
                     if (currentBars[j].value < currentBars[min_index].value) {
-
-
                         min_index = j;
-
-
-                        setBarStates({
-                            [currentBars[j].id]: "checking",
-                            [currentBars[min_index].id]: "checking",
-                        });
-
-                        await delay(200);
-
-                        // Perform swap and get updated array
-                        currentBars = await swap(currentBars, i, min_index);
                     }
 
-                    // Clear comparison states
-                    setBarStates(prev => {
-                        const newState = { ...prev };
-                        delete newState[currentBars[i].id];
-                        delete newState[currentBars[min_index].id];
-                        return newState;
-                    });
+                    // Clear comparison highlight
+                    setBarStates({});
                 }
 
-                // Mark the last element of this pass as sorted
-                if (i < n - 1) {
-                    setBarStates(prev => ({
-                        ...prev,
-                        [currentBars[n - 1 - i].id]: "sorted"
-                    }));
+                // Swap after scanning whole subarray
+                if (min_index !== i) {
+                    currentBars = await swap(currentBars, i, min_index);
                 }
-            }
 
-            // Mark the first element as sorted too
-            if (currentBars.length > 0) {
-                setBarStates(prev => ({
+                // Mark the element at i as sorted
+                setBarStates((prev) => ({
                     ...prev,
-                    [currentBars[0].id]: "sorted"
+                    [currentBars[i].id]: "sorted",
                 }));
             }
 
-            // Clear all states after a moment
-            await delay(1000);
-            setBarStates({});
+            // Last element is also sorted
+            setBarStates((prev) => ({
+                ...prev,
+                [currentBars[n - 1].id]: "sorted",
+            }));
 
         } catch (error) {
             console.error("Error during sorting:", error);
@@ -209,7 +186,7 @@ const InserationSort = () => {
         }
 
         if (!isSorting) {
-            InserationSteps();
+            SelectionSteps();
         }
     };
 
@@ -292,14 +269,7 @@ const InserationSort = () => {
                         "You can't Enter Number greater than 50 and less than -50",
                 })}
 
-            {isSorting && (
-                <div className="text-center mb-4">
-                    <div className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800">
-                        <div className="animate-spin rounded-full h-3 w-3 border-2 border-blue-600 border-t-transparent mr-2"></div>
-                        Sorting in progress...
-                    </div>
-                </div>
-            )}
+
 
             <div className="flex gap-2 justify-center items-end p-4 min-h-[200px] bar-container">
                 {bars.map((bar) => (
@@ -320,4 +290,4 @@ const InserationSort = () => {
     );
 };
 
-export default InserationSort;
+export default SelectionSort;
