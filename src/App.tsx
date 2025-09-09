@@ -23,6 +23,7 @@ import SearchVisualizer from "@/components/search/LinearSearch.tsx";
 import BinarySearch from "@/components/search/BinarySearch.tsx";
 import LandingPage from "@/pages/LandingPage.tsx";
 import SelectionSort from "@/components/sort/SelectionSort.tsx";
+import InserationSort from "./components/sort/InserationSort.tsx"
 gsap.registerPlugin(SplitText);
 
 export const algos: AlgoProps[] = [
@@ -89,6 +90,7 @@ function App() {
           <Route path="/search" element={<SearchVisualizer/>}/>
           <Route path="/binary" element={<BinarySearch/>}/>
           <Route path={"/selection"} element={<SelectionSort/>}/>
+          <Route path={"/insert"} element={<InserationSort/>}/>
        
       </Routes>
     </BrowserRouter>

@@ -10,10 +10,8 @@ gsap.registerPlugin(Flip);
 
 type Bar = {
   value: number;
-  id: string;
+  id: string; 
 };
-
-
 
 
 const BinarySearch = () => {
@@ -22,27 +20,17 @@ const BinarySearch = () => {
   const [inputValue, setInputValue] = useState("");
   const [searchValue, setSearchValue] = useState("");
   const [isPlaying, setIsPlaying] = useState(false);
+ 
 
-  const [size,setSize] = useState(0)
+
   const timelineRef = useRef(gsap.timeline({ paused: true }));
   const labelsRef = useRef<string[]>([]);
-
-
-
-
-
-
-
-
 
   useEffect(() => {
     return () => {
       timelineRef.current.kill();
     };
   }, []);
-
-
-
 
   const resetAnimation = () => {
     timelineRef.current.clear().pause(0);
@@ -51,18 +39,10 @@ const BinarySearch = () => {
     setBarStates({});
   };
 
-
-
-
   const handleInsert = () => {
     const num = parseInt(inputValue.trim());
     if (num > 50 || num < -50) {
-      toast("Invalid Number", {
-            description:
-                "You can't Enter Number greater than 50 and less than -50",
-            duration:3000
-          }
-      )
+      //Add toaster here
       return;
     }
     if (!isNaN(num)) {
@@ -82,49 +62,11 @@ const BinarySearch = () => {
     }
   };
 
-
-
-
-  const handleSize = () => {
-    const arrsize = parseInt(inputValue.trim());
-
-    if(arrsize > 25 || arrsize <= 0) {
-      toast("Size is Invalid", {
-            description:
-                "You can't Enter Number greater than 50 and less than -50",
-            duration:3000
-          }
-
-
-      )
-      return;
-    }
-
-    setSize(arrsize)
-
-  }
-
-
-
-
-
   const generateRandomArray = () => {
-
-    if (size <= 0){
-      toast("Size is 0 metion any size", {
-            description:
-                "Size",
-            duration:3000
-          }
-
-
-      )
-      return;
-    }
-    const random = Array.from({ length: size }, () => ({
+    const random = Array.from({ length: 15 }, () => ({
       value: Math.floor(Math.random() * 50) + 1,
       id: `bar-${Date.now()}-${Math.floor(Math.random() * 100000)}`,
-    })).sort((a, b) => a.value - b.value); // Sort ascending by value
+    })).sort((a, b) => a.value - b.value);
 
     const state = Flip.getState(".bar-container, .bar");
     setBars(random);
@@ -137,8 +79,6 @@ const BinarySearch = () => {
     resetAnimation();
   };
 
-
-
   const binarySteps = (low: number, high: number, target: number) => {
     if (low > high) return;
 
@@ -146,11 +86,8 @@ const BinarySearch = () => {
     const midVal = bars[mid].value;
     const tl = gsap.timeline();
 
-
-
+    
     tl.to(".bar", { backgroundColor: "blue", duration: 0.2 });
-
-
     tl.to(
       `#bar-${bars[low].id}`,
       { backgroundColor: "yellow", duration: 0.3 },
@@ -162,9 +99,7 @@ const BinarySearch = () => {
       "<"
     );
 
-
-
-
+    // Step 3: Pause so user can see range
     tl.to({}, { duration: 0.5 });
 
     // Step 4: Highlight mid bar
@@ -184,7 +119,7 @@ const BinarySearch = () => {
         // Move out left side
         bars.forEach((bar, i) => {
           if (i < mid + 1) {
-            gsap.to(`#bar-${bar.id}`, { x: -150, opacity: 0, duration: 0.4 });
+            gsap.to(`#bar-${bar.id}`, { x: -150, opacity: 0, duration: 0.7 });
           }
         });
         setTimeout(() => binarySteps(mid + 1, high, target), 600);
@@ -192,7 +127,7 @@ const BinarySearch = () => {
         // Move out right side
         bars.forEach((bar, i) => {
           if (i > mid - 1) {
-            gsap.to(`#bar-${bar.id}`, { x: 150, opacity: 0, duration: 0.4 });
+            gsap.to(`#bar-${bar.id}`, { x: 150, opacity: 0, duration: 0.7 });
           }
         });
         setTimeout(() => binarySteps(low, mid - 1, target), 600);
@@ -203,7 +138,7 @@ const BinarySearch = () => {
   const handleSearch = () => {
     const target = parseInt(searchValue.trim());
     if (isNaN(target) || target > 50 || target < -50) {
-
+      //Toaster
       return;
     }
 
@@ -218,6 +153,7 @@ const BinarySearch = () => {
 
     const left = 0;
     const right = bars.length - 1;
+
 
     binarySteps(left, right, target);
   };
@@ -270,9 +206,6 @@ const BinarySearch = () => {
   return (
     <SharedLayout
       inputValue={inputValue}
-      size={size}
-      setSize={setSize}
-      handleSize={handleSize}
       setInputValue={setInputValue}
       searchValue={searchValue}
       setSearchValue={setSearchValue}
@@ -286,9 +219,13 @@ const BinarySearch = () => {
       onNext={nextStep}
       onPrev={prevStep}
     >
-
+     
       <div className="flex gap-2 justify-center items-end p-4 min-h-[200px] bar-container">
         {bars.map((bar) => (
+          <div>
+
+
+
           <div
             id={`bar-${bar.id}`}
             key={bar.id}
@@ -300,8 +237,15 @@ const BinarySearch = () => {
           >
             {bar.value}
           </div>
+
+          <p>
+            {bar.value}
+          </p>
+
+          </div>
         ))}
       </div>
+      
     </SharedLayout>
   );
 };

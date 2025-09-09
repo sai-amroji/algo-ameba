@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+
+
+html { @apply h-screen }
+body {
+  @apply min-h-screen flex flex-col;
+}
+#root, #__next {
+  @apply flex flex-col flex-1;
+}
+
+
+@layer base {
+  html {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+}
+

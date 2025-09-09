@@ -1,41 +1,32 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState } from "react";
 import gsap from "gsap";
 import Flip from "gsap/Flip";
 import SharedLayout from "@/components/search/SharedLayout";
-import { Alert, AlertTitle } from "@/components/ui/alert.tsx";
 import { toast } from "sonner";
+import { useGSAP } from "@gsap/react";
 
 gsap.registerPlugin(Flip);
 
 // Define a type for our bar objects for better type safety
 type Bar = {
     value: number;
-    id: string; // Use a unique ID for stable keys in React
+    id: string; // Unique ID for React keys
 };
 
-// We will use this to track the state for visual rendering
 type BarState = "default" | "checking" | "comparing" | "sorted";
 
-const SelectionSort = () => {
+const InsertionSort = () => {
     const [bars, setBars] = useState<Bar[]>([]);
     const [barStates, setBarStates] = useState<Record<string, BarState>>({});
     const [inputValue, setInputValue] = useState("");
     const [isPlaying, setIsPlaying] = useState(false);
-    const [isntAllowed, setIsntAllowed] = useState(false);
     const [isSorting, setIsSorting] = useState(false);
 
     const timelineRef = useRef(gsap.timeline({ paused: true }));
     const labelsRef = useRef<string[]>([]);
     const sortingRef = useRef(false);
 
-    useEffect(() => {
-        if (isntAllowed) {
-            const timeout = setTimeout(() => setIsntAllowed(false), 1500);
-            return () => clearTimeout(timeout);
-        }
-    }, [isntAllowed]);
-
-    useEffect(() => {
+    useGSAP(() => {
         return () => {
             timelineRef.current.kill();
         };
@@ -51,11 +42,11 @@ const SelectionSort = () => {
     };
 
     const handleInsert = () => {
-        if (isSorting) return; // Prevent insertion during sorting
+        if (isSorting) return;
 
         const num = parseInt(inputValue.trim());
         if (num > 50 || num < -50) {
-            setIsntAllowed(true);
+            toast("Please enter a number between -50 and 50.");
             return;
         }
         if (!isNaN(num)) {
@@ -78,11 +69,11 @@ const SelectionSort = () => {
     };
 
     const generateRandomArray = () => {
-        if (isSorting) return; // Prevent generation during sorting
+        if (isSorting) return;
 
         const random = Array.from({ length: 15 }, () => ({
             value: Math.floor(Math.random() * 50) + 1,
-            id: `bar-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+            id: `bar-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`
         }));
 
         const state = Flip.getState(".bar-container, .bar");
@@ -98,14 +89,10 @@ const SelectionSort = () => {
 
     const swap = (currentBars: Bar[], index1: number, index2: number): Promise<Bar[]> => {
         return new Promise<Bar[]>((resolve) => {
-            // Create new array with swapped elements
             const newBars = [...currentBars];
             [newBars[index1], newBars[index2]] = [newBars[index2], newBars[index1]];
-
-            // Update state first
             setBars(newBars);
 
-            // Then animate
             requestAnimationFrame(() => {
                 const state = Flip.getState(".bar");
                 Flip.from(state, {
@@ -120,7 +107,7 @@ const SelectionSort = () => {
 
     const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-    const SelectionSteps = async () => {
+    const InsertionSteps = async () => {
         if (sortingRef.current) return;
 
         sortingRef.current = true;
@@ -130,44 +117,27 @@ const SelectionSort = () => {
         const n = currentBars.length;
 
         try {
-            for (let i = 0; i < n - 1; i++) {
-                let min_index = i;
+            for (let i = 1; i < n; i++) {
+                let key = currentBars[i];
+                let j = i - 1;
 
-                for (let j = i + 1; j < n; j++) {
-                    if (!sortingRef.current) return;
-
-                    // Highlight comparison
-                    setBarStates({
-                        [currentBars[min_index].id]: "comparing",
-                        [currentBars[j].id]: "comparing",
-                    });
-                    await delay(300);
-
-                    if (currentBars[j].value < currentBars[min_index].value) {
-                        min_index = j;
-                    }
-
-                    // Clear comparison highlight
-                    setBarStates({});
+                while (j >= 0 && currentBars[j].value > key.value) {
+                    currentBars[j + 1] = currentBars[j];
+                    j -= 1;
                 }
 
-                // Swap after scanning whole subarray
-                if (min_index !== i) {
-                    currentBars = await swap(currentBars, i, min_index);
-                }
+                currentBars[j + 1] = key;
 
-                // Mark the element at i as sorted
-                setBarStates((prev) => ({
-                    ...prev,
-                    [currentBars[i].id]: "sorted",
-                }));
+                const state = Flip.getState(".bar");
+                setBars([...currentBars]);
+                Flip.from(state, {
+                    targets: ".bar",
+                    duration: 0.5,
+                    ease: "power2.inOut"
+                });
+
+                await delay(500);
             }
-
-            // Last element is also sorted
-            setBarStates((prev) => ({
-                ...prev,
-                [currentBars[n - 1].id]: "sorted",
-            }));
 
         } catch (error) {
             console.error("Error during sorting:", error);
@@ -186,7 +156,7 @@ const SelectionSort = () => {
         }
 
         if (!isSorting) {
-            SelectionSteps();
+            InsertionSteps(); // ✅ Correct function to call
         }
     };
 
@@ -253,24 +223,16 @@ const SelectionSort = () => {
         <SharedLayout
             inputValue={inputValue}
             setInputValue={setInputValue}
-            isPlaying={isSorting} // Show as playing when sorting
+            isPlaying={isSorting}
             handleInsert={handleInsert}
             handleSearch={handleSearch}
             generateRandomArray={generateRandomArray}
             algoMap={algoMap}
             onPlay={playSteps}
-            onPause={stopSorting} // Allow stopping the sort
+            onPause={stopSorting}
             onNext={nextStep}
             onPrev={prevStep}
         >
-            {isntAllowed &&
-                toast("Invalid Number", {
-                    description:
-                        "You can't Enter Number greater than 50 and less than -50",
-                })}
-
-
-
             <div className="flex gap-2 justify-center items-end p-4 min-h-[200px] bar-container">
                 {bars.map((bar) => (
                     <div
@@ -290,4 +252,4 @@ const SelectionSort = () => {
     );
 };
 
-export default SelectionSort;
+export default InsertionSort;
