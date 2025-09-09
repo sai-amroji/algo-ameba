@@ -24,21 +24,13 @@ const BubbleSort = () => {
   const [barStates, setBarStates] = useState<Record<string, BarState>>({});
   const [inputValue, setInputValue] = useState("");
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isntAllowed, setIsntAllowed] = useState(false);
   const [isSorting, setIsSorting] = useState(false);
-  const [size,setSize] = useState(0);
-
 
   const timelineRef = useRef(gsap.timeline({ paused: true }));
   const labelsRef = useRef<string[]>([]);
   const sortingRef = useRef(false);
 
-  useEffect(() => {
-    if (isntAllowed) {
-      const timeout = setTimeout(() => setIsntAllowed(false), 1500);
-      return () => clearTimeout(timeout);
-    }
-  }, [isntAllowed]);
+
 
   useEffect(() => {
     return () => {
@@ -56,11 +48,11 @@ const BubbleSort = () => {
   };
 
   const handleInsert = () => {
-    if (isSorting) return; // Prevent insertion during sorting
+    if (isSorting) return; 
 
     const num = parseInt(inputValue.trim());
     if (num > 50 || num < -50) {
-      setIsntAllowed(true);
+      //Toaster
       return;
     }
     if (!isNaN(num)) {
@@ -82,8 +74,12 @@ const BubbleSort = () => {
     }
   };
 
+
+
+
+
   const generateRandomArray = () => {
-    if (isSorting) return; // Prevent generation during sorting
+    if (isSorting) return; 
 
     const random = Array.from({ length: 15 }, () => ({
       value: Math.floor(Math.random() * 50) + 1,
@@ -103,14 +99,14 @@ const BubbleSort = () => {
 
   const swap = (currentBars: Bar[], index1: number, index2: number): Promise<Bar[]> => {
     return new Promise<Bar[]>((resolve) => {
-      // Create new array with swapped elements
+     
       const newBars = [...currentBars];
       [newBars[index1], newBars[index2]] = [newBars[index2], newBars[index1]];
 
-      // Update state first
+    
       setBars(newBars);
 
-      // Then animate
+    
       requestAnimationFrame(() => {
         const state = Flip.getState(".bar");
         Flip.from(state, {
@@ -137,18 +133,17 @@ const BubbleSort = () => {
     try {
       for (let i = 0; i < n - 1; i++) {
         for (let j = 0; j < n - 1 - i; j++) {
-          if (!sortingRef.current) return; // Allow cancellation
+          if (!sortingRef.current) return; 
 
-          // Highlight bars being compared
+
           setBarStates({
             [currentBars[j].id]: "comparing",
             [currentBars[j + 1].id]: "comparing",
           });
 
-          await delay(300); // Pause to show comparison
+          await delay(300); 
 
           if (currentBars[j].value > currentBars[j + 1].value) {
-            // Set checking state before swap
             setBarStates({
               [currentBars[j].id]: "checking",
               [currentBars[j + 1].id]: "checking",
@@ -156,11 +151,10 @@ const BubbleSort = () => {
 
             await delay(200);
 
-            // Perform swap and get updated array
             currentBars = await swap(currentBars, j, j + 1);
           }
 
-          // Clear comparison states
+       
           setBarStates(prev => {
             const newState = { ...prev };
             delete newState[currentBars[j].id];
@@ -169,7 +163,7 @@ const BubbleSort = () => {
           });
         }
 
-        // Mark the last element of this pass as sorted
+   
         if (i < n - 1) {
           setBarStates(prev => ({
             ...prev,
@@ -178,7 +172,7 @@ const BubbleSort = () => {
         }
       }
 
-      // Mark the first element as sorted too
+   
       if (currentBars.length > 0) {
         setBarStates(prev => ({
           ...prev,
@@ -186,7 +180,7 @@ const BubbleSort = () => {
         }));
       }
 
-      // Clear all states after a moment
+     
       await delay(1000);
       setBarStates({});
 
@@ -284,21 +278,8 @@ const BubbleSort = () => {
           onNext={nextStep}
           onPrev={prevStep}
       >
-        {isntAllowed &&
-            toast("Invalid Number", {
-              description:
-                  "You can't Enter Number greater than 50 and less than -50",
-            })}
-
-        {isSorting && (
-            <div className="text-center mb-4">
-              <div className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800">
-                <div className="animate-spin rounded-full h-3 w-3 border-2 border-blue-600 border-t-transparent mr-2"></div>
-                Sorting in progress...
-              </div>
-            </div>
-        )}
-
+     
+    
         <div className="flex gap-2 justify-center items-end p-4 min-h-[200px] bar-container">
           {bars.map((bar) => (
               <div

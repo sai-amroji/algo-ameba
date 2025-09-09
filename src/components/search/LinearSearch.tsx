@@ -7,20 +7,19 @@ import { toast } from "sonner";
 
 gsap.registerPlugin(Flip);
 
-// Define a type for our bar objects for better type safety
 type Bar = {
     value: number;
-    id: string; // Use a unique ID for stable keys in React
+    id: string; 
 };
 
 const SearchVisualizer = () => {
     const [bars, setBars] = useState<Bar[]>([]);
-    // Use a record to map bar IDs to their state
+    
     const [barStates, setBarStates] = useState<Record<number, BarState>>({});
     const [inputValue, setInputValue] = useState("");
     const [searchValue, setSearchValue] = useState("");
     const [isPlaying, setIsPlaying] = useState(false);
-    const [isntAllowed, setIsntAllowed] = useState(false);
+
     const [size,setSize] = useState(0);
 
 
@@ -28,14 +27,6 @@ const SearchVisualizer = () => {
     const timelineRef = useRef(gsap.timeline({ paused: true }));
     // We'll use this ref to store the timeline's labels for step-by-step navigation
     const labelsRef = useRef<string[]>([]);
-
-    useEffect(() => {
-        if (isntAllowed) {
-            const timeout = setTimeout(() => setIsntAllowed(false), 1500);
-            return () => clearTimeout(timeout);
-        }
-    }, [isntAllowed]);
-
     // Cleanup toast and timeline on unmount
     useEffect(() => {
         return () => {
@@ -53,7 +44,7 @@ const SearchVisualizer = () => {
     const handleInsert = () => {
         const num = parseInt(inputValue.trim());
         if (num > 50 || num < -50) {
-            setIsntAllowed(true);
+            //Toaster
             return;
         }
         if (!isNaN(num)) {
@@ -93,7 +84,7 @@ const SearchVisualizer = () => {
     const handleSearch = () => {
         const target = parseInt(searchValue.trim());
         if (isNaN(target) || target > 50 || target < -50) {
-            setIsntAllowed(true);
+            //Toaster
             return;
         }
 
@@ -232,9 +223,7 @@ const SearchVisualizer = () => {
             onNext={nextStep}
             onPrev={prevStep}
         >
-            {isntAllowed && toast("Invalid Number", {
-                description: "You can't Enter Number greater than 50 and less than -50",
-            })}
+         
             <div className="flex gap-2 justify-center items-end p-4 min-h-[200px] bar-container">
                 {bars.map((bar) => (
                     <div
