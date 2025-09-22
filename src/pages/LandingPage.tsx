@@ -114,7 +114,12 @@ const LandingPage = () => {
             <div
               key={card.id}
               ref={(el) => (cardsRef.current[card.id] = el)}
-              className="w-full sm:w-[80%] md:w-[400px] rounded-3xl shadow-2xl backdrop-blur-2xl border-[3px] border-[#007f04] p-4 gap-4 hover:scale-105 transition-transform duration-300"
+              className="w-full 
+              sm:w-[80%] md:w-[400px]
+               rounded-3xl shadow-2xl b
+               ackdrop-blur-2xl border-[3px] 
+               border-brand p-4 gap-4 hover:scale-105 
+               transition-transform duration-300"
             >
               <div className="text-3xl text-primary font-[baijamjuri]">
                 <h2>{card.title1}</h2>
@@ -136,7 +141,7 @@ const LandingPage = () => {
             <div
               key={card.id}
               ref={(el) => (cardsRef.current[card.id] = el)}
-              className="w-full sm:w-[80%] md:w-[400px] rounded-3xl shadow-2xl backdrop-blur-2xl border-[3px] border-[#007f04] p-4 gap-4 hover:scale-105 transition-transform duration-300"
+              className="w-full sm:w-[80%] md:w-[400px] rounded-3xl shadow-2xl backdrop-blur-2xl border-[3px] border-brand p-4 gap-4 hover:scale-105 transition-transform duration-300"
             >
               <div className="text-3xl text-primary font-[baijamjuri]">
                 <h2>{card.title1}</h2>
@@ -154,7 +159,7 @@ const LandingPage = () => {
       {/* Get Started Button */}
       <div
         ref={buttonRef}
-        className="relative flex justify-center items-center text-2xl text-white font-[arima] gap-4 rounded-full border-2 border-[#007f04] w-[200px] h-[60px] m-auto shadow-2xl overflow-hidden cursor-pointer hover:scale-105 transition-transform duration-300"
+        className="relative flex justify-center items-center text-2xl text-accent-foreground font-[arima] gap-4 rounded-full border-2 border-brand w-[200px] h-[60px] m-auto shadow-2xl overflow-hidden cursor-pointer hover:scale-105 transition-transform duration-300"
         onClick={() => navigate("/home")}
         aria-label="Get Started"
       >
@@ -170,7 +175,7 @@ const LandingPage = () => {
         <div className="flex justify-around items-center mx-25 py-12">
           {/* GitHub */}
           <div className="flex flex-col font-semibold items-center">
-            <span className="bg-black w-[50px] h-[50px] rounded-[20px] flex justify-center items-center py-2">
+            <span className="bg-background w-[50px] h-[50px] rounded-[20px] flex justify-center items-center py-2">
               <GithubIcon />
             </span>
             <span className="text-foreground mt-2">Contribute Here</span>
