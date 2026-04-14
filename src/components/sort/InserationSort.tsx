@@ -1,9 +1,10 @@
 import { useRef, useState } from "react";
 import gsap from "gsap";
 import Flip from "gsap/Flip";
-import SharedLayout from "@/components/search/SharedLayout";
+import SharedLayout from "@/components/visualizer/SharedLayout";
 import { toast } from "sonner";
 import { useGSAP } from "@gsap/react";
+import { ROUTES } from "@/constants/routes";
 
 gsap.registerPlugin(Flip);
 
@@ -87,24 +88,6 @@ const InsertionSort = () => {
         resetAnimation();
     };
 
-    const swap = (currentBars: Bar[], index1: number, index2: number): Promise<Bar[]> => {
-        return new Promise<Bar[]>((resolve) => {
-            const newBars = [...currentBars];
-            [newBars[index1], newBars[index2]] = [newBars[index2], newBars[index1]];
-            setBars(newBars);
-
-            requestAnimationFrame(() => {
-                const state = Flip.getState(".bar");
-                Flip.from(state, {
-                    targets: ".bar",
-                    duration: 0.6,
-                    ease: "power2.inOut",
-                    onComplete: () => resolve(newBars),
-                });
-            });
-        });
-    };
-
     const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
     const InsertionSteps = async () => {
@@ -113,12 +96,12 @@ const InsertionSort = () => {
         sortingRef.current = true;
         setIsSorting(true);
 
-        let currentBars = [...bars];
+        const currentBars = [...bars];
         const n = currentBars.length;
 
         try {
             for (let i = 1; i < n; i++) {
-                let key = currentBars[i];
+                const key = currentBars[i];
                 let j = i - 1;
 
                 while (j >= 0 && currentBars[j].value > key.value) {
@@ -173,13 +156,6 @@ const InsertionSort = () => {
         }
     };
 
-    const pauseSteps = () => {
-        if (isPlaying) {
-            timelineRef.current.pause();
-            setIsPlaying(false);
-        }
-    };
-
     const nextStep = () => {
         if (isPlaying || isSorting) return;
         const currentLabel = timelineRef.current.currentLabel();
@@ -212,11 +188,9 @@ const InsertionSort = () => {
     };
 
     const algoMap = [
-        { name: "Bubble Sort", value: "bubble" },
-        { name: "Selection Sort", value: "selection" },
-        { name: "Insertion Sort", value: "insertion" },
-        { name: "Merge Sort", value: "merge" },
-        { name: "Quick Sort", value: "quick" },
+        { name: "Bubble Sort", value: ROUTES.sort },
+        { name: "Selection Sort", value: ROUTES.selectionSort },
+        { name: "Insertion Sort", value: ROUTES.insertionSort },
     ];
 
     return (
@@ -226,6 +200,7 @@ const InsertionSort = () => {
             isPlaying={isSorting}
             handleInsert={handleInsert}
             handleSearch={handleSearch}
+            actionLabel="Sort"
             generateRandomArray={generateRandomArray}
             algoMap={algoMap}
             onPlay={playSteps}

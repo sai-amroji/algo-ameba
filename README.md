@@ -1,69 +1,63 @@
-# React + TypeScript + Vite
+# Algo Ameba
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Algo Ameba is an interactive algorithm visualizer built with React, TypeScript, Vite, Tailwind CSS, and GSAP.
 
-Currently, two official plugins are available:
+## Current Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Landing page with intro animation and quick navigation
+- Algorithm catalog homepage
+- Search visualizers:
+  - Linear Search
+  - Binary Search
+- Sort visualizers:
+  - Bubble Sort
+  - Selection Sort
+  - Insertion Sort
 
-## Expanding the ESLint configuration
+## Architecture Overview
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- App routing and route constants:
+  - `src/App.tsx`
+  - `src/constants/routes.ts`
+- Algorithm catalog metadata:
+  - `src/constants/algosInfo.ts`
+- Shared visualizer layout shell:
+  - `src/components/visualizer/SharedLayout.tsx`
+- Search-specific state and controls:
+  - `src/hooks/useSearchVizulizer.tsx`
+- Page entry points:
+  - `src/pages/LandingPage.tsx`
+  - `src/pages/Homepage.tsx`
+  - `src/pages/AboutPage.tsx`
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Development
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+Install dependencies:
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Run dev server:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run dev
 ```
+
+Lint project:
+
+```bash
+npm run lint
+```
+
+Build production bundle:
+
+```bash
+npm run build
+```
+
+## Notes
+
+- Route values are centralized in `src/constants/routes.ts`.
+- Algorithm cards use `src/constants/algosInfo.ts` as the single source of truth.
+- Some lint warnings remain around React Fast Refresh export style and hook cleanup refs; there are currently no lint errors.

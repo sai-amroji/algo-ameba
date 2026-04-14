@@ -1,5 +1,5 @@
 
-import { algos } from "@/App.js";
+import { algos } from "@/constants/algosInfo";
 import AlgoCard from "@/components/AlgoCard.tsx";
 import { Input } from "@/components/ui/input.tsx";
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";

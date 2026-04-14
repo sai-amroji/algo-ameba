@@ -1,6 +1,7 @@
 
-import SharedLayout, {type BarState} from "@/components/search/SharedLayout";
+import SharedLayout, { type BarState } from "@/components/visualizer/SharedLayout";
 import {useSearchVizulizer} from "@/hooks/useSearchVizulizer";
+import { ROUTES } from "@/constants/routes";
 
 
 
@@ -9,8 +10,8 @@ const SearchVisualizer = () => {
 
 
     const {
-       bars, setBars,
-    barStates, setBarStates,
+         bars,
+     setBarStates,
     inputValue, setInputValue,
     searchValue, setSearchValue,
     isPlaying, setIsPlaying,
@@ -53,7 +54,7 @@ const SearchVisualizer = () => {
                     ...prev,
                     [barId]: "checking",
                 }));
-            }, null, label);
+            }, undefined, label);
 
             // Wait a moment
             timeline.to({}, { duration: 0.5 }, label);
@@ -71,7 +72,7 @@ const SearchVisualizer = () => {
                         ...prev,
                         [barId]: "found",
                     }));
-                }, null, foundLabel);
+                }, undefined, foundLabel);
 
                 break;
             }
@@ -85,7 +86,7 @@ const SearchVisualizer = () => {
 
             timeline.call(() => {
                 setBarStates({});
-            }, null, endLabel);
+            }, undefined, endLabel);
         } else {
             const endLabel = `end`;
             labels.push(endLabel);
@@ -93,12 +94,12 @@ const SearchVisualizer = () => {
 
             timeline.call(() => {
                 const foundBarId = bars.find(b => b.value === target)?.id;
-                const newStates: Record<number, BarState> = {};
+                const newStates: Record<string, BarState> = {};
                 if (foundBarId) {
                     newStates[foundBarId] = "found";
                 }
                 setBarStates(newStates);
-            }, null, endLabel);
+            }, undefined, endLabel);
         }
 
         labelsRef.current = labels;
@@ -107,8 +108,10 @@ const SearchVisualizer = () => {
     };
 
 
-    const algoMap = [{ name: "Linear Search", value: "linear" } ,
-        {name:"Binary Search",value: "binary"}];
+    const algoMap = [
+        { name: "Linear Search", value: ROUTES.search },
+        { name: "Binary Search", value: ROUTES.binarySearch },
+    ];
 
     return (
         <SharedLayout
@@ -119,6 +122,7 @@ const SearchVisualizer = () => {
             handleInsert={handleInsert}
             isPlaying={isPlaying}
             handleSearch={handleSearch}
+            actionLabel="Search"
             generateRandomArray={generateRandomArray}
             algoMap={algoMap}
             onPlay={playSteps}

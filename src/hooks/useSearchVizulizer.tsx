@@ -1,10 +1,8 @@
 
-import { useRef, useState, useEffect, use } from "react";
+import { useRef, useState, useEffect } from "react";
 import gsap from "gsap";
 import Flip from "gsap/Flip";
-import SharedLayout, {type BarState} from "@/components/search/SharedLayout";
-import { Alert, AlertTitle } from "@/components/ui/alert.tsx";
-import { toast } from "sonner";
+import { type BarState } from "@/components/visualizer/SharedLayout";
 
 
 gsap.registerPlugin(Flip);
@@ -22,12 +20,13 @@ export const useSearchVizulizer = () => {
 
         const [bars, setBars] = useState<Bar[]>([]);
         
-        const [barStates, setBarStates] = useState<Record<number, BarState>>({});
+        const [barStates, setBarStates] = useState<Record<string, BarState>>({});
         const [inputValue, setInputValue] = useState("");
         const [searchValue, setSearchValue] = useState("");
         const [isPlaying, setIsPlaying] = useState(false);
-    
-        const [size,setSize] = useState(0);
+
+        const MIN_VALUE = -50;
+        const MAX_VALUE = 50;
 
 
 
@@ -50,31 +49,32 @@ export const useSearchVizulizer = () => {
     };
 
     const handleInsert = () => {
-        const num = parseInt(inputValue.trim());
-        if (num > 50 || num < -50) {
-            //Toaster
+        const trimmed = inputValue.trim();
+        const parsed = trimmed === "" ? Math.floor(Math.random() * (MAX_VALUE - MIN_VALUE + 1)) + MIN_VALUE : parseInt(trimmed, 10);
+
+        if (isNaN(parsed) || parsed > MAX_VALUE || parsed < MIN_VALUE) {
             return;
         }
-        if (!isNaN(num)) {
-            const val = Date.now() + Math.random()
-            const newBar: Bar = { value: num, id: val.toString() };
-            const updated = [...bars, newBar];
 
-            const state = Flip.getState(".bar-container, .bar");
-            setBars(updated);
-            Flip.from(state, {
-                duration: 0.5,
-                ease: "power1.inOut",
-            });
+        const val = Date.now() + Math.random();
+        const newBar: Bar = { value: parsed, id: val.toString() };
+        const updated = [...bars, newBar];
 
-            resetAnimation();
-            setInputValue("");
-        }
+        const state = Flip.getState(".bar-container, .bar");
+        setBars(updated);
+        Flip.from(state, {
+            duration: 0.5,
+            ease: "power1.inOut",
+        });
+
+        resetAnimation();
+        setInputValue("");
     };
 
-    const generateRandomArray = () => {
-        const random = Array.from({ length: 8 }, () => ({
-            value: Math.floor(Math.random() * 50) + 1,
+    const generateRandomArray = (length = 8) => {
+        const safeLength = Math.min(Math.max(length, 1), 20);
+        const random = Array.from({ length: safeLength }, () => ({
+            value: Math.floor(Math.random() * (MAX_VALUE - MIN_VALUE + 1)) + MIN_VALUE,
             id: Math.random().toString(),
         }));
 
@@ -122,10 +122,7 @@ export const useSearchVizulizer = () => {
         }
     };
 
-    const algoMap = [{ name: "Linear Search", value: "linear" } ,
-        {name:"Binary Search",value: "binary"}];
-
-    const getBarColor = (id: number) => {
+    const getBarColor = (id: string) => {
         switch (barStates[id]) {
             case "checking": return "bg-red-500";
             case "found": return "bg-green-500";

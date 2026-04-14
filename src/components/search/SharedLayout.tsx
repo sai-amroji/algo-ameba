@@ -31,10 +31,8 @@ interface SharedLayoutProps {
   setSearchValue?: (val: string) => void;
   handleInsert: () => void;
   handleSearch?: () => void;
-  handleSize:()=>void;
+  actionLabel?: string;
   generateRandomArray: () => void;
-  size:number;
-  setSize:() => void;
   algoMap: Algo[];
   children: ReactNode;
   isPlaying: boolean;
@@ -50,10 +48,8 @@ const SharedLayout = ({
   searchValue,
   setSearchValue,
   handleInsert,
-  size,
-  setSize,
-  handleSize,
   handleSearch,
+  actionLabel,
   generateRandomArray,
   algoMap,
   children,
@@ -84,36 +80,31 @@ const SharedLayout = ({
             </button>
           </div>
 
-
-          <div className="flex items-center gap-2">
-            <Input
-                value={size}
-                onChange={(e) => setSize(e.target.value)}
+          {typeof searchValue === "string" && setSearchValue && handleSearch && (
+            <div className="flex items-center gap-2">
+              <Input
+                value={searchValue}
+                onChange={(e) => setSearchValue(e.target.value)}
                 className="max-w-[150px] text-white"
                 placeholder="Search value"
-            />
-            <button
-                onClick={handleSize}
+              />
+              <button
+                onClick={handleSearch}
                 className="bg-blue-500 text-white px-3 py-2 rounded"
-            >
-              Enter Size
-            </button>
-          </div>
+              >
+                {actionLabel ?? "Search"}
+              </button>
+            </div>
+          )}
 
-          <div className="flex items-center gap-2">
-            <Input
-              value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
-              className="max-w-[150px] text-white"
-              placeholder="Search value"
-            />
+          {handleSearch && !(typeof searchValue === "string" && setSearchValue) && (
             <button
               onClick={handleSearch}
               className="bg-blue-500 text-white px-3 py-2 rounded"
             >
-              Search
+              {actionLabel ?? "Sort"}
             </button>
-          </div>
+          )}
 
 
 
@@ -130,18 +121,22 @@ const SharedLayout = ({
 
 
         {/* Algorithm Dropdown */}
-        <Select onValueChange={(value) => {  navigate(`/${value}`);}}>
+        <Select
+          onValueChange={(value) => {
+            const nextPath = value.startsWith("/") ? value : `/${value}`;
+            navigate(nextPath);
+          }}
+        >
           <SelectTrigger className="w-[180px] text-white dark:bg-black">
-            <SelectValue placeholder="Select Algorithm" />
+            <SelectValue placeholder={algoMap[0].name} />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              <SelectLabel>Search Algorithms</SelectLabel>
+              <SelectLabel>Algorithms</SelectLabel>
               {algoMap.map((algo) => (
                 <SelectItem
                   key={algo.value}
                   value={algo.value}
-                  onClick={() => navigate(`/${algo.value}`)}
                 >
                   {algo.name}
                 </SelectItem>

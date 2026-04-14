@@ -1,9 +1,9 @@
 import { useRef, useState, useEffect } from "react";
 import gsap from "gsap";
 import Flip from "gsap/Flip";
-import SharedLayout from "@/components/search/SharedLayout";
-import { Alert, AlertTitle } from "@/components/ui/alert.tsx";
+import SharedLayout from "@/components/visualizer/SharedLayout";
 import { toast } from "sonner";
+import { ROUTES } from "@/constants/routes";
 
 gsap.registerPlugin(Flip);
 
@@ -218,13 +218,6 @@ const BubbleSort = () => {
     }
   };
 
-  const pauseSteps = () => {
-    if (isPlaying) {
-      timelineRef.current.pause();
-      setIsPlaying(false);
-    }
-  };
-
   const nextStep = () => {
     if (isPlaying || isSorting) return;
     const currentLabel = timelineRef.current.currentLabel();
@@ -257,11 +250,9 @@ const BubbleSort = () => {
   };
 
   const algoMap = [
-    { name: "Bubble Sort", value: "bubble" },
-    { name: "Selection Sort", value: "selection" },
-    { name: "Insertion Sort", value: "insertion" },
-    { name: "Merge Sort", value: "merge" },
-    { name: "Quick Sort", value: "quick" },
+    { name: "Bubble Sort", value: ROUTES.sort },
+    { name: "Selection Sort", value: ROUTES.selectionSort },
+    { name: "Insertion Sort", value: ROUTES.insertionSort },
   ];
 
   return (
@@ -271,6 +262,7 @@ const BubbleSort = () => {
           isPlaying={isSorting} // Show as playing when sorting
           handleInsert={handleInsert}
           handleSearch={handleSearch}
+          actionLabel="Sort"
           generateRandomArray={generateRandomArray}
           algoMap={algoMap}
           onPlay={playSteps}

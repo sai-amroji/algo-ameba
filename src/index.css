@@ -58,6 +58,8 @@ body {
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-ring: var(--sidebar-ring);
+    /* brand = neon green accent */
+    --color-brand: var(--brand);
 }
 
 :root {
@@ -93,8 +95,7 @@ body {
     --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
     --sidebar-border: oklch(0.92 0.004 286.32);
     --sidebar-ring: oklch(0.705 0.015 286.067);
-    
-    
+    --brand: #00ff08;
 }
 
 .dark {
@@ -129,6 +130,7 @@ body {
     --sidebar-accent-foreground: oklch(0.985 0 0);
     --sidebar-border: oklch(1 0 0 / 10%);
     --sidebar-ring: oklch(0.552 0.016 285.938);
+    --brand: #00ff08;
 }
 
 
@@ -157,3 +159,41 @@ body {
 
 }
 
+
+/* ── Reusable component classes (defined here so @apply has full Tailwind context) ── */
+@layer components {
+
+  /* Nav items — green bottom-border underline on hover */
+  .nav-link {
+    @apply relative cursor-pointer pb-0.5
+           border-b-2 border-transparent
+           hover:border-[#00ff08]
+           transition-all duration-300;
+  }
+
+  /* Icon wrappers & avatar groups — rounded green border on hover */
+  .green-icon-btn {
+    @apply border-2 border-transparent rounded-xl
+           hover:border-[#00ff08]
+           transition-all duration-300;
+  }
+
+  /* Feature cards */
+  .feature-card {
+        @apply w-80 md:w-[460px] rounded-3xl p-8
+           border-2 border-white/10
+           shadow-lg backdrop-blur-sm
+           hover:border-[#00ff08]
+           hover:shadow-[0_0_30px_rgba(0,255,8,0.12)]
+           hover:scale-[1.03]
+           transition-all duration-300 cursor-pointer;
+  }
+
+  /* Card h2 headings — green underline on hover, width = text only */
+  .card-heading {
+    @apply w-fit
+           underline-offset-4 decoration-[#00ff08] decoration-2
+           hover:underline
+           transition-all duration-150;
+  }
+}

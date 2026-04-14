@@ -1,101 +1,34 @@
-
-
-
-import sortingLogo from "./assets/sorting.png"
-import dpLogo from "./assets/dp.png"
-import queueLogo from "./assets/queue.png"
-import graphLogo from "./assets/graph.png"
-import treeLogo from "./assets/tree.png"
-import heapLogo from "./assets/heap.png"
-import searchLogo from  "./assets/search.png"
-import type { AlgoProps } from "./components/AlgoCard"
-import { BrowserRouter, Route,  Routes } from "react-router-dom"
-
-import Homepage from "./pages/Homepage"
-
-
-import { gsap } from "gsap";
-
-import { SplitText } from "gsap/all";
-
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import BubbleSortVisualizer from "@/components/sort/BubbleSort.tsx";
 import SearchVisualizer from "@/components/search/LinearSearch.tsx";
 import BinarySearch from "@/components/search/BinarySearch.tsx";
-import LandingPage from "@/pages/LandingPage.tsx";
 import SelectionSort from "@/components/sort/SelectionSort.tsx";
-import InserationSort from "./components/sort/InserationSort.tsx"
-gsap.registerPlugin(SplitText);
-
-export const algos: AlgoProps[] = [
-    {
-        algoName: "Sorting Algorithms",
-        algoImg: sortingLogo,
-        algoRoute:"/sort"
-    },
-    {
-        algoName: "Dynamic Programming",
-
-        algoImg: dpLogo,
-        algoRoute:"/dp"
-    },
-    {
-        algoName: "Queue",
-        algoDesc: "Interactively explore how elements enter and exit in FIFO order. Visualize real-time operations in circular queues and priority queues.",
-        algoImg: queueLogo,
-        algoRoute:"/queue"
-    },
-    {
-        algoName:"Search",
-        algoDesc:"",
-        algoImg:searchLogo,
-        algoRoute:"/search"
-    },
-    {
-        algoName: "Graph Algorithms",
-        algoDesc: "Dive dep into BFS, DFS, Dijkstra, and more through animated graphs. Visual tools make it easier to understand traversal and shortest paths.",
-        algoImg: graphLogo,
-        algoRoute:"/graph"
-    },
-    {
-        algoName: "Tree Algorithms",
-        algoDesc: "See how binary trees, BSTs, and AVL trees grow, rotate, and balance. Perfect for understanding recursion, traversal, and structure manipulation.",
-        algoImg: treeLogo,
-        algoRoute:"/tree"
-    },
-    {
-        algoName: "Heap",
-        algoDesc: "Visualize heap insertions and deletions in real time. See how Min-Heaps and Max-Heaps power priority queues and heap sort.",
-        algoImg: heapLogo,
-        algoRoute:"/heap"
-    }
-]
-
+import InserationSort from "@/components/sort/InserationSort.tsx";
+import Homepage from "@/pages/Homepage.tsx";
+import LandingPage from "@/pages/LandingPage.tsx";
+import AboutPage from "@/pages/AboutPage.tsx";
+import { ROUTES } from "@/constants/routes";
 
 function App() {
-
-
-
-
-
-
     return (
+        <BrowserRouter>
+            <Routes>
+                <Route path={ROUTES.landing} element={<LandingPage />} />
+                <Route path={ROUTES.home} element={<Homepage />} />
+                <Route path={ROUTES.algorithms} element={<Homepage />} />
+                <Route path={ROUTES.about} element={<AboutPage />} />
 
+                <Route path={ROUTES.sort} element={<BubbleSortVisualizer />} />
+                <Route path={ROUTES.search} element={<SearchVisualizer />} />
+                <Route path={ROUTES.binarySearch} element={<BinarySearch />} />
+                <Route path={ROUTES.selectionSort} element={<SelectionSort />} />
+                <Route path={ROUTES.insertionSort} element={<InserationSort />} />
+                <Route path={ROUTES.insertionSortLegacy} element={<InserationSort />} />
 
-
-         <BrowserRouter >
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-          <Route path={"/home"} element={<Homepage/>}/>
-          <Route path= "/sort" element={<BubbleSortVisualizer/>}/>
-          <Route path="/search" element={<SearchVisualizer/>}/>
-          <Route path="/binary" element={<BinarySearch/>}/>
-          <Route path={"/selection"} element={<SelectionSort/>}/>
-          <Route path={"/insert"} element={<InserationSort/>}/>
-       
-      </Routes>
-    </BrowserRouter>
-       
-    )
+                <Route path="*" element={<Navigate to={ROUTES.landing} replace />} />
+            </Routes>
+        </BrowserRouter>
+    );
 }
 
-export default App
+export default App;

@@ -13,12 +13,7 @@ type ThemeProviderState = {
     setTheme: (theme: Theme) => void
 }
 
-const initialState: ThemeProviderState = {
-    theme: "system",
-    setTheme: () => null,
-}
-
-const ThemeProviderContext = createContext<ThemeProviderState>(initialState)
+const ThemeProviderContext = createContext<ThemeProviderState | undefined>(undefined)
 
 export function ThemeProvider({
                                   children,
@@ -42,12 +37,10 @@ export function ThemeProvider({
                 : "light"
 
             root.classList.add(systemTheme)
-            console.log("Applied system theme:", systemTheme)
             return
         }
 
         root.classList.add(theme)
-        console.log("Applied theme:", theme)
     }, [theme])
 
     const value = useMemo(() => ({
@@ -55,7 +48,6 @@ export function ThemeProvider({
         setTheme: (newTheme: Theme) => {
             localStorage.setItem(storageKey, newTheme)
             setTheme(newTheme)
-            console.log("Theme changed to:", newTheme)
         },
     }), [theme, storageKey])
 

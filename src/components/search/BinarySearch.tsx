@@ -1,8 +1,6 @@
-import { useRef, useState, useEffect } from "react";
-import gsap from "gsap";
-import Flip from "gsap/Flip";
-import SharedLayout, {type BarState} from "@/components/search/SharedLayout";
+import SharedLayout, { type BarState } from "@/components/visualizer/SharedLayout";
 import {useSearchVizulizer} from "@/hooks/useSearchVizulizer";
+import { ROUTES } from "@/constants/routes";
 
 
 
@@ -10,9 +8,8 @@ const BinarySearch = () => {
    
 
   const {
-
     bars, setBars,
-    barStates, setBarStates,
+    setBarStates,
     inputValue, setInputValue,
     searchValue, setSearchValue,
     isPlaying, setIsPlaying,
@@ -20,104 +17,87 @@ const BinarySearch = () => {
     resetAnimation,
     handleInsert, generateRandomArray,
     playSteps, pauseSteps, nextStep, prevStep,
+    getBarColor,
 
   } = useSearchVizulizer();
 
-
-
-
-  const binarySteps = (low: number, high: number, target: number) => {
-    if (low > high) return;
-
-    const mid = Math.floor((low + high) / 2);
-    const midVal = bars[mid].value;
-    const tl = gsap.timeline();
-
-    
-    tl.to(".bar", { backgroundColor: "blue", duration: 0.2 });
-    tl.to(
-      `#bar-${bars[low].id}`,
-      { backgroundColor: "yellow", duration: 0.3 },
-      "+=0.2"
-    );
-    tl.to(
-      `#bar-${bars[high].id}`,
-      { backgroundColor: "purple", duration: 0.3 },
-      "<"
-    );
-
-    // Step 3: Pause so user can see range
-    tl.to({}, { duration: 0.5 });
-
-    // Step 4: Highlight mid bar
-    tl.to(`#bar-${bars[mid].id}`, { backgroundColor: "red", duration: 0.3 });
-
-    // Step 5: Pause so user can see mid
-    tl.to({}, { duration: 0.5 });
-
-    // Step 6: Decide & animate
-    tl.call(() => {
-      if (midVal === target) {
-        gsap.to(`#bar-${bars[mid].id}`, {
-          backgroundColor: "green",
-          duration: 0.3,
-        });
-      } else if (midVal < target) {
-        // Move out left side
-        bars.forEach((bar, i) => {
-          if (i < mid + 1) {
-            gsap.to(`#bar-${bar.id}`, { x: -150, opacity: 0, duration: 0.7 });
-          }
-        });
-        setTimeout(() => binarySteps(mid + 1, high, target), 600);
-      } else {
-        // Move out right side
-        bars.forEach((bar, i) => {
-          if (i > mid - 1) {
-            gsap.to(`#bar-${bar.id}`, { x: 150, opacity: 0, duration: 0.7 });
-          }
-        });
-        setTimeout(() => binarySteps(low, mid - 1, target), 600);
-      }
-    });
-  };
-
   const handleSearch = () => {
-    const target = parseInt(searchValue.trim());
-    if (isNaN(target) || target > 50 || target < -50) {
+    const target = parseInt(searchValue.trim(), 10);
+    if (isNaN(target) || target > 50 || target < -50 || bars.length === 0) {
       //Toaster
       return;
     }
 
     resetAnimation();
 
+    const sortedBars = [...bars].sort((a, b) => a.value - b.value);
+    setBars(sortedBars);
+
     const timeline = timelineRef.current;
-    const labels: string[] = [];
-    let found = false;
+    const labels: string[] = ["start"];
 
     timeline.addLabel("start");
-    labels.push("start");
 
-    const left = 0;
-    const right = bars.length - 1;
+    let low = 0;
+    let high = sortedBars.length - 1;
+    let step = 0;
+    let foundBarId: string | undefined;
 
+    while (low <= high) {
+      const mid = Math.floor((low + high) / 2);
+      const label = `step-${step}`;
+      const activeIds = sortedBars.slice(low, high + 1).map((bar) => bar.id);
+      const midId = sortedBars[mid].id;
 
-    binarySteps(left, right, target);
+      labels.push(label);
+      timeline.addLabel(label);
+
+      timeline.call(() => {
+        const nextStates: Record<string, BarState> = {};
+        activeIds.forEach((id) => {
+          nextStates[id] = "checking";
+        });
+        nextStates[midId] = "checking";
+        setBarStates(nextStates);
+      }, undefined, label);
+
+      timeline.to({}, { duration: 0.5 }, label);
+
+      if (sortedBars[mid].value === target) {
+        foundBarId = midId;
+        break;
+      }
+
+      if (sortedBars[mid].value < target) {
+        low = mid + 1;
+      } else {
+        high = mid - 1;
+      }
+      step += 1;
+    }
+
+    const endLabel = foundBarId ? "found" : "not-found";
+    labels.push(endLabel);
+    timeline.addLabel(endLabel);
+
+    timeline.call(() => {
+      if (foundBarId) {
+        setBarStates({ [foundBarId]: "found" });
+      } else {
+        setBarStates({});
+      }
+    }, undefined, endLabel);
+
+    labelsRef.current = labels;
+    timeline.play();
+    setIsPlaying(true);
   };
 
   
-  const algoMap = [{ name: "Linear Search", value: "linear" }];
-
-  const getBarColor = (id: string) => {
-    switch (barStates[id]) {
-      case "checking":
-        return "bg-red-500";
-      case "found":
-        return "bg-green-500";
-      default:
-        return "bg-blue-500";
-    }
-  };
+  const algoMap = [
+    { name: "Linear Search", value: ROUTES.search },
+    { name: "Binary Search", value: ROUTES.binarySearch },
+  ];
 
   return (
     <SharedLayout
@@ -128,6 +108,7 @@ const BinarySearch = () => {
       handleInsert={handleInsert}
       isPlaying={isPlaying}
       handleSearch={handleSearch}
+      actionLabel="Search"
       generateRandomArray={generateRandomArray}
       algoMap={algoMap}
       onPlay={playSteps}
@@ -138,13 +119,9 @@ const BinarySearch = () => {
      
       <div className="flex gap-2 justify-center items-end p-4 min-h-[200px] bar-container">
         {bars.map((bar) => (
-          <div>
-
-
-
+          <div key={bar.id}>
           <div
             id={`bar-${bar.id}`}
-            key={bar.id}
             data-flip-id={bar.id}
             className={`bar w-10 rounded-sm text-white text-center transition-colors duration-300 ${getBarColor(
               bar.id
