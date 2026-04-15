@@ -4,6 +4,7 @@ export const ROUTES = {
   algorithms: "/algorithms",
   about: "/about",
   sort: "/sort",
+  mergeSort: "/merge",
   search: "/search",
   binarySearch: "/binary",
   selectionSort: "/selection",

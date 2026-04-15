@@ -20,7 +20,7 @@ interface Algo {
 
 // We will use this to track the state for visual rendering
 //
-export type BarState = "default" | "checking" | "found";
+export type BarState = "default" | "checking" | "found" | "discarded";
 
 
 
@@ -122,7 +122,7 @@ const SharedLayout = ({
 
           {/* Random Button */}
           <button
-            onClick={generateRandomArray}
+            onClick={() => generateRandomArray()}
             className="action-btn action-btn--random"
           >
             Generate Random

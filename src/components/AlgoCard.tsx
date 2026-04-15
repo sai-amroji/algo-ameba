@@ -1,9 +1,10 @@
 import { useNavigate } from "react-router-dom";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useGSAP } from "@gsap/react";
 
-gsap.registerPlugin(ScrollTrigger);
+gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 export interface AlgoProps {
   algoName: string;
@@ -16,21 +17,21 @@ const AlgoCard = ({ algoImg, algoName, algoRoute }: AlgoProps) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
+  useGSAP(() => {
     if (!cardRef.current) return;
 
     gsap.from(cardRef.current, {
+      opacity: 0,
+      y: 60,
+      duration: 0.8,
+      ease: "power3.out",
       scrollTrigger: {
         trigger: cardRef.current,
         start: "top 85%",
         toggleActions: "play none none reverse",
       },
-      opacity: 0,
-      y: 60,
-      duration: 0.8,
-      ease: "power3.out",
     });
-  }, []);
+  }, { scope: cardRef });
 
   return (
     <div

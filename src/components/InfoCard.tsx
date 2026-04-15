@@ -4,7 +4,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SplitText } from "gsap/SplitText";
 import { useGSAP } from "@gsap/react";
 
-gsap.registerPlugin(SplitText, ScrollTrigger);
+gsap.registerPlugin(SplitText, ScrollTrigger, useGSAP);
 
 type InfoCardProps = {
     title: string;
@@ -16,6 +16,7 @@ const InfoCard = ({ title, description, side = "left" }: InfoCardProps) => {
     const cardRef = useRef<HTMLDivElement>(null);
     const titleRef = useRef<HTMLHeadingElement>(null);
     const descRef = useRef<HTMLParagraphElement>(null);
+    const { contextSafe } = useGSAP({ scope: cardRef });
 
     useGSAP(() => {
         const card = cardRef.current;
@@ -46,7 +47,7 @@ const InfoCard = ({ title, description, side = "left" }: InfoCardProps) => {
         });
 
         // Simple hover effect: underline the title with green color.
-        const hoverIn = () => {
+        const hoverIn = contextSafe(() => {
             // Add a CSS class to trigger underline via Tailwind utilities.
             titleEl.classList.add("underline", "decoration-green-500");
             // Animate description words as before.
@@ -55,9 +56,9 @@ const InfoCard = ({ title, description, side = "left" }: InfoCardProps) => {
                 { opacity: 0.4, y: 7 },
                 { opacity: 1, y: 0, stagger: 0.025, duration: 0.4, ease: "power2.out" }
             );
-        };
+        });
 
-        const hoverOut = () => {
+        const hoverOut = contextSafe(() => {
             titleEl.classList.remove("underline", "decoration-green-500");
             gsap.to(descSplit.words, {
                 opacity: 0.4,
@@ -66,7 +67,7 @@ const InfoCard = ({ title, description, side = "left" }: InfoCardProps) => {
                 duration: 0.3,
                 ease: "power2.in",
             });
-        };
+        });
 
         card.addEventListener("mouseenter", hoverIn);
         card.addEventListener("mouseleave", hoverOut);
@@ -76,7 +77,7 @@ const InfoCard = ({ title, description, side = "left" }: InfoCardProps) => {
             card.removeEventListener("mouseleave", hoverOut);
             descSplit.revert();
         };
-    }, [side]);
+    }, { scope: cardRef, dependencies: [side] });
 
     return (
         <div ref={cardRef} className="feature-card  ">

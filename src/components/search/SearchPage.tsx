@@ -1,8 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation, useSearchParams } from "react-router-dom";
-import SharedLayout, { type BarState } from "@/components/visualizer/SharedLayout";
+import { gsap } from "gsap";
+import { useGSAP } from "@gsap/react";
+import { toast } from "sonner";
+import SharedLayout from "@/components/SharedLayout";
 import { ROUTES } from "@/constants/routes";
 import { useSearchVizulizer } from "@/hooks/useSearchVizulizer";
+import { searchAlgorithms, type SearchFrame } from "@/components/search/searchAlgorithms";
+
+gsap.registerPlugin(useGSAP);
 
 type SearchMode = "linear" | "binary";
 
@@ -18,6 +24,8 @@ const SearchPage = () => {
   const queryMode = searchParams.get("mode");
   const initialMode: SearchMode = queryMode === "binary" || queryMode === "linear" ? queryMode : routeMode;
   const [mode, setMode] = useState<SearchMode>(initialMode);
+  const barsContainerRef = useRef<HTMLDivElement>(null);
+  const barRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const {
     bars,
@@ -49,6 +57,83 @@ const SearchPage = () => {
     setMode(initialMode);
   }, [initialMode]);
 
+  const { contextSafe } = useGSAP({ scope: barsContainerRef });
+
+  const getExistingBarElements = (ids: string[]) =>
+    ids
+      .map((id) => barRefs.current[id])
+      .filter((element): element is HTMLDivElement => Boolean(element));
+
+  const animateBinaryFrame = contextSafe((frame: SearchFrame) => {
+    const activeIds = frame.activeIds ?? [];
+    const discardedIds = frame.discardedIds ?? [];
+    const focusId = frame.focusId;
+
+    const activeElements = getExistingBarElements(activeIds);
+    const discardedElements = getExistingBarElements(discardedIds);
+
+    gsap.to(activeElements, {
+      opacity: 1,
+      y: 0,
+      x: 0,
+      scale: 1,
+      filter: "grayscale(0%)",
+      duration: 0.22,
+      overwrite: "auto",
+    });
+
+    gsap.to(discardedElements, {
+      opacity: 0.35,
+      y: 14,
+      x: 0,
+      scale: 1,
+      filter: "grayscale(100%)",
+      duration: 0.22,
+      overwrite: "auto",
+    });
+
+    const container = barsContainerRef.current;
+    if (container && activeElements.length > 0) {
+      const containerRect = container.getBoundingClientRect();
+      const firstRect = activeElements[0].getBoundingClientRect();
+      const lastRect = activeElements[activeElements.length - 1].getBoundingClientRect();
+      const rangeCenterX = (firstRect.left + lastRect.right) / 2;
+      const containerCenterX = (containerRect.left + containerRect.right) / 2;
+      const shiftX = containerCenterX - rangeCenterX;
+
+      gsap.to(activeElements, {
+        x: shiftX,
+        duration: 0.24,
+        overwrite: "auto",
+      });
+    }
+
+    if (focusId) {
+      const focusElement = barRefs.current[focusId];
+      if (focusElement) {
+        gsap.to(focusElement, {
+          y: -12,
+          scale: 1.06,
+          duration: 0.2,
+          overwrite: "auto",
+        });
+      }
+    }
+  });
+
+  const resetBarTweens = contextSafe(() => {
+    const barElements = getExistingBarElements(bars.map((bar) => bar.id));
+
+    if (barElements.length === 0) {
+      return;
+    }
+
+    gsap.killTweensOf(barElements);
+    gsap.set(barElements, {
+      clearProps: "x,y,scale,opacity,filter",
+    });
+  });
+
   const updateMode = (nextMode: string) => {
     const normalizedMode: SearchMode = nextMode === "binary" ? "binary" : "linear";
     setMode(normalizedMode);
@@ -59,138 +144,72 @@ const SearchPage = () => {
     setIsPlaying(false);
   };
 
-  const runLinearSearch = (target: number) => {
+  const runSearch = (target: number) => {
     const timeline = timelineRef.current;
-    const labels: string[] = ["start"];
-    let foundBarId: string | undefined;
-
-    timeline.clear().pause(0);
-    timeline.eventCallback("onComplete", finishTimeline);
-    timeline.eventCallback("onInterrupt", finishTimeline);
-
     resetAnimation();
-    timeline.addLabel("start");
+    timeline.clear().pause(0);
+    resetBarTweens();
 
-    for (let index = 0; index < bars.length; index++) {
-      const bar = bars[index];
+    const result = searchAlgorithms[mode](bars, target);
+    const labels: string[] = [];
+
+    setBars(result.initialBars);
+
+    result.frames.forEach((frame, index) => {
       const label = `step-${index}`;
       labels.push(label);
       timeline.addLabel(label);
 
       timeline.call(() => {
-        setBarStates({ [bar.id]: "checking" });
+        setBarStates(frame.states);
+        if (mode === "binary") {
+          // Wait for React to apply classes/styles before GSAP reads positions.
+          requestAnimationFrame(() => {
+            animateBinaryFrame(frame);
+          });
+        }
       }, undefined, label);
 
-      timeline.to({}, { duration: 0.35 }, label);
+      timeline.to({}, { duration: frame.duration }, label);
+    });
 
-      if (bar.value === target) {
-        foundBarId = bar.id;
-        const foundLabel = `found-${index}`;
-        labels.push(foundLabel);
-        timeline.addLabel(foundLabel);
-        timeline.call(() => {
-          setBarStates({ [bar.id]: "found" });
-        }, undefined, foundLabel);
-        break;
+    timeline.eventCallback("onComplete", () => {
+      finishTimeline();
+      if (mode !== "binary") {
+        resetBarTweens();
       }
-    }
-
-    const endLabel = foundBarId ? "found" : "not-found";
-    labels.push(endLabel);
-    timeline.addLabel(endLabel);
-    timeline.call(() => {
-      if (foundBarId) {
-        setBarStates({ [foundBarId]: "found" });
-      } else {
-        setBarStates({});
+      if (!result.found) {
+        toast("Value not found");
       }
-    }, undefined, endLabel);
-
-    labelsRef.current = labels;
-    timeline.play();
-    setIsPlaying(true);
-  };
-
-  const runBinarySearch = (target: number) => {
-    const timeline = timelineRef.current;
-    const sortedBars = [...bars].sort((left, right) => left.value - right.value);
-    const labels: string[] = ["start"];
-    let foundBarId: string | undefined;
-
-    timeline.clear().pause(0);
-    timeline.eventCallback("onComplete", finishTimeline);
+    });
     timeline.eventCallback("onInterrupt", finishTimeline);
 
-    resetAnimation();
-    setBars(sortedBars);
-    timeline.addLabel("start");
+    labelsRef.current = labels;
 
-    let low = 0;
-    let high = sortedBars.length - 1;
-    let step = 0;
-
-    while (low <= high) {
-      const mid = Math.floor((low + high) / 2);
-      const label = `step-${step}`;
-      const activeIds = sortedBars.slice(low, high + 1).map((bar) => bar.id);
-      const midBar = sortedBars[mid];
-
-      labels.push(label);
-      timeline.addLabel(label);
-
-      timeline.call(() => {
-        const nextStates: Record<string, BarState> = {};
-        activeIds.forEach((id) => {
-          nextStates[id] = "checking";
-        });
-        nextStates[midBar.id] = "checking";
-        setBarStates(nextStates);
-      }, undefined, label);
-
-      timeline.to({}, { duration: 0.35 }, label);
-
-      if (midBar.value === target) {
-        foundBarId = midBar.id;
-        break;
-      }
-
-      if (midBar.value < target) {
-        low = mid + 1;
-      } else {
-        high = mid - 1;
-      }
-      step += 1;
+    if (labels.length === 0) {
+      finishTimeline();
+      return;
     }
 
-    const endLabel = foundBarId ? "found" : "not-found";
-    labels.push(endLabel);
-    timeline.addLabel(endLabel);
-
-    timeline.call(() => {
-      if (foundBarId) {
-        setBarStates({ [foundBarId]: "found" });
-      } else {
-        setBarStates({});
-      }
-    }, undefined, endLabel);
-
-    labelsRef.current = labels;
-    timeline.play();
-    setIsPlaying(true);
+    requestAnimationFrame(() => {
+      timeline.play(0);
+      setIsPlaying(true);
+    });
   };
 
   const handleSearch = () => {
     const target = Number.parseInt(searchValue.trim(), 10);
-    if (Number.isNaN(target) || target > 50 || target < -50 || bars.length === 0) {
+    if (Number.isNaN(target) || target > 50 || target < -50) {
+      toast("Enter a valid target between -50 and 50");
       return;
     }
 
-    if (mode === "binary") {
-      runBinarySearch(target);
+    if (bars.length === 0) {
+      toast("No bars available. Generate or insert values first.");
       return;
     }
 
-    runLinearSearch(target);
+    runSearch(target);
   };
 
   return (
@@ -216,9 +235,13 @@ const SearchPage = () => {
       onSpeedIncrease={increaseSpeed}
       onSpeedDecrease={decreaseSpeed}
     >
-      <div className="flex gap-2 justify-center items-end p-4 min-h-[200px] bar-container">
+      <div ref={barsContainerRef} className="flex gap-2 justify-center items-end p-4 min-h-[200px] bar-container">
         {bars.map((bar) => (
           <div
+            id={`bar-${bar.id}`}
+            ref={(node) => {
+              barRefs.current[bar.id] = node;
+            }}
             key={bar.id}
             data-flip-id={bar.id}
             className={`bar w-10 rounded-sm text-white text-center transition-colors duration-300 ${getBarColor(bar.id)}`}

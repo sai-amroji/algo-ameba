@@ -1,11 +1,7 @@
 
 import { useRef, useState, useEffect } from "react";
 import gsap from "gsap";
-import Flip from "gsap/Flip";
-import { type BarState } from "@/components/visualizer/SharedLayout";
-
-
-gsap.registerPlugin(Flip);
+import { type BarState } from "@/components/SharedLayout";
 
 type Bar = {
     value: number;
@@ -64,20 +60,15 @@ export const useSearchVizulizer = () => {
         const val = Date.now() + Math.random();
         const newBar: Bar = { value: parsed, id: val.toString() };
         const updated = [...bars, newBar];
-
-        const state = Flip.getState(".bar-container, .bar");
         setBars(updated);
-        Flip.from(state, {
-            duration: 0.5,
-            ease: "power1.inOut",
-        });
 
         resetAnimation();
         setInputValue("");
     };
 
-    const generateRandomArray = (length = 8) => {
-        const safeLength = Math.min(Math.max(length, 1), 20);
+    const generateRandomArray = (length = 15) => {
+        const requestedLength = typeof length === "number" && Number.isFinite(length) ? length : 8;
+        const safeLength = Math.min(Math.max(Math.floor(requestedLength), 1), 20);
         const random = Array.from({ length: safeLength }, () => ({
             value: Math.floor(Math.random() * (MAX_VALUE - MIN_VALUE + 1)) + MIN_VALUE,
             id: Math.random().toString(),
@@ -147,6 +138,7 @@ export const useSearchVizulizer = () => {
         switch (barStates[id]) {
             case "checking": return "bg-red-500";
             case "found": return "bg-green-500";
+            case "discarded": return "bg-slate-500";
             default: return "bg-blue-500";
         }
     };

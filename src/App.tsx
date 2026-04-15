@@ -16,6 +16,7 @@ function App() {
                 <Route path={ROUTES.about} element={<AboutPage />} />
 
                 <Route path={ROUTES.sort} element={<SortPage />} />
+                <Route path={ROUTES.mergeSort} element={<SortPage />} />
                 <Route path={ROUTES.search} element={<SearchPage />} />
                 <Route path={ROUTES.binarySearch} element={<SearchPage />} />
                 <Route path={ROUTES.selectionSort} element={<SortPage />} />

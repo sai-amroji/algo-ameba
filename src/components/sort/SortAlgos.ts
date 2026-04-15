@@ -1,16 +1,17 @@
-export type SortAlgorithmKey = "bubble" | "selection" | "insertion";
+export type SortAlgorithmKey = "bubble" | "selection" | "insertion" | "merge";
 
 export type SortBar = {
 	id: string;
 	value: number;
 };
 
-export type SortBarState = "default" | "checking" | "comparing" | "sorted";
+export type SortBarState = "default" | "checking" | "comparing" | "sorted" | "splitting" | "merging";
 
 export type SortFrame = {
 	bars: SortBar[];
 	states: Record<string, SortBarState>;
 	duration: number;
+	offsets?: Record<string, { x: number; y: number }>;
 };
 
 const cloneBars = (bars: SortBar[]) => bars.map((bar) => ({ ...bar }));
@@ -19,12 +20,18 @@ const pushFrame = (
 	frames: SortFrame[],
 	bars: SortBar[],
 	states: Record<string, SortBarState>,
-	duration = 0.35
+	duration = 0.35,
+	offsets?: Record<string, { x: number; y: number }>
 ) => {
 	frames.push({
 		bars: cloneBars(bars),
 		states: { ...states },
 		duration,
+		offsets: offsets
+			? Object.fromEntries(
+					Object.entries(offsets).map(([id, point]) => [id, { ...point }])
+			  )
+			: undefined,
 	});
 };
 
@@ -138,39 +145,217 @@ export const buildSelectionSortFrames = (initialBars: SortBar[]): SortFrame[] =>
 	return frames;
 };
 
+export const buildMergeSortFrames = (initialBars: SortBar[]): SortFrame[] => {
+	const bars = cloneBars(initialBars);
+	const frames: SortFrame[] = [];
+
+	if (bars.length === 0) {
+		return frames;
+	}
+
+	const levelY = 84;
+
+	const buildRangeOffsets = (
+		low: number,
+		high: number,
+		depth: number,
+		phase: "split" | "merge" | "sorted",
+		mid?: number
+	) => {
+		const offsets: Record<string, { x: number; y: number }> = {};
+		bars.forEach((bar) => {
+			offsets[bar.id] = { x: 0, y: 0 };
+		});
+
+		if (phase === "split" && typeof mid === "number") {
+			const segmentSize = high - low + 1;
+			const branchShift = Math.max(42, segmentSize * 13);
+			const localSpread = 12;
+
+			for (let index = low; index <= high; index++) {
+				if (index <= mid) {
+					offsets[bars[index].id] = {
+						x: -branchShift + (index - low) * localSpread,
+						y: (depth + 1) * levelY,
+					};
+				} else {
+					offsets[bars[index].id] = {
+						x: branchShift + (index - (mid + 1)) * localSpread,
+						y: (depth + 1) * levelY,
+					};
+				}
+			}
+			return offsets;
+		}
+
+		for (let index = low; index <= high; index++) {
+			offsets[bars[index].id] = { x: 0, y: depth * levelY };
+		}
+
+		return offsets;
+	};
+
+	const pushRangeFrame = (
+		low: number,
+		high: number,
+		state: SortBarState,
+		depth: number,
+		duration = 0.3,
+		phase: "split" | "merge" | "sorted" = "sorted",
+		mid?: number
+	) => {
+		const states: Record<string, SortBarState> = {};
+		for (let index = low; index <= high; index++) {
+			states[bars[index].id] = state;
+		}
+		pushFrame(frames, bars, states, duration, buildRangeOffsets(low, high, depth, phase, mid));
+	};
+
+	const mergeRange = (low: number, mid: number, high: number, depth: number) => {
+		const left = bars.slice(low, mid + 1).map((bar) => ({ ...bar }));
+		const right = bars.slice(mid + 1, high + 1).map((bar) => ({ ...bar }));
+		let leftIndex = 0;
+		let rightIndex = 0;
+		let writeIndex = low;
+
+		while (leftIndex < left.length && rightIndex < right.length) {
+			const compareStates: Record<string, SortBarState> = {};
+			for (let index = low; index <= high; index++) {
+				compareStates[bars[index].id] = "merging";
+			}
+			compareStates[left[leftIndex].id] = "checking";
+			compareStates[right[rightIndex].id] = "comparing";
+			pushFrame(frames, bars, compareStates, 0.6, buildRangeOffsets(low, high, depth, "merge"));
+
+			if (left[leftIndex].value <= right[rightIndex].value) {
+				bars[writeIndex] = { ...left[leftIndex] };
+				leftIndex++;
+			} else {
+				bars[writeIndex] = { ...right[rightIndex] };
+				rightIndex++;
+			}
+
+			const afterWriteStates: Record<string, SortBarState> = {};
+			for (let index = low; index <= high; index++) {
+				afterWriteStates[bars[index].id] = "merging";
+			}
+			afterWriteStates[bars[writeIndex].id] = "checking";
+			pushFrame(frames, bars, afterWriteStates, 0.56, buildRangeOffsets(low, high, depth, "merge"));
+
+			writeIndex++;
+		}
+
+		while (leftIndex < left.length) {
+			const mergeStates: Record<string, SortBarState> = {};
+			for (let index = low; index <= high; index++) {
+				mergeStates[bars[index].id] = "merging";
+			}
+			mergeStates[left[leftIndex].id] = "checking";
+			pushFrame(frames, bars, mergeStates, 0.54, buildRangeOffsets(low, high, depth, "merge"));
+
+			bars[writeIndex] = { ...left[leftIndex] };
+			const afterWriteStates: Record<string, SortBarState> = {};
+			for (let index = low; index <= high; index++) {
+				afterWriteStates[bars[index].id] = "merging";
+			}
+			afterWriteStates[bars[writeIndex].id] = "checking";
+			pushFrame(frames, bars, afterWriteStates, 0.5, buildRangeOffsets(low, high, depth, "merge"));
+
+			leftIndex++;
+			writeIndex++;
+		}
+
+		while (rightIndex < right.length) {
+			const mergeStates: Record<string, SortBarState> = {};
+			for (let index = low; index <= high; index++) {
+				mergeStates[bars[index].id] = "merging";
+			}
+			mergeStates[right[rightIndex].id] = "checking";
+			pushFrame(frames, bars, mergeStates, 0.54, buildRangeOffsets(low, high, depth, "merge"));
+
+			bars[writeIndex] = { ...right[rightIndex] };
+			const afterWriteStates: Record<string, SortBarState> = {};
+			for (let index = low; index <= high; index++) {
+				afterWriteStates[bars[index].id] = "merging";
+			}
+			afterWriteStates[bars[writeIndex].id] = "checking";
+			pushFrame(frames, bars, afterWriteStates, 0.5, buildRangeOffsets(low, high, depth, "merge"));
+
+			rightIndex++;
+			writeIndex++;
+		}
+	};
+
+	const sortRange = (low: number, high: number, depth: number) => {
+		if (low === high) {
+			pushRangeFrame(low, high, "sorted", depth, 0.42, "sorted");
+			return;
+		}
+
+		const mid = Math.floor((low + high) / 2);
+		pushRangeFrame(low, high, "splitting", depth, 0.72, "split", mid);
+
+		sortRange(low, mid, depth + 1);
+		sortRange(mid + 1, high, depth + 1);
+
+		pushRangeFrame(low, high, "merging", depth, 0.62, "merge");
+		mergeRange(low, mid, high, depth);
+		pushRangeFrame(low, high, "sorted", depth, 0.5, "sorted");
+	};
+
+	pushFrame(frames, bars, {}, 0.45);
+	sortRange(0, bars.length - 1, 0);
+	return frames;
+};
+
 export const buildInsertionSortFrames = (initialBars: SortBar[]): SortFrame[] => {
 	const bars = cloneBars(initialBars);
 	const frames: SortFrame[] = [];
+	const sortedIds = new Set<string>();
 
 	pushFrame(frames, bars, {}, 0.2);
 
 	for (let i = 1; i < bars.length; i++) {
-		const current = bars[i];
-		let j = i - 1;
+		let j = i;
 
-		const compareStates: Record<string, SortBarState> = {
-			[current.id]: "checking",
-		};
-		if (bars[j]) {
-			compareStates[bars[j].id] = "comparing";
-		}
-		pushFrame(frames, bars, compareStates, 0.3);
+		while (j > 0) {
+			const left = bars[j - 1];
+			const right = bars[j];
 
-		while (j >= 0 && bars[j].value > current.value) {
-			bars[j + 1] = bars[j];
-			const shiftStates: Record<string, SortBarState> = {
-				[bars[j + 1].id]: "comparing",
-				[current.id]: "checking",
-			};
-			pushFrame(frames, bars, shiftStates, 0.3);
+			const compareStates: Record<string, SortBarState> = {};
+			sortedIds.forEach((id) => {
+				compareStates[id] = "sorted";
+			});
+			compareStates[left.id] = "comparing";
+			compareStates[right.id] = "checking";
+			pushFrame(frames, bars, compareStates, 0.25);
+
+			if (left.value <= right.value) {
+				break;
+			}
+
+			[bars[j - 1], bars[j]] = [bars[j], bars[j - 1]];
+
+			const swapStates: Record<string, SortBarState> = {};
+			sortedIds.forEach((id) => {
+				swapStates[id] = "sorted";
+			});
+			swapStates[bars[j - 1].id] = "checking";
+			swapStates[bars[j].id] = "comparing";
+			pushFrame(frames, bars, swapStates, 0.3);
+
 			j -= 1;
 		}
 
-		bars[j + 1] = current;
-		const insertedStates: Record<string, SortBarState> = {
-			[current.id]: "checking",
-		};
-		pushFrame(frames, bars, insertedStates, 0.3);
+		for (let k = 0; k <= i; k++) {
+			sortedIds.add(bars[k].id);
+		}
+
+		const passStates: Record<string, SortBarState> = {};
+		sortedIds.forEach((id) => {
+			passStates[id] = "sorted";
+		});
+		pushFrame(frames, bars, passStates, 0.2);
 	}
 
 	const endStates: Record<string, SortBarState> = {};
@@ -186,4 +371,5 @@ export const sortAlgorithmBuilders: Record<SortAlgorithmKey, (bars: SortBar[]) =
 	bubble: buildBubbleSortFrames,
 	selection: buildSelectionSortFrames,
 	insertion: buildInsertionSortFrames,
+	merge: buildMergeSortFrames,
 };

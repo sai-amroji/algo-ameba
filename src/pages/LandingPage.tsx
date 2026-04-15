@@ -8,10 +8,9 @@ import { useGSAP } from "@gsap/react";
 import { ModeToggle } from "@/components/mode-toggle.tsx";
 import { ROUTES } from "@/constants/routes";
 import InfoCard from "@/components/InfoCard";
-import { ScrambleTextPlugin } from "gsap/all";
+import { ScrambleTextPlugin } from "gsap/ScrambleTextPlugin";
 
-gsap.registerPlugin(SplitText);
-gsap.registerPlugin(ScrambleTextPlugin);
+gsap.registerPlugin(SplitText, ScrambleTextPlugin, useGSAP);
 
 const cardText =
   "Smooth, buttery animations powered by GSAP — watch algorithms come alive with fluid, responsive transitions.";
@@ -24,14 +23,20 @@ const CARDS = [
 
 const LandingPage = () => {
   const navigate = useNavigate();
+  const containerRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
+  const subtitleRef = useRef<HTMLParagraphElement>(null);
   const buttonRef = useRef<HTMLDivElement>(null);
   const buttonBgRef = useRef<HTMLDivElement>(null);
 
+  const { contextSafe } = useGSAP({ scope: containerRef });
+
   useGSAP(() => {
     // ── 1. Title SplitText — entrance ─────────────────────────────────
-    if (titleRef.current) {
-      const split = SplitText.create(titleRef.current, { type: "chars, words" });
+    const titleEl = titleRef.current;
+    const subtitleEl = subtitleRef.current;
+    if (titleEl) {
+      const split = SplitText.create(titleEl, { type: "chars, words" });
 
       gsap.from(split.chars, {
         opacity: 0,
@@ -42,50 +47,50 @@ const LandingPage = () => {
         stagger: 0.05,
       });
 
-      
-gsap.to("#subtitle", {
-  duration: 2, 
-  scrambleText: {
-    text: "Visualize algorithms with buttery‑smooth GSAP animations. Learn by watching them breathe.", 
-    chars: "Watch beutiful animations powered by GSAP", 
-    revealDelay: 0.7, 
-    speed: 0.3, 
-  
-  }
-});
+      if (subtitleEl) {
+        gsap.to(subtitleEl, {
+          duration: 1.8,
+          scrambleText: {
+            text: "Visualize algorithms with buttery-smooth GSAP animations. Learn by watching them breathe.",
+            chars: "01",
+            revealDelay: 0.5,
+            speed: 0.45,
+          },
+        });
+      }
 
 
 
       // Hover: neon green glow + subtle float per char
       // Text stays its original colour — no transparency, no harsh stroke
-      const hoverIn = () =>
+      const hoverIn = contextSafe(() =>
         gsap.to(split.chars, {
           textShadow: "0 0 20px #00ff08, 0 0 45px #00ff0866",
           y: -6,
           duration: 0.3,
           ease: "power2.out",
           stagger: { each: 0.04, from: "start" },
-        });
+        }));
 
-      const hoverOut = () =>
+      const hoverOut = contextSafe(() =>
         gsap.to(split.chars, {
           textShadow: "none",
           y: 0,
           duration: 0.25,
           ease: "power2.in",
           stagger: { each: 0.03, from: "end" },
-        });
+        }));
 
-      titleRef.current.addEventListener("mouseenter", hoverIn);
-      titleRef.current.addEventListener("mouseleave", hoverOut);
+      titleEl.addEventListener("mouseenter", hoverIn);
+      titleEl.addEventListener("mouseleave", hoverOut);
 
       return () => {
-        titleRef.current?.removeEventListener("mouseenter", hoverIn);
-        titleRef.current?.removeEventListener("mouseleave", hoverOut);
+        titleEl.removeEventListener("mouseenter", hoverIn);
+        titleEl.removeEventListener("mouseleave", hoverOut);
         split.revert();
       };
     }
-  });
+  }, { scope: containerRef });
 
   useGSAP(() => {
     // ── 2. Button entrance ────────────────────────────────────────────
@@ -96,10 +101,10 @@ gsap.to("#subtitle", {
         .from(buttonBgRef.current, { x: "-100%", duration: 0.7, ease: "power2.inOut" }, "-=0.4");
     }
 
-  });
+  }, { scope: containerRef });
 
   return (
-    <div className="page-shell page-enter w-full flex flex-col">
+    <div ref={containerRef} className="page-shell page-enter w-full flex flex-col">
 
       {/* ─── HERO SECTION ─────────────────────────────────────────────── */}
       <section className="min-h-screen flex flex-col section-fade">
@@ -127,7 +132,7 @@ gsap.to("#subtitle", {
             Algo Ameba
           </h1>
 
-          <p id="subtitle" className="text-xl text-muted-foreground font-[arima] max-w-xl">
+          <p ref={subtitleRef} className="text-xl text-muted-foreground font-[arima] max-w-xl">
             Visualize algorithms with buttery‑smooth GSAP animations.
             Learn by watching them breathe.
           </p>
