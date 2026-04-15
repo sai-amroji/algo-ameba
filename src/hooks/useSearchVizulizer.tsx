@@ -24,6 +24,7 @@ export const useSearchVizulizer = () => {
         const [inputValue, setInputValue] = useState("");
         const [searchValue, setSearchValue] = useState("");
         const [isPlaying, setIsPlaying] = useState(false);
+        const [speed, setSpeed] = useState(1);
 
         const MIN_VALUE = -50;
         const MAX_VALUE = 50;
@@ -40,6 +41,10 @@ export const useSearchVizulizer = () => {
             timelineRef.current.kill();
         };
     }, []);
+
+    useEffect(() => {
+        timelineRef.current.timeScale(speed);
+    }, [speed]);
 
     const resetAnimation = () => {
         timelineRef.current.clear().pause(0);
@@ -78,15 +83,31 @@ export const useSearchVizulizer = () => {
             id: Math.random().toString(),
         }));
 
-        const state = Flip.getState(".bar-container, .bar");
+        // Directly set bars without Flip animation to avoid thin initial rendering.
         setBars(random);
-        Flip.from(state, {
-            duration: 0.7,
-            ease: "power1.inOut",
-            stagger: 0.05,
-        });
-
         resetAnimation();
+    };
+
+    useEffect(() => {
+        if (bars.length === 0) {
+            generateRandomArray();
+        }
+        // Run only on mount.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const clampSpeed = (value: number) => Math.min(3, Math.max(0.25, value));
+
+    const setPlaybackSpeed = (value: number) => {
+        setSpeed(clampSpeed(value));
+    };
+
+    const increaseSpeed = () => {
+        setSpeed((prev) => clampSpeed(prev + 0.25));
+    };
+
+    const decreaseSpeed = () => {
+        setSpeed((prev) => clampSpeed(prev - 0.25));
     };
 
 
@@ -144,6 +165,10 @@ export const useSearchVizulizer = () => {
     handleInsert, generateRandomArray,
     playSteps, pauseSteps, nextStep, prevStep,
     getBarColor,
+        speed,
+        setPlaybackSpeed,
+        increaseSpeed,
+        decreaseSpeed,
   };
 
 

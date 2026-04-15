@@ -4,20 +4,22 @@ import { useNavigate } from "react-router-dom";
 import { useRef } from "react";
 import { gsap } from "gsap";
 import { SplitText } from "gsap/SplitText";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import { ModeToggle } from "@/components/mode-toggle.tsx";
 import { ROUTES } from "@/constants/routes";
+import InfoCard from "@/components/InfoCard";
+import { ScrambleTextPlugin } from "gsap/all";
 
-gsap.registerPlugin(SplitText, ScrollTrigger);
+gsap.registerPlugin(SplitText);
+gsap.registerPlugin(ScrambleTextPlugin);
 
 const cardText =
   "Smooth, buttery animations powered by GSAP — watch algorithms come alive with fluid, responsive transitions.";
 
 const CARDS = [
-  { id: "left-1", title: ["Modern and", "Fluid Animations"] },
-  { id: "left-2", title: ["Easy and", "Fast Animations"] },
-  { id: "right-1", title: ["Simple and", "Complex Algorithms"] },
+  { id: "left-1", title: "Modern and\nFluid Animations", side: "left" },
+  { id: "left-2", title: "Easy and\nFast Animations", side: "left" },
+  { id: "right-1", title: "Simple and\nComplex Algorithms", side: "right" },
 ] as const;
 
 const LandingPage = () => {
@@ -25,7 +27,6 @@ const LandingPage = () => {
   const titleRef = useRef<HTMLHeadingElement>(null);
   const buttonRef = useRef<HTMLDivElement>(null);
   const buttonBgRef = useRef<HTMLDivElement>(null);
-  const cardsRef = useRef<Record<string, HTMLDivElement | null>>({});
 
   useGSAP(() => {
     // ── 1. Title SplitText — entrance ─────────────────────────────────
@@ -40,6 +41,20 @@ const LandingPage = () => {
         duration: 0.9,
         stagger: 0.05,
       });
+
+      
+gsap.to("#subtitle", {
+  duration: 2, 
+  scrambleText: {
+    text: "Visualize algorithms with buttery‑smooth GSAP animations. Learn by watching them breathe.", 
+    chars: "Watch beutiful animations powered by GSAP", 
+    revealDelay: 0.7, 
+    speed: 0.3, 
+  
+  }
+});
+
+
 
       // Hover: neon green glow + subtle float per char
       // Text stays its original colour — no transparency, no harsh stroke
@@ -81,68 +96,17 @@ const LandingPage = () => {
         .from(buttonBgRef.current, { x: "-100%", duration: 0.7, ease: "power2.inOut" }, "-=0.4");
     }
 
-    // ── 3. Cards — ScrollTrigger slide-in + description shimmer ───────
-    const descSplits = new Map<string, ReturnType<typeof SplitText.create>>();
-
-    // Pre-split all descriptions once (so hover is instant)
-    Object.entries(cardsRef.current).forEach(([id, card]) => {
-      if (!card) return;
-      const descEl = card.querySelector<HTMLElement>(".card-desc");
-      if (descEl) descSplits.set(id, SplitText.create(descEl, { type: "words" }));
-    });
-
-    const cards = Object.values(cardsRef.current).filter(
-      (card): card is HTMLDivElement => Boolean(card)
-    );
-
-    cards.forEach((card, index) => {
-      // Use card dimensions for offset so animation scales with new spacing and card size.
-      const yOffset = Math.min(card.offsetHeight * 0.22, 96);
-      const xOffset = index % 2 === 0 ? -56 : 56;
-
-      gsap.from(card, {
-        scrollTrigger: {
-          trigger: card,
-          start: "top 82%",
-          end: "bottom 58%",
-          toggleActions: "play none none reverse",
-          invalidateOnRefresh: true,
-        },
-        opacity: 0,
-        x: xOffset,
-        y: yOffset,
-        duration: 0.85,
-        ease: "power3.out",
-      });
-
-      // Description word shimmer on card hover
-      const ds = descSplits.get(card.dataset.cardId ?? "");
-      if (ds) {
-        card.addEventListener("mouseenter", () => {
-          gsap.fromTo(
-            ds.words,
-            { opacity: 0.4, y: 7 },
-            { opacity: 1, y: 0, stagger: 0.025, duration: 0.4, ease: "power2.out" }
-          );
-        });
-      }
-    });
-
-    return () => {
-      descSplits.forEach((split) => split.revert());
-      ScrollTrigger.getAll().forEach((t) => t.kill());
-    };
   });
 
   return (
-    <div className="w-full flex flex-col bg-background text-foreground ">
+    <div className="page-shell page-enter w-full flex flex-col">
 
       {/* ─── HERO SECTION ─────────────────────────────────────────────── */}
-      <section className="min-h-screen flex flex-col">
+      <section className="min-h-screen flex flex-col section-fade">
 
         {/* Nav */}
-        <nav className="flex w-full justify-end items-center gap-8 px-6 py-4
-                        text-primary backdrop-blur-2xl font-[audiowide] text-2xl">
+        <nav className="page-nav flex w-full justify-end items-center gap-8 px-6 py-4
+            text-primary font-[audiowide] text-2xl">
           {/* ModeToggle — green-icon-btn has rounded-xl ✓ */}
           <div className="green-icon-btn p-1">
             <ModeToggle />
@@ -163,7 +127,7 @@ const LandingPage = () => {
             Algo Ameba
           </h1>
 
-          <p className="text-xl text-muted-foreground font-[arima] max-w-xl">
+          <p id="subtitle" className="text-xl text-muted-foreground font-[arima] max-w-xl">
             Visualize algorithms with buttery‑smooth GSAP animations.
             Learn by watching them breathe.
           </p>
@@ -171,11 +135,8 @@ const LandingPage = () => {
           {/* Get Started button — green border always visible, glow on hover */}
           <div
             ref={buttonRef}
-            className="relative flex justify-center items-center font-[arima] text-xl
-                       rounded-full w-52 h-14 overflow-hidden cursor-pointer
-                       border-2 border-[#00ff08]
-                       hover:scale-105 hover:shadow-[0_0_28px_#00ff08aa]
-                       transition-all duration-300"
+            className="action-btn action-btn--primary relative flex justify-center items-center
+                       font-[arima] text-xl w-52 h-14 overflow-hidden"
             onClick={() => navigate(ROUTES.home)}
             aria-label="Get Started"
           >
@@ -192,55 +153,38 @@ const LandingPage = () => {
       </section>
 
       {/* ─── CARDS SECTION ────────────────────────────────────────────── */}
-      <section className="min-h-screen flex flex-col items-center justify-center py-24 md:py-32 px-8 gap-14 md:gap-20">
+      <section className="section-fade min-h-screen flex flex-col items-center justify-around py-24 md:py-32 px-8 gap-16 md:gap-24">
         <h2 className="text-[clamp(40px,7vw,80px)] font-[audiowide] text-foreground text-center">
           What you get
         </h2>
 
-        <div className="flex flex-row justify-center items-stretch gap-10 md:gap-16 flex-wrap w-full max-w-7xl">
+        <div className="flex flex-row justify-around items-stretch gap-12 md:gap-18 flex-wrap w-full max-w-7xl">
 
           {/* Left column — 2 cards stacked */}
-          <div className="flex flex-col gap-10 md:gap-14">
+          <div className="flex flex-col gap-16 justify-between md:gap-20">
             {CARDS.filter((c) => c.id.startsWith("left")).map((card) => (
-              <div
+              <InfoCard
                 key={card.id}
-                ref={(el) => { cardsRef.current[card.id] = el; }}
-                data-card-id={card.id}
-                className="feature-card"
-              >
-                <div className="text-3xl text-primary font-[baijamjuri] mb-4">
-                  {card.title.map((line, i) => (
-                    <h2 key={i} className="card-heading">{line}</h2>
-                  ))}
-                </div>
-                <p className="card-desc text-base text-muted-foreground font-[arima] leading-relaxed">
-                  {cardText}
-                </p>
-              </div>
+                title={card.title}
+                description={cardText}
+                side={card.side}
+            
+              />
             ))}
           </div>
 
           {/* Green divider */}
-          <div className="w-px bg-[#00ff08] self-stretch hidden md:block opacity-40" />
+          <div className="w-[5px] h-[1000px] rounded-lg bg-[#00ff08] self-stretch hidden md:block opacity-40" />
 
           {/* Right column — 1 card centred */}
           <div className="flex items-center">
             {CARDS.filter((c) => c.id.startsWith("right")).map((card) => (
-              <div
+              <InfoCard
                 key={card.id}
-                ref={(el) => { cardsRef.current[card.id] = el; }}
-                data-card-id={card.id}
-                className="feature-card"
-              >
-                <div className="text-3xl text-primary font-[baijamjuri] mb-4">
-                  {card.title.map((line, i) => (
-                    <h2 key={i} className="card-heading">{line}</h2>
-                  ))}
-                </div>
-                <p className="card-desc text-base text-muted-foreground font-[arima] leading-relaxed">
-                  {cardText}
-                </p>
-              </div>
+                title={card.title}
+                description={cardText}
+                side={card.side}
+              />
             ))}
           </div>
 
@@ -248,7 +192,7 @@ const LandingPage = () => {
       </section>
 
       {/* ─── FOOTER ───────────────────────────────────────────────────── */}
-      <footer className="border-t border-border py-14">
+      <footer className="section-fade py-14">
         <div className="flex justify-around items-center flex-wrap gap-8">
 
           {/* GitHub */}

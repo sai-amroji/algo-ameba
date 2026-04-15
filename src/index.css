@@ -64,38 +64,40 @@ body {
 
 :root {
     --radius: 0.625rem;
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.141 0.005 285.823);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.141 0.005 285.823);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.141 0.005 285.823);
-    --primary: oklch(0.21 0.006 285.885);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.967 0.001 286.375);
-    --secondary-foreground: oklch(0.21 0.006 285.885);
-    --muted: oklch(0.967 0.001 286.375);
-    --muted-foreground: oklch(0.552 0.016 285.938);
-    --accent: oklch(0.967 0.001 286.375);
-    --accent-foreground: oklch(0.21 0.006 285.885);
-    --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.92 0.004 286.32);
-    --input: oklch(0.92 0.004 286.32);
-    --ring: oklch(0.705 0.015 286.067);
-    --chart-1: oklch(0.646 0.222 41.116);
-    --chart-2: oklch(0.6 0.118 184.704);
-    --chart-3: oklch(0.398 0.07 227.392);
-    --chart-4: oklch(0.828 0.189 84.429);
-    --chart-5: oklch(0.769 0.188 70.08);
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.141 0.005 285.823);
-    --sidebar-primary: oklch(0.21 0.006 285.885);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.967 0.001 286.375);
-    --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
-    --sidebar-border: oklch(0.92 0.004 286.32);
-    --sidebar-ring: oklch(0.705 0.015 286.067);
-    --brand: #00ff08;
+    /* Slightly off‑white for a softer background */
+    --background: oklch(0.98 0 0);
+    --foreground: oklch(0.25 0.005 285); /* softer black */
+    --card: oklch(0.99 0 0);
+    --card-foreground: oklch(0.25 0.005 285);
+    --popover: oklch(0.99 0 0);
+    --popover-foreground: oklch(0.25 0.005 285);
+    --primary: oklch(0.18 0.006 285);
+    --primary-foreground: oklch(0.95 0 0);
+    --secondary: oklch(0.93 0.001 286);
+    --secondary-foreground: oklch(0.18 0.006 285);
+    --muted: oklch(0.93 0.001 286);
+    --muted-foreground: oklch(0.5 0.01 285);
+    --accent: oklch(0.93 0.001 286);
+    --accent-foreground: oklch(0.18 0.006 285);
+    --destructive: oklch(0.55 0.24 27);
+    --border: oklch(0.85 0.004 286);
+    --input: oklch(0.85 0.004 286);
+    --ring: oklch(0.65 0.015 286);
+    --chart-1: oklch(0.62 0.22 41);
+    --chart-2: oklch(0.58 0.11 185);
+    --chart-3: oklch(0.38 0.07 227);
+    --chart-4: oklch(0.80 0.18 84);
+    --chart-5: oklch(0.75 0.18 70);
+    --sidebar: oklch(0.98 0 0);
+    --sidebar-foreground: oklch(0.25 0.005 285);
+    --sidebar-primary: oklch(0.18 0.006 285);
+    --sidebar-primary-foreground: oklch(0.95 0 0);
+    --sidebar-accent: oklch(0.93 0.001 286);
+    --sidebar-accent-foreground: oklch(0.18 0.006 285);
+    --sidebar-border: oklch(0.85 0.004 286);
+    --sidebar-ring: oklch(0.65 0.015 286);
+    /* brand = neon green accent */
+    --color-brand: var(--brand);
 }
 
 .dark {
@@ -163,9 +165,34 @@ body {
 /* ── Reusable component classes (defined here so @apply has full Tailwind context) ── */
 @layer components {
 
+    .page-shell {
+        @apply min-h-screen bg-background text-foreground transition-colors duration-300;
+        /* Gradient removed for a cleaner look in algorithm pages */
+    }
+
+    .action-btn {
+        @apply inline-flex items-center justify-center px-4 py-2 rounded-lg font-medium text-white
+                     bg-[#007f04] transition-all duration-300 cursor-pointer active:translate-y-0;
+    }
+
+    .action-btn:hover {
+        @apply bg-[#005f03];
+    }
+
+    .page-enter {
+        animation: page-fade-up 550ms cubic-bezier(0.2, 0.65, 0.3, 1) both;
+    }
+    .action-btn--search {
+        @apply bg-sky-600 hover:bg-sky-500;
+    }
+
+    .action-btn--random {
+        @apply bg-violet-600 hover:bg-violet-500;
+    }
+
   /* Nav items — green bottom-border underline on hover */
   .nav-link {
-    @apply relative cursor-pointer pb-0.5
+        @apply relative cursor-pointer pb-0.5 text-foreground/85 hover:text-foreground
            border-b-2 border-transparent
            hover:border-[#00ff08]
            transition-all duration-300;
@@ -175,25 +202,72 @@ body {
   .green-icon-btn {
     @apply border-2 border-transparent rounded-xl
            hover:border-[#00ff08]
-           transition-all duration-300;
+                     hover:shadow-[0_0_18px_rgba(0,255,8,0.22)]
+                     transition-all duration-300;
   }
 
   /* Feature cards */
   .feature-card {
-        @apply w-80 md:w-[460px] rounded-3xl p-8
-           border-2 border-white/10
-           shadow-lg backdrop-blur-sm
+    @apply w-80 md:w-[520px] rounded-3xl p-8
+                     border border-border
+           shadow-[0_8px_32px_0_rgba(0,0,0,0.3)]
+           backdrop-blur-md
            hover:border-[#00ff08]
-           hover:shadow-[0_0_30px_rgba(0,255,8,0.12)]
-           hover:scale-[1.03]
-           transition-all duration-300 cursor-pointer;
+           hover:shadow-[0_8px_40px_0_rgba(0,255,8,0.2)]
+           hover:scale-[1.02]
+           transition-all duration-400 cursor-pointer
+           bg-card/80;
+  }
+
+  /* AlgoCard - for homepage algorithm cards */
+  .algo-card {
+    @apply bg-card rounded-2xl px-6 pt-6 w-full max-w-[440px] h-[360px]
+        border-2 border-border/70
+           hover:border-[#00ff08]
+           hover:shadow-[0_0_35px_rgba(0,255,8,0.15)]
+           hover:-translate-y-2
+           transition-all duration-400 cursor-pointer overflow-hidden;
   }
 
   /* Card h2 headings — green underline on hover, width = text only */
   .card-heading {
-    @apply w-fit
+        @apply w-fit whitespace-pre-line leading-tight
            underline-offset-4 decoration-[#00ff08] decoration-2
            hover:underline
            transition-all duration-150;
   }
+}
+
+@keyframes page-fade-up {
+    from {
+        opacity: 0;
+        transform: translateY(18px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .page-enter,
+    .section-fade {
+        animation: none;
+    }
+
+    .action-btn,
+    .feature-card,
+    .algo-card,
+    .green-icon-btn,
+    .nav-link {
+        transition: none;
+    }
+
+    .action-btn:hover,
+    .feature-card:hover,
+    .algo-card:hover {
+        transform: none;
+        box-shadow: none;
+    }
 }

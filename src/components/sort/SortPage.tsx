@@ -1,0 +1,238 @@
+import { useEffect, useState } from "react";
+import { useLocation, useSearchParams } from "react-router-dom";
+import gsap from "gsap";
+import SharedLayout from "@/components/visualizer/SharedLayout";
+import { ROUTES } from "@/constants/routes";
+import {
+  sortAlgorithmBuilders,
+  type SortAlgorithmKey,
+  type SortBar,
+  type SortBarState,
+} from "@/components/sort/SortAlgos";
+
+const createBarId = () => `bar-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+
+const algoMap = [
+  { name: "Bubble Sort", value: "bubble" },
+  { name: "Selection Sort", value: "selection" },
+  { name: "Insertion Sort", value: "insertion" },
+] as const;
+
+const getBarColor = (state: SortBarState | undefined) => {
+  switch (state) {
+    case "checking":
+      return "bg-red-500";
+    case "comparing":
+      return "bg-yellow-500";
+    case "sorted":
+      return "bg-green-500";
+    default:
+      return "bg-blue-500";
+  }
+};
+
+const getRouteMode = (pathname: string): SortAlgorithmKey => {
+  if (pathname === ROUTES.selectionSort) {
+    return "selection";
+  }
+  if (pathname === ROUTES.insertionSort || pathname === ROUTES.insertionSortLegacy) {
+    return "insertion";
+  }
+  return "bubble";
+};
+
+const SortPage = () => {
+  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const routeMode = getRouteMode(location.pathname);
+  const queryMode = searchParams.get("mode");
+  const initialMode: SortAlgorithmKey =
+    queryMode === "bubble" || queryMode === "selection" || queryMode === "insertion"
+      ? queryMode
+      : routeMode;
+
+  const [mode, setMode] = useState<SortAlgorithmKey>(initialMode);
+  const [bars, setBars] = useState<SortBar[]>([]);
+  const [barStates, setBarStates] = useState<Record<string, SortBarState>>({});
+  const [inputValue, setInputValue] = useState("");
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [speed, setSpeed] = useState(1);
+
+  const [timeline] = useState(() => gsap.timeline({ paused: true }));
+  const [labels, setLabels] = useState<string[]>([]);
+
+  useEffect(() => {
+    timeline.timeScale(speed);
+  }, [timeline, speed]);
+
+  useEffect(() => {
+    setMode(initialMode);
+  }, [initialMode]);
+
+  useEffect(() => {
+    if (bars.length > 0) {
+      return;
+    }
+
+    const randomBars = Array.from({ length: 15 }, () => ({
+      id: createBarId(),
+      value: Math.floor(Math.random() * 50) + 1,
+    }));
+    setBars(randomBars);
+  }, [bars.length]);
+
+  useEffect(() => {
+    return () => {
+      timeline.kill();
+    };
+  }, [timeline]);
+
+  const clampSpeed = (value: number) => Math.min(3, Math.max(0.25, value));
+
+  const updateMode = (nextMode: string) => {
+    const normalizedMode: SortAlgorithmKey =
+      nextMode === "selection" ? "selection" : nextMode === "insertion" ? "insertion" : "bubble";
+
+    setMode(normalizedMode);
+    setSearchParams({ mode: normalizedMode }, { replace: true });
+  };
+
+  const resetTimeline = () => {
+    timeline.clear().pause(0);
+    setLabels([]);
+    setIsPlaying(false);
+    setBarStates({});
+  };
+
+  const handleInsert = () => {
+    const parsed = Number.parseInt(inputValue.trim(), 10);
+    if (Number.isNaN(parsed) || parsed < -50 || parsed > 50) {
+      return;
+    }
+
+    setBars((prev) => [...prev, { id: createBarId(), value: parsed }]);
+    setInputValue("");
+    resetTimeline();
+  };
+
+  const generateRandomArray = () => {
+    const randomBars = Array.from({ length: 15 }, () => ({
+      id: createBarId(),
+      value: Math.floor(Math.random() * 50) + 1,
+    }));
+    setBars(randomBars);
+    resetTimeline();
+  };
+
+  const buildSortTimeline = () => {
+    if (bars.length === 0) {
+      return;
+    }
+
+    const frames = sortAlgorithmBuilders[mode](bars);
+    timeline.clear().pause(0);
+    timeline.eventCallback("onComplete", () => setIsPlaying(false));
+    timeline.eventCallback("onInterrupt", () => setIsPlaying(false));
+
+    const nextLabels: string[] = [];
+
+    frames.forEach((frame, index) => {
+      const label = `step-${index}`;
+      nextLabels.push(label);
+      timeline.addLabel(label);
+      timeline.call(() => {
+        setBars(frame.bars);
+        setBarStates(frame.states);
+      }, undefined, label);
+
+      timeline.to({}, { duration: frame.duration }, label);
+    });
+
+    setLabels(nextLabels);
+    setIsPlaying(true);
+    timeline.play();
+  };
+
+  const handleSort = () => {
+    buildSortTimeline();
+  };
+
+  const playSteps = () => {
+    if (isPlaying) {
+      return;
+    }
+
+    timeline.play();
+    setIsPlaying(true);
+  };
+
+  const pauseSteps = () => {
+    if (!isPlaying) {
+      return;
+    }
+
+    timeline.pause();
+    setIsPlaying(false);
+  };
+
+  const nextStep = () => {
+    if (isPlaying || labels.length === 0) {
+      return;
+    }
+
+    const currentLabel = timeline.currentLabel();
+    const currentIndex = labels.indexOf(currentLabel);
+    const nextIndex = currentIndex < 0 ? 0 : Math.min(currentIndex + 1, labels.length - 1);
+    timeline.seek(labels[nextIndex]);
+  };
+
+  const prevStep = () => {
+    if (isPlaying || labels.length === 0) {
+      return;
+    }
+
+    const currentLabel = timeline.currentLabel();
+    const currentIndex = labels.indexOf(currentLabel);
+    const prevIndex = currentIndex <= 0 ? 0 : currentIndex - 1;
+    timeline.seek(labels[prevIndex]);
+  };
+
+  return (
+    <SharedLayout
+      inputValue={inputValue}
+      setInputValue={setInputValue}
+      handleInsert={handleInsert}
+      handleSearch={handleSort}
+      actionLabel="Sort"
+      generateRandomArray={generateRandomArray}
+      algoMap={algoMap.map((algo) => ({ name: algo.name, value: algo.value }))}
+      isPlaying={isPlaying}
+      onPlay={playSteps}
+      onPause={pauseSteps}
+      onNext={nextStep}
+      onPrev={prevStep}
+      selectedAlgorithm={mode}
+      onAlgorithmChange={updateMode}
+      speed={speed}
+      onSpeedChange={(value) => setSpeed(clampSpeed(value))}
+      onSpeedIncrease={() => setSpeed((prev) => clampSpeed(prev + 0.25))}
+      onSpeedDecrease={() => setSpeed((prev) => clampSpeed(prev - 0.25))}
+    >
+      <div className="flex gap-2 justify-center items-end p-4 min-h-[200px] bar-container">
+        {bars.map((bar) => (
+          <div
+            key={bar.id}
+            className={`bar w-10 rounded-sm text-white text-center transition-colors duration-300 ${getBarColor(
+              barStates[bar.id]
+            )}`}
+            style={{ height: `${Math.max(Math.abs(bar.value) * 4, 30)}px` }}
+          >
+            {bar.value}
+          </div>
+        ))}
+      </div>
+    </SharedLayout>
+  );
+};
+
+export default SortPage;

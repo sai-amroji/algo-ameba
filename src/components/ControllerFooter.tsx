@@ -15,6 +15,10 @@ type ControllerFooterProps = {
   onNext: () => void;
   onPrev: () => void;
   isPlaying: boolean;
+  speed?: number;
+  onSpeedChange?: (value: number) => void;
+  onSpeedIncrease?: () => void;
+  onSpeedDecrease?: () => void;
 };
 
 const ControllerFooter = ({
@@ -23,6 +27,10 @@ const ControllerFooter = ({
                             onNext,
                             onPrev,
                             isPlaying,
+                            speed = 1,
+                            onSpeedChange,
+                            onSpeedIncrease,
+                            onSpeedDecrease,
                           }: ControllerFooterProps) => {
   const handlePlayPause = () => {
     if (isPlaying) {
@@ -36,15 +44,41 @@ const ControllerFooter = ({
       <footer className="flex justify-between items-center p-4 w-full  ">
         {/* Speed Controls */}
         <div className="flex items-center gap-4">
-          <Button variant="secondary" size="icon" className="size-8">
+          <Button
+            variant="secondary"
+            size="icon"
+            className="size-8"
+            onClick={onSpeedIncrease}
+            disabled={!onSpeedIncrease}
+          >
             <PlusIcon />
           </Button>
 
-          <Slider defaultValue={[50]} max={100} step={1} className="w-64 " />
+          <Slider
+            value={[Math.round(speed * 100)]}
+            onValueChange={(values) => {
+              const next = (values[0] ?? 100) / 100;
+              onSpeedChange?.(next);
+            }}
+            min={25}
+            max={300}
+            step={5}
+            className="w-64 "
+          />
 
-          <Button variant="secondary" size="icon" className="size-8">
+          <Button
+            variant="secondary"
+            size="icon"
+            className="size-8"
+            onClick={onSpeedDecrease}
+            disabled={!onSpeedDecrease}
+          >
             <MinusIcon />
           </Button>
+
+          <span className="text-sm text-muted-foreground min-w-14 text-right">
+            {speed.toFixed(2)}x
+          </span>
         </div>
 
         {/* Playback Controls */}

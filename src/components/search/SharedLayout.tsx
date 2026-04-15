@@ -40,6 +40,12 @@ interface SharedLayoutProps {
   onPause: () => void;
   onNext: () => void;
   onPrev: () => void;
+  selectedAlgorithm?: string;
+  onAlgorithmChange?: (value: string) => void;
+  speed?: number;
+  onSpeedChange?: (value: number) => void;
+  onSpeedIncrease?: () => void;
+  onSpeedDecrease?: () => void;
 }
 
 const SharedLayout = ({
@@ -58,23 +64,29 @@ const SharedLayout = ({
   onPause,
   onNext,
   onPrev,
+  selectedAlgorithm,
+  onAlgorithmChange,
+  speed,
+  onSpeedChange,
+  onSpeedIncrease,
+  onSpeedDecrease,
 }: SharedLayoutProps) => {
   const navigate = useNavigate();
   return (
-    <div className="flex flex-col w-full min-h-screen dark:bg-[#151515]">
-      <div className="flex flex-wrap justify-between items-center gap-4 px-6 py-4">
+    <div className="page-shell page-enter flex flex-col w-full">
+      <div className="page-nav flex flex-wrap justify-between items-center gap-4 px-6 py-4">
         {/* Input Insert */}
         <div className={"flex items-center gap-2"}>
           <div className="flex items-center gap-2">
             <Input
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              className="max-w-[150px] text-white border-white"
+              className="app-input max-w-[150px]"
               placeholder="Insert number"
             />
             <button
               onClick={handleInsert}
-              className="bg-green-500 text-white px-3 py-2 rounded border-0"
+              className="action-btn action-btn--insert"
             >
               Insert
             </button>
@@ -85,12 +97,12 @@ const SharedLayout = ({
               <Input
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
-                className="max-w-[150px] text-white"
+                className="app-input max-w-[150px]"
                 placeholder="Search value"
               />
               <button
                 onClick={handleSearch}
-                className="bg-blue-500 text-white px-3 py-2 rounded"
+                className="action-btn action-btn--search"
               >
                 {actionLabel ?? "Search"}
               </button>
@@ -100,7 +112,7 @@ const SharedLayout = ({
           {handleSearch && !(typeof searchValue === "string" && setSearchValue) && (
             <button
               onClick={handleSearch}
-              className="bg-blue-500 text-white px-3 py-2 rounded"
+              className="action-btn action-btn--search"
             >
               {actionLabel ?? "Sort"}
             </button>
@@ -111,7 +123,7 @@ const SharedLayout = ({
           {/* Random Button */}
           <button
             onClick={generateRandomArray}
-            className="bg-purple-500 text-white px-4 py-2 rounded"
+            className="action-btn action-btn--random"
           >
             Generate Random
           </button>
@@ -122,12 +134,18 @@ const SharedLayout = ({
 
         {/* Algorithm Dropdown */}
         <Select
+          value={selectedAlgorithm}
           onValueChange={(value) => {
+            if (onAlgorithmChange) {
+              onAlgorithmChange(value);
+              return;
+            }
+
             const nextPath = value.startsWith("/") ? value : `/${value}`;
-            navigate(nextPath);
+            navigate(nextPath, { replace: true });
           }}
         >
-          <SelectTrigger className="w-[180px] text-white dark:bg-black">
+          <SelectTrigger className="w-[180px] bg-card/80 text-foreground">
             <SelectValue placeholder={algoMap[0].name} />
           </SelectTrigger>
           <SelectContent>
@@ -157,6 +175,10 @@ const SharedLayout = ({
         onPause={onPause}
         onNext={onNext}
         onPrev={onPrev}
+        speed={speed}
+        onSpeedChange={onSpeedChange}
+        onSpeedIncrease={onSpeedIncrease}
+        onSpeedDecrease={onSpeedDecrease}
       />
     </div>
   );
