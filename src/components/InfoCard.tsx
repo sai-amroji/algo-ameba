@@ -1,10 +1,7 @@
 import { useRef } from "react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { SplitText } from "gsap/SplitText";
+import gsap from "@/gsapSetup"; // centralized GSAP instance with plugins registered
+import { SplitText } from "gsap/SplitText"; // SplitText is already registered globally
 import { useGSAP } from "@gsap/react";
-
-gsap.registerPlugin(SplitText, ScrollTrigger, useGSAP);
 
 type InfoCardProps = {
     title: string;

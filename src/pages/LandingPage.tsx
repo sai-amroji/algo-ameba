@@ -2,14 +2,15 @@ import { GithubIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
 import { useRef } from "react";
-import { gsap } from "gsap";
-import { SplitText } from "gsap/SplitText";
-import { useGSAP } from "@gsap/react";
 import { ModeToggle } from "@/components/mode-toggle.tsx";
 import { ROUTES } from "@/constants/routes";
 import InfoCard from "@/components/InfoCard";
-import { ScrambleTextPlugin } from "gsap/ScrambleTextPlugin";
+import gsap from "@/gsapSetup"; // centralized GSAP instance with plugins registered
+import { SplitText } from "gsap/SplitText"; // SplitText already registered globally
+import { useGSAP } from "@gsap/react";
+import { ScrambleTextPlugin
 
+ } from "gsap/all";
 gsap.registerPlugin(SplitText, ScrambleTextPlugin, useGSAP);
 
 const cardText =

@@ -28,10 +28,10 @@ export const algos: AlgoInfo[] = [
         algoRoute: ROUTES.home,
     },
     {
-        algoName: "Queue",
+        algoName: "Primitive Algo",
         algoDesc: "Interactively explore how elements enter and exit in FIFO order. Visualize real-time operations in circular queues and priority queues.",
         algoImg: queueLogo,
-        algoRoute: ROUTES.home,
+        algoRoute: ROUTES.primitive,
     },
     {
         algoName: "Search",

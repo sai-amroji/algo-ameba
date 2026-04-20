@@ -12,24 +12,23 @@ const Homepage = () => {
   return (
     <div className="page-shell page-enter">
       {/* Navbar */}
-      <div className="page-nav fixed top-0 w-full h-20 flex justify-between items-center px-6 z-50">
-        <div className="flex items-center gap-8">
+      <div className="page-nav fixed top-0 w-full h-16 flex justify-between items-center px-6 py-2 z-50">
+        <div className="flex items-center gap-6">
           <img
             src={logo}
-            className="w-[120px] h-[80px] cursor-pointer transition-transform duration-300 hover:scale-105"
+            className="h-12 cursor-pointer transition-transform duration-300 hover:scale-105"
             alt="logo"
-            onClick={() => navigate(ROUTES.landing)}
           />
           <Input
             name="search"
-            className="app-input h-12 w-[min(60vw,900px)]"
+            className="app-input h-10 w-[min(60vw,900px)]"
           />
         </div>
-        <div className="flex items-center gap-4 font-[audiowide] text-lg">
-          <p className="nav-link" onClick={() => navigate(ROUTES.home)}>Home</p>
-          <p className="nav-link" onClick={() => navigate(ROUTES.algorithms)}>Algorithms</p>
-          <p className="nav-link" onClick={() => navigate(ROUTES.about)}>About</p>
-          <div className="green-icon-btn p-1">
+        <div className="flex items-center gap-6 font-[audiowide] text-lg">
+          <p className="nav-link cursor-pointer" onClick={() => navigate(ROUTES.home)}>Home</p>
+          <p className="nav-link cursor-pointer" onClick={() => navigate(ROUTES.algorithms)}>Algorithms</p>
+          <p className="nav-link cursor-pointer" onClick={() => navigate(ROUTES.about)}>About</p>
+          <div className="green-icon-btn">
             <ModeToggle />
           </div>
         </div>

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useSearchParams } from "react-router-dom";
-import { gsap } from "gsap";
+import gsap from "@/gsapSetup"; // centralized GSAP instance with plugins registered
 import { useGSAP } from "@gsap/react";
 import { toast } from "sonner";
 import SharedLayout from "@/components/SharedLayout";
@@ -8,7 +8,7 @@ import { ROUTES } from "@/constants/routes";
 import { useSearchVizulizer } from "@/hooks/useSearchVizulizer";
 import { searchAlgorithms, type SearchFrame } from "@/components/search/searchAlgorithms";
 
-gsap.registerPlugin(useGSAP);
+// DrawSVGPlugin is already registered globally via gsapSetup
 
 type SearchMode = "linear" | "binary";
 
@@ -58,6 +58,8 @@ const SearchPage = () => {
   }, [initialMode]);
 
   const { contextSafe } = useGSAP({ scope: barsContainerRef });
+  // Ref for the active dotted line that highlights the current focus range
+  const activeLineRef = useRef<SVGPathElement>(null);
 
   const getExistingBarElements = (ids: string[]) =>
     ids
@@ -72,26 +74,12 @@ const SearchPage = () => {
     const activeElements = getExistingBarElements(activeIds);
     const discardedElements = getExistingBarElements(discardedIds);
 
-    gsap.to(activeElements, {
-      opacity: 1,
-      y: 0,
-      x: 0,
-      scale: 1,
-      filter: "grayscale(0%)",
-      duration: 0.22,
-      overwrite: "auto",
-    });
+    // Use timeline defaults for consistency
+    const tl = gsap.timeline({ defaults: { duration: 0.22, overwrite: "auto" } });
+    tl.to(activeElements, { opacity: 1, y: 0, x: 0, scale: 1, filter: "grayscale(0%)" })
+      .to(discardedElements, { opacity: 0.35, y: 14, filter: "grayscale(100%)" }, 0);
 
-    gsap.to(discardedElements, {
-      opacity: 0.35,
-      y: 14,
-      x: 0,
-      scale: 1,
-      filter: "grayscale(100%)",
-      duration: 0.22,
-      overwrite: "auto",
-    });
-
+    // Center the active range inside the container
     const container = barsContainerRef.current;
     if (container && activeElements.length > 0) {
       const containerRect = container.getBoundingClientRect();
@@ -100,23 +88,25 @@ const SearchPage = () => {
       const rangeCenterX = (firstRect.left + lastRect.right) / 2;
       const containerCenterX = (containerRect.left + containerRect.right) / 2;
       const shiftX = containerCenterX - rangeCenterX;
+      tl.to(activeElements, { x: shiftX, duration: 0.24 }, "<");
 
-      gsap.to(activeElements, {
-        x: shiftX,
-        duration: 0.24,
-        overwrite: "auto",
-      });
+      // Draw a dotted line over the focused range using DrawSVGPlugin
+      if (activeLineRef.current) {
+        const line = activeLineRef.current;
+        const startX = firstRect.left - containerRect.left;
+        const endX = lastRect.right - containerRect.left;
+        const y = firstRect.top - containerRect.top - 10; // 10px above the bars
+        const d = `M${startX},${y} L${endX},${y}`;
+        gsap.set(line, { attr: { d }, strokeDasharray: "4 4", stroke: "#00ff08", strokeWidth: 2 });
+        gsap.fromTo(line, { drawSVG: "0%" }, { drawSVG: "100%", duration: 0.3, ease: "power2.out" });
+      }
     }
 
+    // Highlight the single focus bar (if any)
     if (focusId) {
       const focusElement = barRefs.current[focusId];
       if (focusElement) {
-        gsap.to(focusElement, {
-          y: -12,
-          scale: 1.06,
-          duration: 0.2,
-          overwrite: "auto",
-        });
+        tl.to(focusElement, { y: -12, scale: 1.06, duration: 0.2 }, "<");
       }
     }
   });
@@ -235,7 +225,7 @@ const SearchPage = () => {
       onSpeedIncrease={increaseSpeed}
       onSpeedDecrease={decreaseSpeed}
     >
-      <div ref={barsContainerRef} className="flex gap-2 justify-center items-end p-4 min-h-[200px] bar-container">
+      <div ref={barsContainerRef} className="relative flex gap-2 justify-center items-end p-4 min-h-[200px] bar-container">
         {bars.map((bar) => (
           <div
             id={`bar-${bar.id}`}
@@ -250,6 +240,8 @@ const SearchPage = () => {
             {bar.value}
           </div>
         ))}
+        {/* SVG overlay for the active dotted line */}
+        <svg className="absolute inset-0 pointer-events-none" ref={activeLineRef} />
       </div>
     </SharedLayout>
   );

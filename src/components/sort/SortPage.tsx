@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useSearchParams } from "react-router-dom";
-import gsap from "gsap";
+import gsap from "@/gsapSetup"; // centralized GSAP with plugins (including DrawSVG)
 import Flip from "gsap/Flip";
 import { useGSAP } from "@gsap/react";
 import SharedLayout from "@/components/SharedLayout";
@@ -74,6 +74,8 @@ const SortPage = () => {
   const [frameDetail, setFrameDetail] = useState("Press Sort to visualize each step.");
   const barsContainerRef = useRef<HTMLDivElement>(null);
   const barRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  // SVG path for the active dotted line that highlights the current merge/split range
+  const activeLineRef = useRef<SVGPathElement>(null);
 
   const timelineRef = useRef<gsap.core.Timeline | null>(null);
   const [labels, setLabels] = useState<string[]>([]);
@@ -135,28 +137,36 @@ const SortPage = () => {
     gsap.killTweensOf(elements);
 
     const duration = Math.max(0.35, frame.duration * 0.85);
+    // First, clear any previous dotted line
+    if (activeLineRef.current) {
+      gsap.set(activeLineRef.current, { attr: { d: "" } });
+    }
+
     elements.forEach((element) => {
       const barId = frame.bars.find((bar) => bar.id === element.dataset.barid)?.id;
       if (!barId) {
-        gsap.to(element, {
-          x: 0,
-          y: 0,
-          duration,
-          ease: "power2.inOut",
-          overwrite: "auto",
-        });
+        gsap.to(element, { x: 0, y: 0, duration, ease: "power2.inOut", overwrite: "auto" });
         return;
       }
-
       const targetOffset = frame.offsets?.[barId] ?? { x: 0, y: 0 };
-      gsap.to(element, {
-        x: targetOffset.x,
-        y: targetOffset.y,
-        duration,
-        ease: "power2.inOut",
-        overwrite: "auto",
-      });
+      gsap.to(element, { x: targetOffset.x, y: targetOffset.y, duration, ease: "power2.inOut", overwrite: "auto" });
     });
+
+    // After positioning, draw a dotted line over the current merge range
+    if (activeLineRef.current && elements.length > 0) {
+      const container = barsContainerRef.current;
+      if (!container) return;
+      const containerRect = container.getBoundingClientRect();
+      const firstRect = elements[0].getBoundingClientRect();
+      const lastRect = elements[elements.length - 1].getBoundingClientRect();
+      const startX = firstRect.left - containerRect.left;
+      const endX = lastRect.right - containerRect.left;
+      const y = firstRect.top - containerRect.top - 12; // slightly above the bars
+      const d = `M${startX},${y} L${endX},${y}`;
+      const line = activeLineRef.current;
+      gsap.set(line, { attr: { d }, strokeDasharray: "4 4", stroke: "#00ff08", strokeWidth: 2 });
+      gsap.fromTo(line, { drawSVG: "0%" }, { drawSVG: "100%", duration: 0.3, ease: "power2.out" });
+    }
   };
 
   useGSAP(() => {
@@ -411,12 +421,12 @@ const SortPage = () => {
           </div>
         </div>
 
-        <div
-          ref={barsContainerRef}
-          className={`bar-container flex gap-2 justify-center items-end p-4 overflow-visible ${
-            mode === "merge" ? "min-h-[720px]" : "min-h-[260px]"
-          }`}
-        >
+          <div
+            ref={barsContainerRef}
+            className={`relative bar-container flex gap-2 justify-center items-end p-4 overflow-visible ${
+              mode === "merge" ? "min-h-[720px]" : "min-h-[260px]"
+            }`}
+          >
           {bars.map((bar) => (
             <div
               key={bar.id}
@@ -430,9 +440,11 @@ const SortPage = () => {
               style={{ height: `${Math.max(Math.abs(bar.value) * 4, 30)}px` }}
             >
               {bar.value}
-            </div>
-          ))}
-        </div>
+              </div>
+            ))}
+            {/* SVG overlay for the active dotted line during merge/split */}
+            <svg className="absolute inset-0 pointer-events-none" ref={activeLineRef} />
+          </div>
       </div>
     </SharedLayout>
   );

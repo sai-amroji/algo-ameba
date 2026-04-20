@@ -1,3 +1,5 @@
+import * as d3 from "d3-hierarchy";
+
 export type SortAlgorithmKey = "bubble" | "selection" | "insertion" | "merge";
 
 export type SortBar = {
@@ -155,6 +157,44 @@ export const buildMergeSortFrames = (initialBars: SortBar[]): SortFrame[] => {
 
 	const levelY = 84;
 
+	// Pre-compute D3 tree layout for the entire merge sort hierarchy
+	const computeD3TreeLayout = (): Record<string, { x: number; y: number }> => {
+		const createHierarchy = (low: number, high: number, depth: number): any => {
+			if (low === high) {
+				return { id: bars[low].id, value: bars[low].value, depth };
+			}
+			const mid = Math.floor((low + high) / 2);
+			return {
+				id: `branch-${low}-${high}`,
+				depth,
+				children: [
+					createHierarchy(low, mid, depth + 1),
+					createHierarchy(mid + 1, high, depth + 1),
+				],
+			};
+		};
+
+		const hierarchyData = createHierarchy(0, bars.length - 1, 0);
+		const root = d3.hierarchy(hierarchyData);
+		const treeLayout = d3.tree<any>().nodeSize([70, levelY]);
+		treeLayout(root);
+
+		const positions: Record<string, { x: number; y: number }> = {};
+		const collectPositions = (node: d3.HierarchyNode<any>) => {
+			if (node.data.id && !node.data.id.startsWith("branch-")) {
+				positions[node.data.id] = {
+					x: node.x || 0,
+					y: (node.depth || 0) * levelY,
+				};
+			}
+			if (node.children) node.children.forEach(collectPositions);
+		};
+		collectPositions(root);
+		return positions;
+	};
+
+	const d3TreeLayout = computeD3TreeLayout();
+
 	const buildRangeOffsets = (
 		low: number,
 		high: number,
@@ -163,33 +203,23 @@ export const buildMergeSortFrames = (initialBars: SortBar[]): SortFrame[] => {
 		mid?: number
 	) => {
 		const offsets: Record<string, { x: number; y: number }> = {};
-		bars.forEach((bar) => {
-			offsets[bar.id] = { x: 0, y: 0 };
-		});
 
 		if (phase === "split" && typeof mid === "number") {
-			const segmentSize = high - low + 1;
-			const branchShift = Math.max(42, segmentSize * 13);
-			const localSpread = 12;
-
+			// Use D3-computed positions for split phase (bars diverge into left/right branches)
 			for (let index = low; index <= high; index++) {
-				if (index <= mid) {
-					offsets[bars[index].id] = {
-						x: -branchShift + (index - low) * localSpread,
-						y: (depth + 1) * levelY,
-					};
+				const barId = bars[index].id;
+				const d3Pos = d3TreeLayout[barId];
+				if (d3Pos) {
+					offsets[barId] = { x: d3Pos.x * 0.8, y: (depth + 1) * levelY }; // Scale D3 x by 0.8 for smoothness
 				} else {
-					offsets[bars[index].id] = {
-						x: branchShift + (index - (mid + 1)) * localSpread,
-						y: (depth + 1) * levelY,
-					};
+					offsets[barId] = { x: 0, y: (depth + 1) * levelY };
 				}
 			}
-			return offsets;
-		}
-
-		for (let index = low; index <= high; index++) {
-			offsets[bars[index].id] = { x: 0, y: depth * levelY };
+		} else {
+			// For merge and sorted phases, return bars to horizontal center
+			for (let index = low; index <= high; index++) {
+				offsets[bars[index].id] = { x: 0, y: depth * levelY };
+			}
 		}
 
 		return offsets;

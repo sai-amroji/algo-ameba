@@ -1,15 +1,8 @@
 
 // Subpath — smaller bundle, only loads the category you need
-import { RedBlackTree, TreeMap, AVLTree } from 'data-structure-typed/binary-tree';
-import { Deque, Queue } from 'data-structure-typed/queue';
-import { HashMap } from 'data-structure-typed/hash';
-import { Heap, MinHeap } from 'data-structure-typed/heap';
-import { Trie } from 'data-structure-typed/trie';
+import { Deque } from 'data-structure-typed/queue';
 import { Stack } from 'data-structure-typed/stack';
 import { DoublyLinkedList } from 'data-structure-typed/linked-list';
-import { DirectedGraph } from 'data-structure-typed/graph';
-import { Matrix } from 'data-structure-typed/matrix';
-import { MinPriorityQueue } from 'data-structure-typed/priority-queue';
 
 export type BasicBar = {
     id:string,
@@ -140,18 +133,8 @@ const buildDoubleLinkedListFrames = (numbers:number[],num:number,op:string) => {
 
 }
 
-const buildMonotonicStackFrames = (numbers:number[],num:number,op:string) => {
-  
-
-    const monoS = new Stack<BasicBar>(numbersMap(numbers));
-
-
-    while (monoS && monoS. > num){
-        monoS.pop()
-    }
-
-
-}
+// Monotonic stack frames builder - reserved for future use
+// const buildMonotonicStackFrames = (numbers:number[],num:number,op:string) => { };
 
 
 const buildMonoQueueStackFrames = (numbers:number[],num:number,op:string) => {
