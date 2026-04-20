@@ -15,7 +15,8 @@ import {
 
 gsap.registerPlugin(Flip, useGSAP);
 
-const createBarId = () => `bar-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+const createBarId = () =>
+  `bar-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
 const algoMap = [
   { name: "Bubble Sort", value: "bubble" },
@@ -48,7 +49,10 @@ const getRouteMode = (pathname: string): SortAlgorithmKey => {
   if (pathname === ROUTES.mergeSort) {
     return "merge";
   }
-  if (pathname === ROUTES.insertionSort || pathname === ROUTES.insertionSortLegacy) {
+  if (
+    pathname === ROUTES.insertionSort ||
+    pathname === ROUTES.insertionSortLegacy
+  ) {
     return "insertion";
   }
   return "bubble";
@@ -60,7 +64,10 @@ const SortPage = () => {
   const routeMode = getRouteMode(location.pathname);
   const queryMode = searchParams.get("mode");
   const initialMode: SortAlgorithmKey =
-    queryMode === "bubble" || queryMode === "selection" || queryMode === "insertion" || queryMode === "merge"
+    queryMode === "bubble" ||
+    queryMode === "selection" ||
+    queryMode === "insertion" ||
+    queryMode === "merge"
       ? queryMode
       : routeMode;
 
@@ -71,7 +78,9 @@ const SortPage = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState(0.75);
   const [frameLabel, setFrameLabel] = useState("Ready");
-  const [frameDetail, setFrameDetail] = useState("Press Sort to visualize each step.");
+  const [frameDetail, setFrameDetail] = useState(
+    "Press Sort to visualize each step.",
+  );
   const barsContainerRef = useRef<HTMLDivElement>(null);
   const barRefs = useRef<Record<string, HTMLDivElement | null>>({});
   // SVG path for the active dotted line that highlights the current merge/split range
@@ -86,15 +95,27 @@ const SortPage = () => {
       .filter((element): element is HTMLDivElement => Boolean(element));
 
   const getAllBarElements = () =>
-    Object.values(barRefs.current).filter((element): element is HTMLDivElement => Boolean(element));
+    Object.values(barRefs.current).filter(
+      (element): element is HTMLDivElement => Boolean(element),
+    );
 
   const describeFrame = (frame: SortFrame) => {
     const stateValues = Object.values(frame.states);
-    const splittingCount = stateValues.filter((value) => value === "splitting").length;
-    const mergingCount = stateValues.filter((value) => value === "merging").length;
-    const comparingCount = stateValues.filter((value) => value === "comparing").length;
-    const checkingCount = stateValues.filter((value) => value === "checking").length;
-    const sortedCount = stateValues.filter((value) => value === "sorted").length;
+    const splittingCount = stateValues.filter(
+      (value) => value === "splitting",
+    ).length;
+    const mergingCount = stateValues.filter(
+      (value) => value === "merging",
+    ).length;
+    const comparingCount = stateValues.filter(
+      (value) => value === "comparing",
+    ).length;
+    const checkingCount = stateValues.filter(
+      (value) => value === "checking",
+    ).length;
+    const sortedCount = stateValues.filter(
+      (value) => value === "sorted",
+    ).length;
 
     if (splittingCount > 0) {
       return {
@@ -143,13 +164,27 @@ const SortPage = () => {
     }
 
     elements.forEach((element) => {
-      const barId = frame.bars.find((bar) => bar.id === element.dataset.barid)?.id;
+      const barId = frame.bars.find(
+        (bar) => bar.id === element.dataset.barid,
+      )?.id;
       if (!barId) {
-        gsap.to(element, { x: 0, y: 0, duration, ease: "power2.inOut", overwrite: "auto" });
+        gsap.to(element, {
+          x: 0,
+          y: 0,
+          duration,
+          ease: "power2.inOut",
+          overwrite: "auto",
+        });
         return;
       }
       const targetOffset = frame.offsets?.[barId] ?? { x: 0, y: 0 };
-      gsap.to(element, { x: targetOffset.x, y: targetOffset.y, duration, ease: "power2.inOut", overwrite: "auto" });
+      gsap.to(element, {
+        x: targetOffset.x,
+        y: targetOffset.y,
+        duration,
+        ease: "power2.inOut",
+        overwrite: "auto",
+      });
     });
 
     // After positioning, draw a dotted line over the current merge range
@@ -164,8 +199,17 @@ const SortPage = () => {
       const y = firstRect.top - containerRect.top - 12; // slightly above the bars
       const d = `M${startX},${y} L${endX},${y}`;
       const line = activeLineRef.current;
-      gsap.set(line, { attr: { d }, strokeDasharray: "4 4", stroke: "#00ff08", strokeWidth: 2 });
-      gsap.fromTo(line, { drawSVG: "0%" }, { drawSVG: "100%", duration: 0.3, ease: "power2.out" });
+      gsap.set(line, {
+        attr: { d },
+        strokeDasharray: "4 4",
+        stroke: "#00ff08",
+        strokeWidth: 2,
+      });
+      gsap.fromTo(
+        line,
+        { drawSVG: "0%" },
+        { drawSVG: "100%", duration: 0.3, ease: "power2.out" },
+      );
     }
   };
 
@@ -287,33 +331,37 @@ const SortPage = () => {
       const label = `step-${index}`;
       nextLabels.push(label);
       timeline.addLabel(label);
-      timeline.call(() => {
-        setBars(frame.bars);
-        setBarStates(frame.states);
-        const description = describeFrame(frame);
-        setFrameLabel(description.label);
-        setFrameDetail(description.detail);
+      timeline.call(
+        () => {
+          setBars(frame.bars);
+          setBarStates(frame.states);
+          const description = describeFrame(frame);
+          setFrameLabel(description.label);
+          setFrameDetail(description.detail);
 
-        requestAnimationFrame(() => {
-          if (mode === "merge") {
-            animateMergeTreeFrame(frame);
-            return;
-          }
+          requestAnimationFrame(() => {
+            if (mode === "merge") {
+              animateMergeTreeFrame(frame);
+              return;
+            }
 
-          const flipTargets = getAllBarElements();
-          if (flipTargets.length > 0) {
-            gsap.killTweensOf(flipTargets);
-          }
-          const flipState = Flip.getState(flipTargets);
-          Flip.from(flipState, {
-            targets: getExistingBarElements(frame.bars.map((bar) => bar.id)),
-            duration: Math.max(0.18, frame.duration * 0.42),
-            ease: "power1.inOut",
-            absolute: false,
-            overwrite: true,
+            const flipTargets = getAllBarElements();
+            if (flipTargets.length > 0) {
+              gsap.killTweensOf(flipTargets);
+            }
+            const flipState = Flip.getState(flipTargets);
+            Flip.from(flipState, {
+              targets: getExistingBarElements(frame.bars.map((bar) => bar.id)),
+              duration: Math.max(0.18, frame.duration * 0.42),
+              ease: "power1.inOut",
+              absolute: false,
+              overwrite: true,
+            });
           });
-        });
-      }, undefined, label);
+        },
+        undefined,
+        label,
+      );
 
       timeline.to({}, { duration: frame.duration }, label);
     });
@@ -367,7 +415,8 @@ const SortPage = () => {
 
     const currentLabel = timeline.currentLabel();
     const currentIndex = labels.indexOf(currentLabel);
-    const nextIndex = currentIndex < 0 ? 0 : Math.min(currentIndex + 1, labels.length - 1);
+    const nextIndex =
+      currentIndex < 0 ? 0 : Math.min(currentIndex + 1, labels.length - 1);
     timeline.seek(labels[nextIndex]);
   };
 
@@ -410,23 +459,37 @@ const SortPage = () => {
     >
       <div className="w-full max-w-[1600px] px-6 md:px-12 py-4 overflow-visible">
         <div className="mb-4 rounded-xl border border-border/70 bg-card/70 px-4 py-3">
-          <p className="text-sm font-semibold tracking-wide text-foreground">{frameLabel}</p>
-          <p className="text-xs md:text-sm text-muted-foreground">{frameDetail}</p>
+          <p className="text-sm font-semibold tracking-wide text-foreground">
+            {frameLabel}
+          </p>
+          <p className="text-xs md:text-sm text-muted-foreground">
+            {frameDetail}
+          </p>
           <div className="mt-2 flex flex-wrap gap-2 text-[11px] md:text-xs text-muted-foreground">
-            <span className="px-2 py-1 rounded bg-orange-500/20 text-orange-300">Splitting</span>
-            <span className="px-2 py-1 rounded bg-cyan-600/20 text-cyan-300">Merging</span>
-            <span className="px-2 py-1 rounded bg-yellow-500/20 text-yellow-300">Comparing</span>
-            <span className="px-2 py-1 rounded bg-red-500/20 text-red-300">Checking</span>
-            <span className="px-2 py-1 rounded bg-green-500/20 text-green-300">Sorted</span>
+            <span className="px-2 py-1 rounded bg-orange-500/20 text-orange-300">
+              Splitting
+            </span>
+            <span className="px-2 py-1 rounded bg-cyan-600/20 text-cyan-300">
+              Merging
+            </span>
+            <span className="px-2 py-1 rounded bg-yellow-500/20 text-yellow-300">
+              Comparing
+            </span>
+            <span className="px-2 py-1 rounded bg-red-500/20 text-red-300">
+              Checking
+            </span>
+            <span className="px-2 py-1 rounded bg-green-500/20 text-green-300">
+              Sorted
+            </span>
           </div>
         </div>
 
-          <div
-            ref={barsContainerRef}
-            className={`relative bar-container flex gap-2 justify-center items-end p-4 overflow-visible ${
-              mode === "merge" ? "min-h-[720px]" : "min-h-[260px]"
-            }`}
-          >
+        <div
+          ref={barsContainerRef}
+          className={`relative bar-container flex gap-2 justify-center items-end p-4 overflow-visible ${
+            mode === "merge" ? "min-h-[720px]" : "min-h-[260px]"
+          }`}
+        >
           {bars.map((bar) => (
             <div
               key={bar.id}
@@ -435,16 +498,19 @@ const SortPage = () => {
                 barRefs.current[bar.id] = node;
               }}
               className={`bar w-10 rounded-sm text-white text-center transition-colors duration-300 ${getBarColor(
-                barStates[bar.id]
+                barStates[bar.id],
               )}`}
               style={{ height: `${Math.max(Math.abs(bar.value) * 4, 30)}px` }}
             >
               {bar.value}
-              </div>
-            ))}
-            {/* SVG overlay for the active dotted line during merge/split */}
-            <svg className="absolute inset-0 pointer-events-none" ref={activeLineRef} />
-          </div>
+            </div>
+          ))}
+          {/* SVG overlay for the active dotted line during merge/split */}
+          <svg
+            className="absolute inset-0 pointer-events-none"
+            ref={activeLineRef}
+          />
+        </div>
       </div>
     </SharedLayout>
   );

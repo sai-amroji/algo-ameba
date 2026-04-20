@@ -6,7 +6,10 @@ import { toast } from "sonner";
 import SharedLayout from "@/components/SharedLayout";
 import { ROUTES } from "@/constants/routes";
 import { useSearchVizulizer } from "@/hooks/useSearchVizulizer";
-import { searchAlgorithms, type SearchFrame } from "@/components/search/searchAlgorithms";
+import {
+  searchAlgorithms,
+  type SearchFrame,
+} from "@/components/search/searchAlgorithms";
 
 // DrawSVGPlugin is already registered globally via gsapSetup
 
@@ -20,9 +23,11 @@ const algoMap = [
 const SearchPage = () => {
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
-  const routeMode: SearchMode = location.pathname === ROUTES.binarySearch ? "binary" : "linear";
+  const routeMode: SearchMode =
+    location.pathname === ROUTES.binarySearch ? "binary" : "linear";
   const queryMode = searchParams.get("mode");
-  const initialMode: SearchMode = queryMode === "binary" || queryMode === "linear" ? queryMode : routeMode;
+  const initialMode: SearchMode =
+    queryMode === "binary" || queryMode === "linear" ? queryMode : routeMode;
   const [mode, setMode] = useState<SearchMode>(initialMode);
   const barsContainerRef = useRef<HTMLDivElement>(null);
   const barRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -75,16 +80,28 @@ const SearchPage = () => {
     const discardedElements = getExistingBarElements(discardedIds);
 
     // Use timeline defaults for consistency
-    const tl = gsap.timeline({ defaults: { duration: 0.22, overwrite: "auto" } });
-    tl.to(activeElements, { opacity: 1, y: 0, x: 0, scale: 1, filter: "grayscale(0%)" })
-      .to(discardedElements, { opacity: 0.35, y: 14, filter: "grayscale(100%)" }, 0);
+    const tl = gsap.timeline({
+      defaults: { duration: 0.22, overwrite: "auto" },
+    });
+    tl.to(activeElements, {
+      opacity: 1,
+      y: 0,
+      x: 0,
+      scale: 1,
+      filter: "grayscale(0%)",
+    }).to(
+      discardedElements,
+      { opacity: 0.35, y: 14, filter: "grayscale(100%)" },
+      0,
+    );
 
     // Center the active range inside the container
     const container = barsContainerRef.current;
     if (container && activeElements.length > 0) {
       const containerRect = container.getBoundingClientRect();
       const firstRect = activeElements[0].getBoundingClientRect();
-      const lastRect = activeElements[activeElements.length - 1].getBoundingClientRect();
+      const lastRect =
+        activeElements[activeElements.length - 1].getBoundingClientRect();
       const rangeCenterX = (firstRect.left + lastRect.right) / 2;
       const containerCenterX = (containerRect.left + containerRect.right) / 2;
       const shiftX = containerCenterX - rangeCenterX;
@@ -97,8 +114,17 @@ const SearchPage = () => {
         const endX = lastRect.right - containerRect.left;
         const y = firstRect.top - containerRect.top - 10; // 10px above the bars
         const d = `M${startX},${y} L${endX},${y}`;
-        gsap.set(line, { attr: { d }, strokeDasharray: "4 4", stroke: "#00ff08", strokeWidth: 2 });
-        gsap.fromTo(line, { drawSVG: "0%" }, { drawSVG: "100%", duration: 0.3, ease: "power2.out" });
+        gsap.set(line, {
+          attr: { d },
+          strokeDasharray: "4 4",
+          stroke: "#00ff08",
+          strokeWidth: 2,
+        });
+        gsap.fromTo(
+          line,
+          { drawSVG: "0%" },
+          { drawSVG: "100%", duration: 0.3, ease: "power2.out" },
+        );
       }
     }
 
@@ -125,7 +151,8 @@ const SearchPage = () => {
   });
 
   const updateMode = (nextMode: string) => {
-    const normalizedMode: SearchMode = nextMode === "binary" ? "binary" : "linear";
+    const normalizedMode: SearchMode =
+      nextMode === "binary" ? "binary" : "linear";
     setMode(normalizedMode);
     setSearchParams({ mode: normalizedMode }, { replace: true });
   };
@@ -150,15 +177,19 @@ const SearchPage = () => {
       labels.push(label);
       timeline.addLabel(label);
 
-      timeline.call(() => {
-        setBarStates(frame.states);
-        if (mode === "binary") {
-          // Wait for React to apply classes/styles before GSAP reads positions.
-          requestAnimationFrame(() => {
-            animateBinaryFrame(frame);
-          });
-        }
-      }, undefined, label);
+      timeline.call(
+        () => {
+          setBarStates(frame.states);
+          if (mode === "binary") {
+            // Wait for React to apply classes/styles before GSAP reads positions.
+            requestAnimationFrame(() => {
+              animateBinaryFrame(frame);
+            });
+          }
+        },
+        undefined,
+        label,
+      );
 
       timeline.to({}, { duration: frame.duration }, label);
     });
@@ -225,7 +256,10 @@ const SearchPage = () => {
       onSpeedIncrease={increaseSpeed}
       onSpeedDecrease={decreaseSpeed}
     >
-      <div ref={barsContainerRef} className="relative flex gap-2 justify-center items-end p-4 min-h-[200px] bar-container">
+      <div
+        ref={barsContainerRef}
+        className="relative flex gap-2 justify-center items-end p-4 min-h-[200px] bar-container"
+      >
         {bars.map((bar) => (
           <div
             id={`bar-${bar.id}`}
@@ -241,7 +275,10 @@ const SearchPage = () => {
           </div>
         ))}
         {/* SVG overlay for the active dotted line */}
-        <svg className="absolute inset-0 pointer-events-none" ref={activeLineRef} />
+        <svg
+          className="absolute inset-0 pointer-events-none"
+          ref={activeLineRef}
+        />
       </div>
     </SharedLayout>
   );

@@ -28,10 +28,22 @@ export const algos: AlgoInfo[] = [
         algoRoute: ROUTES.home,
     },
     {
-        algoName: "Primitive Algo",
+        algoName: "Queue",
         algoDesc: "Interactively explore how elements enter and exit in FIFO order. Visualize real-time operations in circular queues and priority queues.",
         algoImg: queueLogo,
-        algoRoute: ROUTES.primitive,
+        algoRoute: ROUTES.queue,
+    },
+    {
+        algoName: "Stack",
+        algoDesc: "See how elements are pushed and popped in LIFO order. Perfect for understanding recursion, backtracking, and expression evaluation.",
+        algoImg: queueLogo,
+        algoRoute: ROUTES.stack,
+    },
+    {
+        algoName: "Linked List",
+        algoDesc: "Visualize how nodes are linked together. Learn insertion, deletion, and traversal with step-by-step animations.",
+        algoImg: treeLogo,
+        algoRoute: ROUTES.linkedlist,
     },
     {
         algoName: "Search",

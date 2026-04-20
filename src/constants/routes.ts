@@ -10,7 +10,9 @@ export const ROUTES = {
   selectionSort: "/selection",
   insertionSort: "/insertion",
   insertionSortLegacy: "/insert",
-  primitive: "/primitive",
+  queue: "/queue",
+  stack: "/stack",
+  linkedlist: "/linkedlist",
 } as const;
 
 export type AppRoute = (typeof ROUTES)[keyof typeof ROUTES];
