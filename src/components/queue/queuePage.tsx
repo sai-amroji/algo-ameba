@@ -55,21 +55,21 @@ const QueuePage = () => {
 
   const { contextSafe } = useGSAP({ scope: queueContainerRef });
 
-  // Animate new items in after they're rendered
-  const animateIn = contextSafe((el: HTMLDivElement, fromRight: boolean) => {
+  // Animate items in from the right (back of queue)
+  const animateIn = contextSafe((el: HTMLDivElement) => {
     gsap.fromTo(
       el,
-      { opacity: 0, x: fromRight ? 80 : -80, scale: 0.8 },
+      { opacity: 0, x: 100, scale: 0.8 },
       { opacity: 1, x: 0, scale: 1, duration: 0.4, ease: "back.out(1.7)" },
     );
   });
 
-  // Animate item out, then remove from state
+  // Animate items out to the left (front of queue)
   const animateOut = contextSafe(
-    (el: HTMLDivElement, toRight: boolean, onComplete: () => void) => {
+    (el: HTMLDivElement, onComplete: () => void) => {
       gsap.to(el, {
         opacity: 0,
-        x: toRight ? 80 : -80,
+        x: -100,
         scale: 0.8,
         duration: 0.35,
         ease: "power2.in",
@@ -98,9 +98,10 @@ const QueuePage = () => {
     setQueue((prev) => (toFront ? [newItem, ...prev] : [...prev, newItem]));
 
     // Animate in after render via a small timeout to let React paint
+    // Items always animate from the right (back of queue)
     setTimeout(() => {
       const el = itemRefs.current.get(id);
-      if (el) animateIn(el, !toFront);
+      if (el) animateIn(el);
     }, 20);
   };
 
@@ -121,7 +122,8 @@ const QueuePage = () => {
 
     setRemovingIds((prev) => new Set(prev).add(target.id));
 
-    animateOut(el, fromBack, () => {
+    // Items always animate to the left (out of queue)
+    animateOut(el, () => {
       setQueue((prev) => prev.filter((item) => item.id !== target.id));
       setRemovingIds((prev) => {
         const next = new Set(prev);
@@ -287,10 +289,11 @@ const QueuePage = () => {
         </div>
       </div>
 
-      <div className="alog-screen h-full w-full flex justify-center items-center px-6">
+      <div className="alog-screen h-full w-full flex flex-col justify-center items-center px-6">
+        <div className="text-cyan-400 text-sm mb-4 font-semibold">FRONT ←→ BACK</div>
         <div
           ref={queueContainerRef}
-          className="queue w-full max-w-6xl h-40 m-80 flex justify-start items-center gap-3 flex-nowrap overflow-x-auto px-6 py-4 border-y-2 border-purple-500 bg-slate-900 shadow-xl"
+          className="queue w-full max-w-6xl h-40 flex justify-start items-center gap-3 flex-nowrap overflow-x-auto px-6 py-4 border-y-2 border-purple-500 bg-slate-900 shadow-xl"
         >
           {queue.map((item) => (
             <div
@@ -298,7 +301,7 @@ const QueuePage = () => {
               ref={(el) => {
                 if (el) itemRefs.current.set(item.id, el);
               }}
-              className="queue-item w-24 h-32 border-2 border-cyan-400 flex justify-center items-center bg-gradient-to-br from-cyan-500 to-blue-600 rounded-md text-white font-bold text-lg shadow-lg flex-shrink-0"
+              className="queue-item w-24 h-32 border-2 border-cyan-400 flex justify-center items-center bg-gradient-to-br from-cyan-500 to-blue-600 rounded-md text-white font-bold text-lg shadow-lg flex-shrink-0 hover:shadow-cyan-500/50 transition-shadow"
               style={{ opacity: 0 }} 
             >
               {item.value}
@@ -309,6 +312,7 @@ const QueuePage = () => {
 
       <footer className="footer mt-12 text-center text-slate-400 pb-6">
         <p>Queue Size: {activeQueueLength} / 10</p>
+        <p className="text-xs text-slate-500 mt-2">Items slide in from RIGHT (enqueue) • Slide out LEFT (dequeue)</p>
       </footer>
     </div>
   );

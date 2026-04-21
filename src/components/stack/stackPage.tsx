@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef } from "react";
 import { Input } from "../ui/input.tsx";
 import {
   Select,
@@ -78,7 +78,7 @@ const StackPage = () => {
   const [stack, setStack] = useState<StackItem[]>([]);
   const itemRefs = useRef<Map<number, HTMLDivElement>>(new Map());
   const containerRef = useRef<HTMLDivElement>(null);
-
+  
   useGSAP({ scope: containerRef });
 
   const options = ALGO_OPTIONS[algo];
@@ -108,16 +108,16 @@ const StackPage = () => {
     }, 20);
   };
 
-  const pop = (fromBack = false) => {
+  const pop = () => {
     if (isEmpty) return toast("Stack is empty!");
-    const target = fromBack ? activeS[activeS.length - 1] : activeS[0];
+    const target = activeS[0];
     const el = getRef(target.id);
     if (!el) return;
     markExiting(target.id);
     animateOut(el, () => {
       removeFromState(target.id);
       itemRefs.current.delete(target.id);
-      toast(`Popped ${target.value} from ${fromBack ? "back" : "front"}`);
+      toast(`Popped ${target.value}`);
     });
   };
 
@@ -207,7 +207,7 @@ const StackPage = () => {
 
         <Select value={algo} onValueChange={handleAlgoChange}>
           <SelectTrigger className="w-44 bg-slate-800 border-cyan-400 text-white h-10 hover:bg-slate-700 transition-colors">
-            <SelectValue placeholder="Select Queue Type" />
+            <SelectValue placeholder="Select Stack Type" />
           </SelectTrigger>
           <SelectContent className="bg-slate-800 border-cyan-400 text-white">
             <SelectGroup>
@@ -226,7 +226,7 @@ const StackPage = () => {
         </Select>
       </div>
 
-      {/* Queue Canvas */}
+      {/* Stack Canvas */}
       <div className="flex justify-center items-center py-6">
         <div
           ref={containerRef}
