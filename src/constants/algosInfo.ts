@@ -55,13 +55,13 @@ export const algos: AlgoInfo[] = [
         algoName: "Graph Algorithms",
         algoDesc: "Dive deep into BFS, DFS, Dijkstra, and more through animated graphs. Visual tools make it easier to understand traversal and shortest paths.",
         algoImg: graphLogo,
-        algoRoute: ROUTES.home,
+        algoRoute: ROUTES.graph,
     },
     {
         algoName: "Tree Algorithms",
         algoDesc: "See how binary trees, BSTs, and AVL trees grow, rotate, and balance. Perfect for understanding recursion, traversal, and structure manipulation.",
         algoImg: treeLogo,
-        algoRoute: ROUTES.home,
+        algoRoute: ROUTES.tree,
     },
     {
         algoName: "Heap",

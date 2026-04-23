@@ -13,72 +13,26 @@ import { useGSAP } from "@gsap/react";
 import gsap from "../../gsapSetup.ts";
 import { toast } from "sonner";
 
-// ── Types ────────────────────────────────────────────────────────────────────
-type Status = "popping" | "pushing" | "about to push";
+type Status = "popping" | "pushing";
 type StackItem = { id: number; value: number; status: Status };
 
-// ── Constants ────────────────────────────────────────────────────────────────
 let uid = 0;
-const makeItem = (value: number): StackItem => ({
-  id: ++uid,
-  value,
-  status: "pushing",
-});
+const makeItem = (value: number): StackItem => ({ id: ++uid, value, status: "pushing" });
 
 const ALGO_OPTIONS: Record<string, string[]> = {
   stack: ["push", "pop", "peek", "clear"],
   "monotonic stack": ["push", "pop", "peek", "clear"],
 };
 
-// ── Animations ───────────────────────────────────────────────────────────────
-const animateIn = (el: HTMLDivElement) =>
-  gsap.fromTo(
-    el,
-    {
-      opacity: 0,
-      y: -190,
-      scale: 0.8,
-    },
-    {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      duration: 0.4,
-      ease: "back.out(1.7)",
-    },
-  );
+const PRIMARY_GLOW = "0 0 16px rgba(0,255,17,0.6)";
 
-const animateOut = (el: HTMLDivElement, onComplete: () => void) =>
-  gsap.to(el, {
-    opacity: 0,
-    y: -190,
-    scale: 0.8,
-    duration: 0.4,
-    ease: "power2.in",
-    onComplete,
-  });
-
-const animatePeek = (el: HTMLDivElement) =>
-  gsap.fromTo(
-    el,
-    { scale: 1 },
-    {
-      scale: 1.15,
-      boxShadow: "0 0 24px rgba(34,211,238,0.9)",
-      duration: 0.25,
-      yoyo: true,
-      repeat: 1,
-    },
-  );
-
-// ── Component ────────────────────────────────────────────────────────────────
 const StackPage = () => {
   const [algo, setAlgo] = useState("stack");
   const [input, setInput] = useState("");
   const [stack, setStack] = useState<StackItem[]>([]);
   const itemRefs = useRef<Map<number, HTMLDivElement>>(new Map());
   const containerRef = useRef<HTMLDivElement>(null);
-  
+
   useGSAP({ scope: containerRef });
 
   const options = ALGO_OPTIONS[algo];
@@ -86,25 +40,22 @@ const StackPage = () => {
   const isFull = activeS.length >= 10;
   const isEmpty = activeS.length === 0;
 
-  // ── Helpers ────────────────────────────────────────────────────────────────
   const getRef = (id: number) => itemRefs.current.get(id);
-
-  const removeFromState = (id: number) =>
-    setStack((prev) => prev.filter((i) => i.id !== id));
-
+  const removeFromState = (id: number) => setStack((prev) => prev.filter((i) => i.id !== id));
   const markExiting = (id: number) =>
-    setStack((prev) =>
-      prev.map((i) => (i.id === id ? { ...i, status: "popping" } : i)),
-    );
+    setStack((prev) => prev.map((i) => (i.id === id ? { ...i, status: "popping" as Status } : i)));
 
-  // ── Operations ─────────────────────────────────────────────────────────────
   const push = (value: number) => {
     if (isFull) return toast("Stack is full!");
     const item = makeItem(value);
     setStack((prev) => [item, ...prev]);
     setTimeout(() => {
       const el = getRef(item.id);
-      if (el) animateIn(el);
+      if (!el) return;
+      gsap.fromTo(el,
+        { opacity: 0, y: -60, scale: 0.85 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.45, ease: "back.out(1.7)" }
+      );
     }, 20);
   };
 
@@ -114,17 +65,25 @@ const StackPage = () => {
     const el = getRef(target.id);
     if (!el) return;
     markExiting(target.id);
-    animateOut(el, () => {
-      removeFromState(target.id);
-      itemRefs.current.delete(target.id);
-      toast(`Popped ${target.value}`);
+    gsap.to(el, {
+      opacity: 0, y: -60, scale: 0.85, duration: 0.38, ease: "power2.in",
+      onComplete: () => {
+        removeFromState(target.id);
+        itemRefs.current.delete(target.id);
+        toast(`Popped ${target.value}`);
+      },
     });
   };
 
   const peek = () => {
     if (isEmpty) return toast("Stack is empty!");
     const el = getRef(activeS[0].id);
-    if (el) animatePeek(el);
+    if (el) {
+      gsap.fromTo(el,
+        { boxShadow: "0 0 0px rgba(0,255,17,0)" },
+        { boxShadow: PRIMARY_GLOW, duration: 0.25, yoyo: true, repeat: 1, ease: "power1.inOut" }
+      );
+    }
     toast(`Top: ${activeS[0].value}`);
   };
 
@@ -135,17 +94,8 @@ const StackPage = () => {
       if (!el) return;
       markExiting(item.id);
       gsap.to(el, {
-        opacity: 0,
-        scale: 0.4,
-        y: -150,
-        stagger: {
-          each: 0.05,
-          grid: "auto",
-          from: "start",
-        },
-        duration: 3,
-        delay: i * 0.06,
-        ease: "back.in(1.7)",
+        opacity: 0, scale: 0.4, y: -50,
+        duration: 0.3, delay: i * 0.06, ease: "back.in(1.7)",
         onComplete: () => {
           removeFromState(item.id);
           itemRefs.current.delete(item.id);
@@ -166,37 +116,36 @@ const StackPage = () => {
     if (op === "push") {
       const num = parseInt(input);
       if (isNaN(num)) return toast("Enter a valid number");
-      push(num);
-      setInput("");
+      push(num); setInput("");
     } else if (op === "pop") pop();
     else if (op === "peek") peek();
     else if (op === "clear") clear();
   };
 
-  // ── Render ──────────────────────────────────────────────────────────────────
   return (
-    <div>
+    <div className="min-h-screen bg-slate-950 text-white flex flex-col">
       {/* Navbar */}
-      <div className="flex flex-row justify-between items-center h-16 px-6 py-2 gap-6">
+      <div className="flex flex-row justify-between items-center h-16 px-6 border-b border-slate-800">
         <div className="flex items-center gap-3">
           <Input
-            className="h-10 bg-slate-800 border-cyan-400 text-white"
-            placeholder="Enter number"
+            className="h-9 w-32 bg-slate-900 border-slate-700 text-white placeholder:text-slate-500 focus-visible:ring-0 focus-visible:border-[#00ff11] font-mono text-sm"
+            placeholder="value"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyPress={(e) => e.key === "Enter" && handleOperation("push ")}
+            onKeyUp={(e) => { if (e.key === "Enter") handleOperation("push"); }}
           />
           <button
-            className="h-10 px-5 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold hover:from-cyan-600 hover:to-blue-700 transition-all shadow-md"
+            className="h-9 px-4 rounded-lg bg-slate-800 border border-[#00ff11]/50 text-[#00ff11] font-mono text-sm hover:bg-[#00ff11]/10 hover:border-[#00ff11] transition-all"
             onClick={() => handleOperation("push")}
           >
-            Enter
+            Push
           </button>
+          <div className="w-px h-6 bg-slate-800" />
           <div className="flex gap-2">
-            {options.map((op) => (
+            {options.filter((o) => o !== "push").map((op) => (
               <button
                 key={op}
-                className="h-10 px-5 rounded-lg bg-purple-600 text-white hover:bg-purple-700 transition-all font-semibold shadow-md capitalize"
+                className="h-9 px-4 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 font-mono text-sm hover:border-cyan-500 hover:text-cyan-400 transition-all capitalize"
                 onClick={() => handleOperation(op)}
               >
                 {op}
@@ -206,18 +155,14 @@ const StackPage = () => {
         </div>
 
         <Select value={algo} onValueChange={handleAlgoChange}>
-          <SelectTrigger className="w-44 bg-slate-800 border-cyan-400 text-white h-10 hover:bg-slate-700 transition-colors">
-            <SelectValue placeholder="Select Stack Type" />
+          <SelectTrigger className="w-44 bg-slate-900 border-slate-700 text-white h-9 hover:border-slate-500 transition-colors font-mono text-sm">
+            <SelectValue placeholder="Select type" />
           </SelectTrigger>
-          <SelectContent className="bg-slate-800 border-cyan-400 text-white">
+          <SelectContent className="bg-slate-900 border-slate-700 text-white">
             <SelectGroup>
-              <SelectLabel>Algorithms</SelectLabel>
+              <SelectLabel className="text-slate-500 font-mono text-xs">Stack Type</SelectLabel>
               {Object.keys(ALGO_OPTIONS).map((a) => (
-                <SelectItem
-                  key={a}
-                  value={a}
-                  className="hover:bg-cyan-600 focus:bg-cyan-600 capitalize"
-                >
+                <SelectItem key={a} value={a} className="capitalize font-mono text-sm focus:bg-slate-800 focus:text-white">
                   {a}
                 </SelectItem>
               ))}
@@ -226,30 +171,60 @@ const StackPage = () => {
         </Select>
       </div>
 
-      {/* Stack Canvas */}
-      <div className="flex justify-center items-center py-6">
-        <div
-          ref={containerRef}
-          className="w-90 h-[800px] mt-10 flex flex-col justify-end items-center gap-3 overflow-y-auto py-6 px-4 border-2 border-t-0 border-purple-500 bg-slate-900 rounded-l-xl rounded-r-xl rounded-b-xl  shadow-xl"
-        >
-          {stack.map((item) => (
-            <div
-              key={item.id}
-              ref={(el) => {
-                if (el) itemRefs.current.set(item.id, el);
-              }}
-              className="w-80 h-32 border-2 border-cyan-400 flex flex-col justify-center items-center bg-gradient-to-br from-cyan-500 to-blue-600 rounded-md text-white font-bold text-lg shadow-lg flex-shrink-0"
-              style={{ opacity: 0 }}
-            >
-              {item.value}
-            </div>
-          ))}
+      {/* Main canvas */}
+      <div className="flex-1 flex justify-center items-start pt-10 px-8">
+        <div className="flex flex-col items-center gap-2">
+
+          {/* TOP label */}
+          <span className="text-[11px] font-mono mb-1 text-slate-500">TOP ↓</span>
+
+          {/* Stack column */}
+          <div
+            ref={containerRef}
+            className="w-72 flex flex-col items-center gap-2 min-h-[480px] max-h-[620px] overflow-y-auto
+              border-y-2 border-slate-800 bg-slate-900/40 px-4 py-5"
+          >
+            {stack.length === 0 && (
+              <p className="text-slate-600 font-mono text-sm tracking-widest mt-auto mb-auto">— empty —</p>
+            )}
+
+            {stack.map((item, idx) => (
+              <div
+                key={item.id}
+                ref={(el) => { if (el) itemRefs.current.set(item.id, el); }}
+                className="w-full flex items-center justify-between rounded-xl bg-cyan-500 px-4 py-0 flex-shrink-0 border-2 border-transparent shadow-[0_0_10px_rgba(6,182,212,0.4)] text-black"
+                style={{
+                  height: 52,
+                  opacity: 0,
+                  transition: "background-color 0.15s, box-shadow 0.15s",
+                }}
+              >
+                {/* Index badge */}
+                <span className="text-[10px] font-mono w-6 text-center rounded text-black/50">
+                  {activeS.length - 1 - idx}
+                </span>
+                {/* Value */}
+                <span className="text-xl font-bold">{item.value}</span>
+                {/* Top indicator */}
+                <span className="text-[10px] font-mono w-8 text-right font-bold"
+                  style={{ color: idx === 0 ? "#00ff11" : "transparent" }}>
+                  top
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* BOTTOM label */}
+          <span className="text-[11px] font-mono mt-1 text-slate-500">BOTTOM</span>
         </div>
       </div>
 
       {/* Footer */}
-      <footer className="mt-12 text-center text-slate-400 pb-6">
-        Stack Size: {activeS.length} / 10
+      <footer className="px-8 py-4 border-t border-slate-800 flex justify-between items-center">
+        <span className="text-xs font-mono text-slate-500">{algo.toUpperCase()}</span>
+        <span className="text-xs font-mono text-cyan-500">
+          {activeS.length} / 10 items
+        </span>
       </footer>
     </div>
   );

@@ -29,7 +29,6 @@ export type LayoutNode = {
  */
 export const computeMergeSortLayout = (
   bars: MergeSortBarNode[],
-  depth: number = 0,
   levelHeight: number = 84
 ): Record<string, LayoutNode> => {
   if (bars.length === 0) return {};

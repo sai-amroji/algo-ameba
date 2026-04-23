@@ -64,7 +64,7 @@ const SearchPage = () => {
 
   const { contextSafe } = useGSAP({ scope: barsContainerRef });
   // Ref for the active dotted line that highlights the current focus range
-  const activeLineRef = useRef<SVGPathElement>(null);
+  const activeLineRef = useRef<SVGSVGElement>(null);
 
   const getExistingBarElements = (ids: string[]) =>
     ids
@@ -268,7 +268,7 @@ const SearchPage = () => {
             }}
             key={bar.id}
             data-flip-id={bar.id}
-            className={`bar w-10 rounded-sm text-white text-center transition-colors duration-300 ${getBarColor(bar.id)}`}
+            className={`bar w-10 rounded-sm text-center transition-colors duration-300 ${getBarColor(bar.id)}`}
             style={{ height: `${Math.max(Math.abs(bar.value) * 4, 30)}px` }}
           >
             {bar.value}

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { Input } from "../ui/input.tsx";
 import {
   Select,
@@ -15,15 +15,19 @@ import { toast } from "sonner";
 
 type QueueItem = { id: number; value: number };
 
+const algosOptionMap: Record<string, string[]> = {
+  queue: ["enqueue", "dequeue", "peek", "clear"],
+  deque: ["enqueueFirst", "enqueueLast", "dequeueFirst", "dequeueLast", "peek", "clear"],
+  "monotonic queue": ["enqueueFirst", "enqueueLast", "dequeueFirst", "dequeueLast", "peek", "clear"],
+  "circular queue": ["enqueue", "dequeue", "peek", "clear"],
+};
+
+
+const PRIMARY_GLOW = "0 0 16px rgba(0,255,17,0.6)";
+
 const QueuePage = () => {
-  const [selectedAlgo, setSelectedAlgo] = useState<string>("queue");
-  const [options, setOptions] = useState<string[]>([
-    "enqueue",
-    "dequeue",
-    "peek",
-    "clear",
-  ]);
-  const [input, setInput] = useState<string>("");
+  const [selectedAlgo, setSelectedAlgo] = useState("queue");
+  const [input, setInput] = useState("");
   const [queue, setQueue] = useState<QueueItem[]>([]);
   const [removingIds, setRemovingIds] = useState<Set<number>>(new Set());
 
@@ -31,288 +35,240 @@ const QueuePage = () => {
   const itemRefs = useRef<Map<number, HTMLDivElement>>(new Map());
   const nextId = useRef(0);
 
-  const algosOptionMap: Record<string, string[]> = {
-    deque: [
-      "enqueueFirst",
-      "enqueueLast",
-      "dequeueFirst",
-      "dequeueLast",
-      "peek",
-      "clear",
-    ],
-    "monotonic queue": [
-      "enqueueFirst",
-      "enqueueLast",
-      "dequeueFirst",
-      "dequeueLast",
-      "peek",
-      "clear",
-    ],
-    "circular queue": ["enqueue", "dequeue", "peek", "clear"],
-    queue: ["enqueue", "dequeue", "peek", "clear"],
-  };
+  const options = algosOptionMap[selectedAlgo];
   const algos = Object.keys(algosOptionMap);
 
   const { contextSafe } = useGSAP({ scope: queueContainerRef });
 
-  // Animate items in from the right (back of queue)
   const animateIn = contextSafe((el: HTMLDivElement) => {
     gsap.fromTo(
       el,
-      { opacity: 0, x: 100, scale: 0.8 },
-      { opacity: 1, x: 0, scale: 1, duration: 0.4, ease: "back.out(1.7)" },
+      { opacity: 0, x: 80, scale: 0.85 },
+      { opacity: 1, x: 0, scale: 1, duration: 0.45, ease: "back.out(1.7)" },
     );
   });
 
-  // Animate items out to the left (front of queue)
-  const animateOut = contextSafe(
-    (el: HTMLDivElement, onComplete: () => void) => {
-      gsap.to(el, {
-        opacity: 0,
-        x: -100,
-        scale: 0.8,
-        duration: 0.35,
-        ease: "power2.in",
-        onComplete,
-      });
-    },
-  );
+  const animateOut = contextSafe((el: HTMLDivElement, onComplete: () => void) => {
+    gsap.to(el, {
+      opacity: 0,
+      x: -80,
+      scale: 0.85,
+      duration: 0.35,
+      ease: "power2.in",
+      onComplete,
+    });
+  });
 
   const handleAlgoChange = (algo: string) => {
     setSelectedAlgo(algo);
-    setOptions(algosOptionMap[algo]);
     setQueue([]);
     setRemovingIds(new Set());
     itemRefs.current.clear();
     toast(`Switched to ${algo}`);
   };
 
-  const enqueue = (value: number, toFront: boolean = false) => {
-    if (queue.length >= 10) {
-      toast("Queue is full!");
-      return;
-    }
+  const enqueue = (value: number, toFront = false) => {
+    if (queue.length >= 10) { toast("Queue is full!"); return; }
     const id = nextId.current++;
-    const newItem: QueueItem = { id, value };
-
-    setQueue((prev) => (toFront ? [newItem, ...prev] : [...prev, newItem]));
-
-    // Animate in after render via a small timeout to let React paint
-    // Items always animate from the right (back of queue)
+    setQueue((prev) => toFront ? [{ id, value }, ...prev] : [...prev, { id, value }]);
     setTimeout(() => {
       const el = itemRefs.current.get(id);
       if (el) animateIn(el);
     }, 20);
   };
 
-  const dequeue = (fromBack: boolean = false) => {
-    // Filter out any items currently being removed
-    const activeQueue = queue.filter((item) => !removingIds.has(item.id));
-    if (activeQueue.length === 0) {
-      toast("Queue is empty!");
-      return;
-    }
-
-    const target = fromBack
-      ? activeQueue[activeQueue.length - 1]
-      : activeQueue[0];
-
+  const dequeue = (fromBack = false) => {
+    const active = queue.filter((i) => !removingIds.has(i.id));
+    if (active.length === 0) { toast("Queue is empty!"); return; }
+    const target = fromBack ? active[active.length - 1] : active[0];
     const el = itemRefs.current.get(target.id);
     if (!el) return;
-
     setRemovingIds((prev) => new Set(prev).add(target.id));
-
-    // Items always animate to the left (out of queue)
     animateOut(el, () => {
-      setQueue((prev) => prev.filter((item) => item.id !== target.id));
-      setRemovingIds((prev) => {
-        const next = new Set(prev);
-        next.delete(target.id);
-        return next;
-      });
+      setQueue((prev) => prev.filter((i) => i.id !== target.id));
+      setRemovingIds((prev) => { const n = new Set(prev); n.delete(target.id); return n; });
       itemRefs.current.delete(target.id);
       toast(`Dequeued ${target.value} from ${fromBack ? "back" : "front"}`);
     });
   };
 
   const peek = () => {
-    const active = queue.filter((item) => !removingIds.has(item.id));
-    if (active.length === 0) {
-      toast("Queue is empty!");
-      return;
-    }
-    const frontEl = itemRefs.current.get(active[0].id);
-    if (frontEl) {
+    const active = queue.filter((i) => !removingIds.has(i.id));
+    if (active.length === 0) { toast("Queue is empty!"); return; }
+    const el = itemRefs.current.get(active[0].id);
+    if (el) {
       gsap.fromTo(
-        frontEl,
-        { scale: 1, boxShadow: "0 0 0px rgba(34,211,238,0)" },
-        {
-          scale: 1.15,
-          boxShadow: "0 0 24px rgba(34,211,238,0.9)",
-          duration: 0.25,
-          yoyo: true,
-          repeat: 1,
-          ease: "power1.inOut",
-        },
+        el,
+        { boxShadow: "0 0 0px rgba(0,255,17,0)" },
+        { boxShadow: PRIMARY_GLOW, duration: 0.25, yoyo: true, repeat: 1, ease: "power1.inOut" },
       );
     }
-    toast(`Front element: ${active[0].value}`);
+    toast(`Front: ${active[0].value}`);
   };
 
   const clear = () => {
-    const activeQueue = queue.filter((item) => !removingIds.has(item.id));
-    if (activeQueue.length === 0) {
-      toast("Queue is already empty!");
-      return;
-    }
-    const allIds = new Set(activeQueue.map((item) => item.id));
+    const active = queue.filter((i) => !removingIds.has(i.id));
+    if (active.length === 0) { toast("Queue is already empty!"); return; }
+    const allIds = new Set(active.map((i) => i.id));
     setRemovingIds((prev) => new Set([...prev, ...allIds]));
-
-    activeQueue.forEach((item, index) => {
+    active.forEach((item, idx) => {
       const el = itemRefs.current.get(item.id);
       if (!el) return;
       gsap.to(el, {
-        opacity: 0,
-        scale: 0.4,
-        y: -30,
-        duration: 0.3,
-        delay: index * 0.06,
-        ease: "back.in(1.7)",
+        opacity: 0, scale: 0.4, y: -30,
+        duration: 0.3, delay: idx * 0.06, ease: "back.in(1.7)",
         onComplete: () => {
           itemRefs.current.delete(item.id);
-          if (index === activeQueue.length - 1) {
-            setQueue([]);
-            setRemovingIds(new Set());
-            toast("Queue cleared");
+          if (idx === active.length - 1) {
+            setQueue([]); setRemovingIds(new Set()); toast("Queue cleared");
           }
         },
       });
     });
   };
 
-  const handleOperation = (operation: string) => {
-    switch (operation) {
+  const handleOperation = (op: string) => {
+    switch (op) {
       case "enqueue":
       case "enqueueLast": {
-        const num = parseInt(input);
-        if (isNaN(num)) {
-          toast("Enter a valid number");
-          return;
-        }
-        enqueue(num, false);
-        setInput("");
-        break;
+        const n = parseInt(input);
+        if (isNaN(n)) { toast("Enter a valid number"); return; }
+        enqueue(n, false); setInput(""); break;
       }
       case "enqueueFirst": {
-        const num = parseInt(input);
-        if (isNaN(num)) {
-          toast("Enter a valid number");
-          return;
-        }
-        enqueue(num, true);
-        setInput("");
-        break;
+        const n = parseInt(input);
+        if (isNaN(n)) { toast("Enter a valid number"); return; }
+        enqueue(n, true); setInput(""); break;
       }
-      case "dequeue":
-      case "dequeueFirst":
-        dequeue(false);
-        break;
-      case "dequeueLast":
-        dequeue(true);
-        break;
-      case "peek":
-        peek();
-        break;
-      case "clear":
-        clear();
-        break;
+      case "dequeue": case "dequeueFirst": dequeue(false); break;
+      case "dequeueLast": dequeue(true); break;
+      case "peek": peek(); break;
+      case "clear": clear(); break;
     }
   };
 
-  const activeQueueLength = queue.filter(
-    (item) => !removingIds.has(item.id),
-  ).length;
+  const activeLen = queue.filter((i) => !removingIds.has(i.id)).length;
 
   return (
-    <div>
-      <div className="flex nav-bar flex-row justify-between items-center h-16 px-6 py-2 gap-6">
-        <div className="flex justify-start items-center gap-4 nav-start-items">
-          <div className="flex gap-3 items-center">
-            <Input
-              className="h-10 bg-slate-800 border-cyan-400 text-white"
-              placeholder="Enter number"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyUp={(e) => {
-                if (e.key === "Enter") handleOperation("enqueue");
-              }}
-            />
-            <button
-              className="h-10 px-5 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold hover:from-cyan-600 hover:to-blue-700 transition-all whitespace-nowrap shadow-md"
-              onClick={() => handleOperation("enqueue")}
-            >
-              Enter
-            </button>
-            <div className="flex gap-2">
-              {options.map((option) => (
+    <div className="min-h-screen bg-slate-950 text-white flex flex-col">
+      {/* Navbar */}
+      <div className="flex flex-row justify-between items-center h-16 px-6 border-b border-slate-800">
+        <div className="flex items-center gap-3">
+          <Input
+            className="h-9 w-32 bg-slate-900 border-slate-700 text-white placeholder:text-slate-500 focus-visible:ring-0 focus-visible:border-[#00ff11] font-mono text-sm"
+            placeholder="value"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyUp={(e) => { if (e.key === "Enter") handleOperation("enqueue"); }}
+          />
+          <button
+            className="h-9 px-4 rounded-lg bg-slate-800 border border-[#00ff11]/50 text-[#00ff11] font-mono text-sm hover:bg-[#00ff11]/10 hover:border-[#00ff11] transition-all"
+            onClick={() => handleOperation("enqueue")}
+          >
+            Enqueue
+          </button>
+          <div className="w-px h-6 bg-slate-800" />
+          <div className="flex gap-2 flex-wrap">
+            {options.filter((o) => o !== "enqueue" && o !== "enqueueFirst" && o !== "enqueueLast").map((op) => (
+              <button
+                key={op}
+                className="h-9 px-4 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 font-mono text-sm hover:border-cyan-500 hover:text-cyan-400 transition-all capitalize"
+                onClick={() => handleOperation(op)}
+              >
+                {op}
+              </button>
+            ))}
+            {(options.includes("enqueueFirst") || options.includes("enqueueLast")) && (
+              <>
                 <button
-                  key={option}
-                  className="h-10 px-5 rounded-lg bg-purple-600 text-white hover:bg-purple-700 transition-all whitespace-nowrap font-semibold shadow-md capitalize"
-                  onClick={() => handleOperation(option)}
+                  className="h-9 px-4 rounded-lg bg-slate-800 border border-[#00ff11]/50 text-[#00ff11] font-mono text-sm hover:bg-[#00ff11]/10 transition-all"
+                  onClick={() => handleOperation("enqueueFirst")}
                 >
-                  {option}
+                  Enqueue Front
                 </button>
-              ))}
-            </div>
+                <button
+                  className="h-9 px-4 rounded-lg bg-slate-800 border border-[#00ff11]/50 text-[#00ff11] font-mono text-sm hover:bg-[#00ff11]/10 transition-all"
+                  onClick={() => handleOperation("enqueueLast")}
+                >
+                  Enqueue Back
+                </button>
+              </>
+            )}
           </div>
         </div>
-        <div className="nav-end-items">
-          <Select value={selectedAlgo} onValueChange={handleAlgoChange}>
-            <SelectTrigger className="w-[180px] bg-slate-800 border-cyan-400 text-white h-10 hover:bg-slate-700 transition-colors">
-              <SelectValue placeholder="Select Queue Type" />
-            </SelectTrigger>
-            <SelectContent className="bg-slate-800 border-cyan-400 text-white">
-              <SelectGroup>
-                <SelectLabel>Algorithms</SelectLabel>
-                {algos.map((algo) => (
-                  <SelectItem
-                    key={algo}
-                    value={algo}
-                    className="hover:bg-cyan-600 focus:bg-cyan-600 capitalize"
-                  >
-                    {algo}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
+
+        <Select value={selectedAlgo} onValueChange={handleAlgoChange}>
+          <SelectTrigger className="w-44 bg-slate-900 border-slate-700 text-white h-9 hover:border-slate-500 transition-colors font-mono text-sm">
+            <SelectValue placeholder="Select type" />
+          </SelectTrigger>
+          <SelectContent className="bg-slate-900 border-slate-700 text-white">
+            <SelectGroup>
+              <SelectLabel className="text-slate-500 font-mono text-xs">Queue Type</SelectLabel>
+              {algos.map((a) => (
+                <SelectItem key={a} value={a} className="capitalize font-mono text-sm focus:bg-slate-800 focus:text-white">
+                  {a}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
       </div>
 
-      <div className="alog-screen h-full w-full flex flex-col justify-center items-center px-6">
-        <div className="text-cyan-400 text-sm mb-4 font-semibold">FRONT ←→ BACK</div>
+      {/* Main canvas */}
+      <div className="flex-1 flex flex-col justify-center items-center px-8 py-6 gap-4">
+
+        {/* Direction label */}
+        <div className="flex w-full max-w-5xl justify-between text-[11px] font-mono text-slate-500 px-1">
+          <span>FRONT</span>
+          <span>BACK</span>
+        </div>
+
+        {/* Queue row */}
         <div
           ref={queueContainerRef}
-          className="queue w-full max-w-6xl h-40 flex justify-start items-center gap-3 flex-nowrap overflow-x-auto px-6 py-4 border-y-2 border-purple-500 bg-slate-900 shadow-xl"
+          className="w-full max-w-5xl min-h-[120px] flex items-center gap-3 flex-nowrap overflow-x-auto
+            border-y-2 border-slate-800 bg-slate-900/40 px-6 py-5"
         >
-          {queue.map((item) => (
+          {queue.length === 0 && (
+            <p className="text-slate-600 font-mono text-sm tracking-widest mx-auto">— empty —</p>
+          )}
+
+          {queue.map((item, idx) => (
             <div
               key={item.id}
-              ref={(el) => {
-                if (el) itemRefs.current.set(item.id, el);
-              }}
-              className="queue-item w-24 h-32 border-2 border-cyan-400 flex justify-center items-center bg-gradient-to-br from-cyan-500 to-blue-600 rounded-md text-white font-bold text-lg shadow-lg flex-shrink-0 hover:shadow-cyan-500/50 transition-shadow"
-              style={{ opacity: 0 }} 
+              ref={(el) => { if (el) itemRefs.current.set(item.id, el); }}
+              className="flex flex-col items-center flex-shrink-0"
+              style={{ opacity: 0 }}
             >
-              {item.value}
+              {/* Card */}
+              <div
+                className="w-20 h-16 rounded-xl bg-cyan-500 flex flex-col items-center justify-center gap-0.5 border-2 border-transparent font-bold text-black shadow-[0_0_10px_rgba(6,182,212,0.4)]"
+                style={{ transition: "background-color 0.15s, box-shadow 0.15s" }}
+              >
+                <span className="text-xl leading-none">{item.value}</span>
+              </div>
+              {/* Index label */}
+              <span className="text-[10px] font-mono mt-1 text-slate-500">
+                [{idx}]
+              </span>
             </div>
           ))}
         </div>
+
+        {/* Arrows label row */}
+        {queue.length > 0 && (
+          <div className="text-[10px] font-mono text-slate-600 tracking-widest">
+            ← dequeue from front &nbsp;&nbsp;|&nbsp;&nbsp; enqueue to back →
+          </div>
+        )}
       </div>
 
-      <footer className="footer mt-12 text-center text-slate-400 pb-6">
-        <p>Queue Size: {activeQueueLength} / 10</p>
-        <p className="text-xs text-slate-500 mt-2">Items slide in from RIGHT (enqueue) • Slide out LEFT (dequeue)</p>
+      {/* Footer */}
+      <footer className="px-8 py-4 border-t border-slate-800 flex justify-between items-center">
+        <span className="text-xs font-mono text-slate-500">{selectedAlgo.toUpperCase()}</span>
+        <span className="text-xs font-mono text-cyan-500">
+          {activeLen} / 10 items
+        </span>
       </footer>
     </div>
   );

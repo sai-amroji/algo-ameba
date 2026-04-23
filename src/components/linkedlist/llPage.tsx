@@ -9,7 +9,31 @@ import gsap from "../../gsapSetup.ts";
 import { toast } from "sonner";
 import { Toaster } from "sonner";
 
-type LLNode = { id: number; value: number; addr: number };
+/* ── TYPE DEFINITIONS ────────────────────────────────────────── */
+type ListType = "singly" | "doubly" | "singly-circular" | "doubly-circular";
+
+type LLNode = {
+  id: number;
+  value: number;
+  addr: number;
+  prevAddr?: number; // Only populated for doubly variants
+};
+
+type ListConfig = {
+  type: ListType;
+  isCircular: boolean;
+  isDoubly: boolean;
+  label: string;
+};
+
+const listTypeConfig: Record<ListType, ListConfig> = {
+  "singly": { type: "singly", isCircular: false, isDoubly: false, label: "Singly Linked List" },
+  "doubly": { type: "doubly", isCircular: false, isDoubly: true, label: "Doubly Linked List" },
+  "singly-circular": { type: "singly-circular", isCircular: true, isDoubly: false, label: "Circular Linked List" },
+  "doubly-circular": { type: "doubly-circular", isCircular: true, isDoubly: true, label: "Doubly Circular Linked List" },
+};
+
+const getConfig = (type: ListType): ListConfig => listTypeConfig[type];
 
 // Prime-ish random address the user asked for
 const genAddr = () => Math.floor(Math.random() * 100 + 17 * Math.random());
@@ -17,7 +41,8 @@ const genAddr = () => Math.floor(Math.random() * 100 + 17 * Math.random());
 const SLOT = 196; // 144px node + 52px arrow gap
 
 const LinkedListPage = () => {
-  const [selectedAlgo, setSelectedAlgo] = useState("linked list");
+  const [listType, setListType] = useState<ListType>("singly");
+  const config = getConfig(listType);
   const [input, setInput]   = useState("");
   const [pos,   setPos]     = useState("");
 
@@ -33,18 +58,14 @@ const LinkedListPage = () => {
   const headRef          = useRef<HTMLDivElement>(null);
   const newNodeRef       = useRef<HTMLDivElement>(null);
   const newNodeValRef    = useRef<HTMLSpanElement>(null);
-  const newNodePtrRef    = useRef<HTMLSpanElement>(null);
+  const newNodeNextPtrRef    = useRef<HTMLSpanElement>(null);
+  const newNodePrevPtrRef    = useRef<HTMLSpanElement>(null);
 
   const itemRefs  = useRef<Map<number, HTMLDivElement>>(new Map());
-  const arrowRefs = useRef<Map<number, SVGLineElement>>(new Map());
+  const nextArrowRefs = useRef<Map<number | string, SVGLineElement>>(new Map());
+  const prevArrowRefs = useRef<Map<number | string, SVGLineElement>>(new Map());
   const nextId    = useRef(3);
   const pending   = useRef<Set<number>>(new Set());
-
-  const algosMap: Record<string, string[]> = {
-    "linked list":          ["insertAtHead","insertAtTail","insertAtIndex","deleteAtHead","deleteAtTail","deleteAtIndex","reverse","clear"],
-    "doubly linked list":   ["insertAtHead","insertAtTail","insertAtIndex","deleteAtHead","deleteAtTail","deleteAtIndex","reverse","clear"],
-    "circular linked list": ["insertAtHead","insertAtTail","insertAtIndex","deleteAtHead","deleteAtTail","deleteAtIndex","reverse","clear"],
-  };
 
   /* ── GSAP context ───────────────────────────────────────────────────── */
   const { contextSafe } = useGSAP({ scope: screenRef });
@@ -59,6 +80,10 @@ const LinkedListPage = () => {
 
   /* arrow draw-in via DrawSVGPlugin */
   const animArrowIn = contextSafe((line: SVGLineElement) => {
+    // Initialize stroke-dasharray so DrawSVG can animate it
+    const length = line.getTotalLength?.() || 50;
+    line.setAttribute('stroke-dasharray', String(length));
+    line.setAttribute('stroke-dashoffset', String(length));
     gsap.fromTo(line,
       { drawSVG: "0% 0%" },
       { drawSVG: "0% 100%", duration: 0.7, ease: "power2.out" }
@@ -70,9 +95,11 @@ const LinkedListPage = () => {
     if (!pending.current.size) return;
     pending.current.forEach((id) => {
       const el   = itemRefs.current.get(id);
-      const line = arrowRefs.current.get(id);
-      if (el)   animNodeIn(el);
-      if (line) animArrowIn(line);
+      const nextLine = nextArrowRefs.current.get(id);
+      const prevLine = prevArrowRefs.current.get(id);
+      if (el) animNodeIn(el);
+      if (nextLine) animArrowIn(nextLine);
+      if (prevLine) animArrowIn(prevLine);
     });
     if (headRef.current)
       gsap.fromTo(headRef.current, { scale: 1.12 }, { scale: 1, duration: 0.55, ease: "elastic.out(1,0.5)" });
@@ -81,12 +108,20 @@ const LinkedListPage = () => {
 
   /* ── INSERT ─────────────────────────────────────────────────────────── */
   const insert = contextSafe((value: number, position: number) => {
-    const newNode: LLNode = { id: nextId.current++, value, addr: genAddr() };
+    const newNode: LLNode = { 
+      id: nextId.current++, 
+      value, 
+      addr: genAddr(),
+      prevAddr: config.isDoubly ? (position > 0 ? list[position - 1].addr : (config.isCircular && list.length > 0 ? list[list.length - 1].addr : undefined)) : undefined,
+    };
 
     if (newNodeValRef.current) newNodeValRef.current.textContent = String(value);
-    if (newNodePtrRef.current)
-      newNodePtrRef.current.textContent =
-        position < list.length ? String(list[position].addr) : "NULL";
+    if (newNodeNextPtrRef.current)
+      newNodeNextPtrRef.current.textContent =
+        position < list.length ? String(list[position].addr) : (config.isCircular && list.length > 0 ? String(list[0].addr) : "NULL");
+    if (newNodePrevPtrRef.current && config.isDoubly)
+      newNodePrevPtrRef.current.textContent =
+        position > 0 ? String(list[position - 1].addr) : (config.isCircular && list.length > 0 ? String(list[list.length - 1].addr) : "NULL");
 
     gsap.set(newNodeRef.current, { opacity: 1, x: 0, y: 0 });
 
@@ -159,7 +194,8 @@ const LinkedListPage = () => {
     const removeFromState = () => {
       setRemovingIds((p) => new Set(p).add(target.id));
       itemRefs.current.delete(target.id);
-      arrowRefs.current.delete(target.id);
+      nextArrowRefs.current.delete(target.id);
+      prevArrowRefs.current.delete(target.id);
       setList((p) => p.filter((n) => n.id !== target.id));
       setRemovingIds((p) => { const s = new Set(p); s.delete(target.id); return s; });
     };
@@ -168,7 +204,7 @@ const LinkedListPage = () => {
       // highlight → pause → HEAD nudges (pointer moving) → fly up
       gsap.timeline({ defaults: { ease: "power2.out" } })
         .addLabel("mark")
-        .to(el, { borderColor: "#ef4444", boxShadow: "0 0 0 2px #ef444466", duration: 0.5 }, "mark")
+        .to(el, { borderColor: "#ef4444", boxShadow: "0 0 12px rgba(239,68,68,0.2)", duration: 0.5 }, "mark")
         .addLabel("pause", "+=0.55")
         .addLabel("headNudge", "pause")
         .to(headRef.current, { x: 14, duration: 0.2 }, "headNudge")
@@ -184,11 +220,11 @@ const LinkedListPage = () => {
       const prevEl = itemRefs.current.get(list[position - 1].id) ?? null;
       gsap.timeline({ defaults: { ease: "power2.out" } })
         .addLabel("markTail")
-        .to(el, { borderColor: "#ef4444", boxShadow: "0 0 0 2px #ef444466", duration: 0.5 }, "markTail")
+        .to(el, { borderColor: "#ef4444", boxShadow: "0 0 12px rgba(239,68,68,0.2)", duration: 0.5 }, "markTail")
         .addLabel("pause", "+=0.55")
         .addLabel("ptrNull", "pause")
-        .to(prevEl ?? {}, prevEl ? { borderColor: "#22c55e", boxShadow: "0 0 0 2px #22c55e66", duration: 0.4 } : {}, "ptrNull")
-        .to(prevEl ?? {}, prevEl ? { borderColor: "#22d3ee", boxShadow: "none", duration: 0.4 } : {}, ">")
+        .to(prevEl ?? {}, prevEl ? { borderColor: "#00ff11", boxShadow: "0 0 12px rgba(0,255,17,0.2)", duration: 0.4 } : {}, "ptrNull")
+        .to(prevEl ?? {}, prevEl ? { borderColor: "rgba(14, 116, 144, 0.5)", boxShadow: "none", duration: 0.4 } : {}, ">")
         .addLabel("exit", ">+=0.08")
         .to(el, {
           y: 80, opacity: 0, scale: 0.65, duration: 0.65, ease: "power3.in",
@@ -200,14 +236,14 @@ const LinkedListPage = () => {
       const prevEl = itemRefs.current.get(list[position - 1].id) ?? null;
       gsap.timeline({ defaults: { ease: "power2.out" } })
         .addLabel("traverse")
-        .to(prevEl ?? {}, prevEl ? { borderColor: "#f97316", boxShadow: "0 0 0 2px #f9731666", duration: 0.45 } : {}, "traverse")
+        .to(prevEl ?? {}, prevEl ? { borderColor: "#f97316", boxShadow: "0 0 12px rgba(249,115,22,0.2)", duration: 0.45 } : {}, "traverse")
         .addLabel("pauseTraverse", "+=0.45")
         .addLabel("markTarget", "pauseTraverse")
-        .to(el, { borderColor: "#ef4444", boxShadow: "0 0 0 2px #ef444466", duration: 0.45 }, "markTarget")
+        .to(el, { borderColor: "#ef4444", boxShadow: "0 0 12px rgba(239,68,68,0.2)", duration: 0.45 }, "markTarget")
         .addLabel("pauseTarget", "+=0.45")
         .addLabel("bypass", "pauseTarget")
-        .to(prevEl ?? {}, prevEl ? { borderColor: "#22c55e", boxShadow: "0 0 0 2px #22c55e66", duration: 0.38 } : {}, "bypass")
-        .to(prevEl ?? {}, prevEl ? { borderColor: "#22d3ee", boxShadow: "none", duration: 0.38 } : {}, ">")
+        .to(prevEl ?? {}, prevEl ? { borderColor: "#00ff11", boxShadow: "0 0 12px rgba(0,255,17,0.2)", duration: 0.38 } : {}, "bypass")
+        .to(prevEl ?? {}, prevEl ? { borderColor: "rgba(14, 116, 144, 0.5)", boxShadow: "none", duration: 0.38 } : {}, ">")
         .addLabel("exit", ">+=0.08")
         .to(el, {
           y: -80, opacity: 0, scale: 0.65, duration: 0.65, ease: "power3.in",
@@ -264,10 +300,14 @@ const LinkedListPage = () => {
     }
   };
 
-  const switchAlgo = (algo: string) => {
-    setSelectedAlgo(algo); setList([]); setRemovingIds(new Set());
-    itemRefs.current.clear(); arrowRefs.current.clear();
-    toast(`Switched to ${algo}`);
+  const switchListType = (type: ListType) => {
+    setListType(type); 
+    setList([]); 
+    setRemovingIds(new Set());
+    itemRefs.current.clear(); 
+    nextArrowRefs.current.clear();
+    prevArrowRefs.current.clear();
+    toast(`Switched to ${getConfig(type).label}`);
   };
 
   const activeLen = list.filter((n) => !removingIds.has(n.id)).length;
@@ -277,11 +317,17 @@ const LinkedListPage = () => {
     <div ref={screenRef} className="flex flex-col min-h-screen bg-slate-950 text-white select-none">
       <Toaster position="top-center" richColors />
 
-      {/* shared SVG defs — single arrowhead marker */}
+      {/* shared SVG defs — arrow markers */}
       <svg width="0" height="0" style={{ position: "absolute" }}>
         <defs>
           <marker id="ll-arrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
-            <polygon points="0 0, 7 3.5, 0 7" fill="#22d3ee" />
+            <polygon points="0 0, 7 3.5, 0 7" fill="#0e7490" />
+          </marker>
+          <marker id="ll-arrow-purple" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+            <polygon points="0 0, 7 3.5, 0 7" fill="#a78bfa" />
+          </marker>
+          <marker id="ll-arrow-pink" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+            <polygon points="0 0, 7 3.5, 0 7" fill="#ec4899" />
           </marker>
         </defs>
       </svg>
@@ -292,47 +338,47 @@ const LinkedListPage = () => {
 
         <div className="flex flex-wrap items-center gap-2">
           <Input
-            className="h-9 w-28 bg-slate-800 border-slate-600 text-white placeholder:text-slate-500
-              focus:border-cyan-500 text-sm rounded-lg"
+            className="h-9 w-28 bg-slate-900 border-slate-700 text-white placeholder:text-slate-500
+              focus-visible:ring-0 focus-visible:border-[#00ff11] font-mono text-sm rounded-lg"
             placeholder="Value"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleOp("insertAtTail")}
           />
           <Input
-            className="h-9 w-24 bg-slate-800 border-slate-600 text-white placeholder:text-slate-500
-              focus:border-cyan-500 text-sm rounded-lg"
+            className="h-9 w-24 bg-slate-900 border-slate-700 text-white placeholder:text-slate-500
+              focus-visible:ring-0 focus-visible:border-[#00ff11] font-mono text-sm rounded-lg"
             placeholder="Index"
             value={pos}
             onChange={(e) => setPos(e.target.value)}
           />
           {(["insertAtHead","insertAtTail","insertAtIndex"] as const).map((op) => (
             <button key={op} onClick={() => handleOp(op)}
-              className="h-9 px-3 rounded-lg bg-cyan-700 hover:bg-cyan-600 text-white
-                font-semibold text-xs transition-colors whitespace-nowrap">
+              className="h-9 px-4 rounded-lg bg-slate-800 border border-[#00ff11]/50 text-[#00ff11] font-mono text-sm hover:bg-[#00ff11]/10 hover:border-[#00ff11] transition-all whitespace-nowrap">
               {op === "insertAtHead" ? "Insert Head" : op === "insertAtTail" ? "Insert Tail" : "Insert At"}
             </button>
           ))}
-          <div className="w-px h-6 bg-slate-700 mx-1" />
+          <div className="w-px h-6 bg-slate-800 mx-1" />
           {(["deleteAtHead","deleteAtTail","deleteAtIndex","reverse","clear"] as const).map((op) => (
             <button key={op} onClick={() => handleOp(op)}
-              className="h-9 px-3 rounded-lg bg-slate-700 hover:bg-slate-600 border border-slate-600
-                hover:border-slate-500 text-slate-200 text-xs font-medium transition-colors whitespace-nowrap">
+              className="h-9 px-4 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 font-mono text-sm hover:border-cyan-500 hover:text-cyan-400 transition-all whitespace-nowrap">
               {op === "deleteAtHead" ? "Del Head" : op === "deleteAtTail" ? "Del Tail"
                 : op === "deleteAtIndex" ? "Del At" : op.charAt(0).toUpperCase() + op.slice(1)}
             </button>
           ))}
         </div>
 
-        <Select value={selectedAlgo} onValueChange={switchAlgo}>
-          <SelectTrigger className="w-[200px] h-9 bg-slate-800 border-slate-600 text-white text-sm rounded-lg">
+        <Select value={listType} onValueChange={(type) => switchListType(type as ListType)}>
+          <SelectTrigger className="w-[240px] bg-slate-900 border-slate-700 text-white h-9 hover:border-slate-500 transition-colors font-mono text-sm rounded-lg">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent className="bg-slate-800 border-slate-700 text-white">
+          <SelectContent className="bg-slate-900 border-slate-700 text-white">
             <SelectGroup>
-              <SelectLabel className="text-slate-400 text-xs">List Type</SelectLabel>
-              {Object.keys(algosMap).map((a) => (
-                <SelectItem key={a} value={a} className="capitalize focus:bg-slate-700">{a}</SelectItem>
+              <SelectLabel className="text-slate-500 font-mono text-xs">List Type</SelectLabel>
+              {(Object.keys(listTypeConfig) as ListType[]).map((type) => (
+                <SelectItem key={type} value={type} className="capitalize font-mono text-sm focus:bg-slate-800 focus:text-white">
+                  {getConfig(type).label}
+                </SelectItem>
               ))}
             </SelectGroup>
           </SelectContent>
@@ -346,27 +392,38 @@ const LinkedListPage = () => {
         <div className="flex flex-col items-start mb-1">
           <div ref={headRef}
             className="flex flex-col items-center justify-center w-36 h-16
-              border-2 border-cyan-500 rounded-xl bg-slate-900 font-mono">
-            <span className="text-[9px] text-cyan-400 uppercase tracking-widest mb-0.5">HEAD</span>
-            <span className="text-cyan-300 text-sm font-semibold">
+              border-2 border-transparent rounded-xl bg-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.4)] font-mono text-black font-bold">
+            <span className="text-[9px] text-black/70 uppercase tracking-widest mb-0.5">HEAD</span>
+            <span className="text-black text-sm font-semibold">
               {list.length > 0 ? list[0].addr : "NULL"}
             </span>
           </div>
           {/* tick down to list */}
-          <div className="w-px h-5 bg-cyan-700 ml-[71px]" />
+          <div className="w-px h-5 bg-cyan-700/50 ml-[71px]" />
         </div>
 
         {/* Staging node (used only during insert animation) */}
         <div ref={newNodeRef}
           style={{ opacity: 0, position: "absolute", top: 112, left: 40, zIndex: 30 }}
           className="flex flex-col items-center mt-25">
-          <div className="flex w-36 h-16 border-2 border-emerald-500 rounded-xl bg-slate-900
-            items-center justify-around">
-            <span ref={newNodeValRef} className="text-xl font-bold text-white">?</span>
-            <div className="w-px h-8 bg-slate-600" />
-            <span ref={newNodePtrRef} className="text-xs font-mono text-emerald-400 px-1">NULL</span>
-          </div>
-          <span className="text-[10px] font-mono text-emerald-600 mt-1">new</span>
+          {config.isDoubly ? (
+            <div className="flex w-48 h-16 border-2 border-transparent rounded-xl bg-[#00ff11] text-black font-bold
+              items-center justify-around" style={{ boxShadow: "0 0 15px rgba(0,255,17,0.6)" }}>
+              <span ref={newNodePrevPtrRef} className="text-xs font-mono px-1">NULL</span>
+              <div className="w-px h-8 bg-black/30" />
+              <span className="text-xl">?</span>
+              <div className="w-px h-8 bg-black/30" />
+              <span ref={newNodeNextPtrRef} className="text-xs font-mono px-1">NULL</span>
+            </div>
+          ) : (
+            <div className="flex w-36 h-16 border-2 border-transparent rounded-xl bg-[#00ff11] text-black font-bold
+              items-center justify-around" style={{ boxShadow: "0 0 15px rgba(0,255,17,0.6)" }}>
+              <span className="text-xl">?</span>
+              <div className="w-px h-8 bg-black/30" />
+              <span ref={newNodeNextPtrRef} className="text-xs font-mono px-1">NULL</span>
+            </div>
+          )}
+          <span className="text-[10px] font-mono text-[#00ff11] mt-1">new</span>
         </div>
 
         {/* The list */}
@@ -378,59 +435,156 @@ const LinkedListPage = () => {
             <p className="text-slate-600 font-mono text-sm tracking-wider self-center">— empty —</p>
           )}
 
-          {list.map((item, index) => (
-            <div key={item.id} className="flex items-center flex-shrink-0">
-              {/* node + addr label stacked */}
-              <div className="flex flex-col items-center">
-                <div
-                  ref={(el) => { if (el) itemRefs.current.set(item.id, el); }}
-                  className="flex w-36 h-16 border-2 border-cyan-600 rounded-xl bg-slate-900
-                    items-center justify-around"
-                  style={{ transition: "border-color 0.15s, box-shadow 0.15s" }}
-                >
-                  <span className="text-xl font-bold text-white">{item.value}</span>
-                  <div className="w-px h-8 bg-slate-600" />
-                  {/* pointer → next node addr */}
-                  <span className="text-sm font-mono font-semibold text-cyan-300 px-1">
-                    {index === list.length - 1 ? "NULL" : list[index + 1].addr}
+          {list.map((item, index) => {
+            const isLast = index === list.length - 1;
+            const nextAddr = isLast ? (config.isCircular ? list[0].addr : undefined) : list[index + 1].addr;
+            const prevAddr = index === 0 ? (config.isCircular && list.length > 1 ? list[list.length - 1].addr : undefined) : list[index - 1].addr;
+
+            return (
+              <div key={item.id} className="flex items-center flex-shrink-0">
+                {/* node + addr label stacked */}
+                <div className="flex flex-col items-center">
+                  <div
+                    ref={(el) => { if (el) itemRefs.current.set(item.id, el); }}
+                    className="flex border-2 border-transparent rounded-xl bg-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.4)] text-black font-bold
+                      items-center justify-around"
+                    style={{ 
+                      width: config.isDoubly ? "200px" : "144px",
+                      height: "64px",
+                      transition: "background-color 0.15s, box-shadow 0.15s" 
+                    }}
+                  >
+                    {config.isDoubly && (
+                      <>
+                        <span className="text-sm font-mono px-1">
+                          {prevAddr !== undefined ? prevAddr : "NULL"}
+                        </span>
+                        <div className="w-px h-8 bg-black/30" />
+                      </>
+                    )}
+                    
+                    <span className="text-xl leading-none">{item.value}</span>
+                    
+                    <div className="w-px h-8 bg-black/30" />
+                    
+                    <span className="text-sm font-mono px-1">
+                      {nextAddr !== undefined ? nextAddr : "NULL"}
+                    </span>
+                  </div>
+                  
+                  {/* own address below node */}
+                  <span className="text-[11px] font-mono text-slate-500 mt-1">
+                    addr: <span className="text-slate-400">{item.addr}</span>
                   </span>
                 </div>
-                {/* own address below node */}
-                <span className="text-[11px] font-mono text-slate-500 mt-1">
-                  addr: <span className="text-slate-400">{item.addr}</span>
-                </span>
-              </div>
 
-              {/* arrow to next node — animated via DrawSVG */}
-              {index < list.length - 1 && (
-                <svg className="flex-shrink-0 mb-5" width="52" height="28" viewBox="0 0 52 28">
-                  <line
-                    ref={(el) => { if (el) arrowRefs.current.set(item.id, el); }}
-                    x1="2" y1="14" x2="44" y2="14"
-                    stroke="#22d3ee" strokeWidth="2" strokeLinecap="round"
-                    markerEnd="url(#ll-arrow)"
-                  />
-                </svg>
-              )}
-            </div>
-          ))}
+                {/* arrows (next for singly/circular, both prev+next for doubly) */}
+                {config.isDoubly ? (
+                  <svg className="flex-shrink-0" width="52" height="56" viewBox="0 0 52 56">
+                    {/* prev arrow (top) — points left */}
+                    {index > 0 && (
+                      <line
+                        ref={(el) => { if (el) prevArrowRefs.current.set(item.id, el); }}
+                        x1="44" y1="8" x2="2" y2="8"
+                        stroke="#a78bfa" strokeWidth="2" strokeLinecap="round"
+                        markerEnd="url(#ll-arrow-purple)"
+                      />
+                    )}
+                    {/* next arrow (bottom) — points right. EXPLICITLY DON'T RENDER ON LAST NODE */}
+                    {index < list.length - 1 && (
+                      <line
+                        ref={(el) => { if (el) nextArrowRefs.current.set(item.id, el); }}
+                        x1="2" y1="48" x2="44" y2="48"
+                        stroke="#0e7490" strokeWidth="2" strokeLinecap="round"
+                        markerEnd="url(#ll-arrow)"
+                      />
+                    )}
+                  </svg>
+                ) : (
+                  index < list.length - 1 && (
+                    <svg className="flex-shrink-0 mb-5" width="52" height="28" viewBox="0 0 52 28">
+                      <line
+                        ref={(el) => { if (el) nextArrowRefs.current.set(item.id, el); }}
+                        x1="2" y1="14" x2="44" y2="14"
+                        stroke="#0e7490" strokeWidth="2" strokeLinecap="round"
+                        markerEnd="url(#ll-arrow)"
+                      />
+                    </svg>
+                  )
+                )}
+              </div>
+            );
+          })}
         </div>
+
+        {/* Circular back-arrow (tail → head) for circular lists */}
+        {config.isCircular && list.length > 0 && (
+          <svg
+            style={{
+              position: "absolute",
+              top: "100px",
+              left: "0px",
+              width: "100%",
+              height: "280px",
+              pointerEvents: "none",
+              overflow: "visible",
+              zIndex: 5,
+            }}
+            viewBox={`0 0 ${Math.max(800, 40 + list.length * SLOT + 150)} 280`}
+          >
+            {/* Curved path from last node (right side) down-left back to HEAD */}
+            {/* Tail starts at right edge of last node */}
+            {/* HEAD center is at x ~72 (halfway through w-36 = 144px box) */}
+            <path
+              ref={(el) => {
+                if (el) {
+                  // Initialize stroke-dasharray for DrawSVG animation
+                  const length = el.getTotalLength?.() || 200;
+                  el.setAttribute('stroke-dasharray', String(length));
+                  el.setAttribute('stroke-dashoffset', String(length));
+                }
+              }}
+              d={`M ${40 + list.length * SLOT + 90} 140
+                  L ${40 + list.length * SLOT + 90} 220
+                  Q ${(40 + list.length * SLOT + 90 + 72) / 2} 260, 72 260
+                  L 72 180`}
+              fill="none"
+              stroke="#ec4899"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              markerEnd="url(#ll-arrow-pink)"
+            />
+            <text
+              x={`${(40 + list.length * SLOT + 150) / 2}`}
+              y="275"
+              fontSize="10"
+              fill="#ec4899"
+              textAnchor="middle"
+              className="font-mono font-bold"
+            >
+              ↻ circular
+            </text>
+          </svg>
+        )}
 
         {/* Legend */}
         <div className="flex gap-5 mt-8 text-[11px] font-mono text-slate-600">
-          <span><span className="text-cyan-400">■</span> active</span>
-          <span><span className="text-orange-400">■</span> traversing</span>
-          <span><span className="text-red-400">■</span> deleting</span>
-          <span><span className="text-green-400">■</span> pointer update</span>
-          <span><span className="text-emerald-400">■</span> inserting</span>
+          <span><span className="text-cyan-500">■</span> active</span>
+          <span><span className="text-orange-500">■</span> traversing</span>
+          <span><span className="text-red-500">■</span> deleting</span>
+          <span><span className="text-cyan-400">■</span> pointer update</span>
+          <span><span style={{ color: "#00ff11" }}>■</span> inserting</span>
+          {config.isDoubly && <span><span className="text-purple-400">■</span> prev pointer</span>}
+          {config.isCircular && <span><span className="text-pink-500">■</span> circular link</span>}
         </div>
       </div>
 
       {/* ── Footer ───────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between px-8 py-3 border-t border-slate-800
-        text-xs font-mono text-slate-600">
+      <div className="flex items-center justify-between px-8 py-4 border-t border-slate-800
+        text-xs font-mono text-slate-500">
         <span>nodes: <span className="text-cyan-500">{activeLen}</span></span>
-        <span className="capitalize">{selectedAlgo}</span>
+        <span>{config.label}</span>
       </div>
     </div>
   );

@@ -28,17 +28,17 @@ const algoMap = [
 const getBarColor = (state: SortBarState | undefined) => {
   switch (state) {
     case "checking":
-      return "bg-red-500";
+      return "bg-[#00ff11] text-black shadow-[0_0_15px_rgba(0,255,17,0.6)] border-2 border-transparent font-bold";
     case "comparing":
-      return "bg-yellow-500";
+      return "bg-cyan-500 text-black shadow-[0_0_15px_rgba(6,182,212,0.6)] border-2 border-transparent font-bold";
     case "splitting":
-      return "bg-orange-500";
+      return "bg-fuchsia-500 text-black shadow-[0_0_15px_rgba(217,70,239,0.6)] border-2 border-transparent font-bold";
     case "merging":
-      return "bg-cyan-600";
+      return "bg-amber-400 text-black shadow-[0_0_15px_rgba(251,191,36,0.6)] border-2 border-transparent font-bold";
     case "sorted":
-      return "bg-green-500";
+      return "bg-[#00ff11] text-black border-2 border-transparent font-bold";
     default:
-      return "bg-blue-500";
+      return "bg-slate-700 border-2 border-slate-600 text-slate-200";
   }
 };
 
@@ -77,14 +77,11 @@ const SortPage = () => {
   const [inputValue, setInputValue] = useState("");
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState(0.75);
-  const [frameLabel, setFrameLabel] = useState("Ready");
-  const [frameDetail, setFrameDetail] = useState(
-    "Press Sort to visualize each step.",
-  );
+
   const barsContainerRef = useRef<HTMLDivElement>(null);
   const barRefs = useRef<Record<string, HTMLDivElement | null>>({});
   // SVG path for the active dotted line that highlights the current merge/split range
-  const activeLineRef = useRef<SVGPathElement>(null);
+  const activeLineRef = useRef<SVGSVGElement>(null);
 
   const timelineRef = useRef<gsap.core.Timeline | null>(null);
   const [labels, setLabels] = useState<string[]>([]);
@@ -98,55 +95,6 @@ const SortPage = () => {
     Object.values(barRefs.current).filter(
       (element): element is HTMLDivElement => Boolean(element),
     );
-
-  const describeFrame = (frame: SortFrame) => {
-    const stateValues = Object.values(frame.states);
-    const splittingCount = stateValues.filter(
-      (value) => value === "splitting",
-    ).length;
-    const mergingCount = stateValues.filter(
-      (value) => value === "merging",
-    ).length;
-    const comparingCount = stateValues.filter(
-      (value) => value === "comparing",
-    ).length;
-    const checkingCount = stateValues.filter(
-      (value) => value === "checking",
-    ).length;
-    const sortedCount = stateValues.filter(
-      (value) => value === "sorted",
-    ).length;
-
-    if (splittingCount > 0) {
-      return {
-        label: "Splitting",
-        detail: `Dividing into smaller subarrays (${splittingCount} bars in split phase).`,
-      };
-    }
-    if (mergingCount > 0) {
-      return {
-        label: "Merging",
-        detail: `Combining sorted halves (${mergingCount} bars currently merging).`,
-      };
-    }
-    if (comparingCount > 0 || checkingCount > 0) {
-      return {
-        label: "Comparing",
-        detail: `Evaluating bars (${comparingCount} comparing, ${checkingCount} checking).`,
-      };
-    }
-    if (sortedCount > 0) {
-      return {
-        label: "Sorted Segment",
-        detail: `${sortedCount} bars are currently confirmed sorted.`,
-      };
-    }
-
-    return {
-      label: "Preparing",
-      detail: "Setting up the next step.",
-    };
-  };
 
   const animateMergeTreeFrame = (frame: SortFrame) => {
     const barIds = frame.bars.map((bar) => bar.id);
@@ -202,7 +150,7 @@ const SortPage = () => {
       gsap.set(line, {
         attr: { d },
         strokeDasharray: "4 4",
-        stroke: "#00ff08",
+        stroke: "#00ff11",
         strokeWidth: 2,
       });
       gsap.fromTo(
@@ -273,8 +221,7 @@ const SortPage = () => {
     setLabels([]);
     setIsPlaying(false);
     setBarStates({});
-    setFrameLabel("Ready");
-    setFrameDetail("Press Sort to visualize each step.");
+
   };
 
   const handleInsert = () => {
@@ -309,19 +256,16 @@ const SortPage = () => {
 
     const frames = sortAlgorithmBuilders[mode](bars);
     if (frames.length === 0) {
-      setFrameLabel("No Steps");
-      setFrameDetail("Add bars to begin visualization.");
+
       return;
     }
 
-    setFrameLabel("Starting");
-    setFrameDetail(`Loaded ${frames.length} animation steps.`);
+
 
     timeline.clear().pause(0);
     timeline.eventCallback("onComplete", () => {
       setIsPlaying(false);
-      setFrameLabel("Completed");
-      setFrameDetail("Sorting visualization finished.");
+
     });
     timeline.eventCallback("onInterrupt", () => setIsPlaying(false));
 
@@ -335,9 +279,8 @@ const SortPage = () => {
         () => {
           setBars(frame.bars);
           setBarStates(frame.states);
-          const description = describeFrame(frame);
-          setFrameLabel(description.label);
-          setFrameDetail(description.detail);
+
+
 
           requestAnimationFrame(() => {
             if (mode === "merge") {
@@ -458,31 +401,6 @@ const SortPage = () => {
       onSpeedDecrease={() => setSpeed((prev) => clampSpeed(prev - 0.25))}
     >
       <div className="w-full max-w-[1600px] px-6 md:px-12 py-4 overflow-visible">
-        <div className="mb-4 rounded-xl border border-border/70 bg-card/70 px-4 py-3">
-          <p className="text-sm font-semibold tracking-wide text-foreground">
-            {frameLabel}
-          </p>
-          <p className="text-xs md:text-sm text-muted-foreground">
-            {frameDetail}
-          </p>
-          <div className="mt-2 flex flex-wrap gap-2 text-[11px] md:text-xs text-muted-foreground">
-            <span className="px-2 py-1 rounded bg-orange-500/20 text-orange-300">
-              Splitting
-            </span>
-            <span className="px-2 py-1 rounded bg-cyan-600/20 text-cyan-300">
-              Merging
-            </span>
-            <span className="px-2 py-1 rounded bg-yellow-500/20 text-yellow-300">
-              Comparing
-            </span>
-            <span className="px-2 py-1 rounded bg-red-500/20 text-red-300">
-              Checking
-            </span>
-            <span className="px-2 py-1 rounded bg-green-500/20 text-green-300">
-              Sorted
-            </span>
-          </div>
-        </div>
 
         <div
           ref={barsContainerRef}
@@ -497,7 +415,7 @@ const SortPage = () => {
               ref={(node) => {
                 barRefs.current[bar.id] = node;
               }}
-              className={`bar w-10 rounded-sm text-white text-center transition-colors duration-300 ${getBarColor(
+              className={`bar w-10 rounded-lg flex items-center justify-center font-mono text-sm transition-all duration-300 ${getBarColor(
                 barStates[bar.id],
               )}`}
               style={{ height: `${Math.max(Math.abs(bar.value) * 4, 30)}px` }}

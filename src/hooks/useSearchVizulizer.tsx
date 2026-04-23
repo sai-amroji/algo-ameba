@@ -136,10 +136,10 @@ export const useSearchVizulizer = () => {
 
     const getBarColor = (id: string) => {
         switch (barStates[id]) {
-            case "checking": return "bg-red-500";
-            case "found": return "bg-green-500";
-            case "discarded": return "bg-slate-500";
-            default: return "bg-blue-500";
+            case "checking": return "bg-amber-400 text-black shadow-[0_0_15px_rgba(251,191,36,0.6)] font-bold";
+            case "found": return "bg-[#00ff11] text-black shadow-[0_0_15px_rgba(0,255,17,0.6)] font-bold";
+            case "discarded": return "bg-slate-700 text-slate-400";
+            default: return "bg-cyan-500 text-black font-bold shadow-[0_0_10px_rgba(6,182,212,0.4)]";
         }
     };
 

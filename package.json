@@ -23,6 +23,7 @@
     "@tailwindcss/vite": "^4.1.11",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "d3": "^7.9.0",
     "d3-array": "^3.2.4",
     "d3-hierarchy": "^3.1.2",
     "data-structure-typed": "^2.6.1",
@@ -38,6 +39,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.29.0",
+    "@types/d3": "^7.4.3",
     "@types/d3-hierarchy": "^3.1.7",
     "@types/node": "^24.0.8",
     "@types/react": "^19.1.8",

@@ -13,6 +13,8 @@ export const ROUTES = {
   queue: "/queue",
   stack: "/stack",
   linkedlist: "/linkedlist",
+  graph: "/graph",
+  tree: "/tree",
 } as const;
 
 export type AppRoute = (typeof ROUTES)[keyof typeof ROUTES];

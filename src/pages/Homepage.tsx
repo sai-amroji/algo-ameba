@@ -61,8 +61,11 @@ const Homepage = () => {
           ))}
         </div>
       </section>
+      <section className="section-fade py-16 flex flex-col items-center gap-6">
+      </section>
     </div>
   );
 };
 
 export default Homepage;
+
