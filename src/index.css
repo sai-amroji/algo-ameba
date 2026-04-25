@@ -118,7 +118,73 @@ body {
     --sidebar-border: oklch(0.85 0.004 286);
     --sidebar-ring: oklch(0.65 0.015 286);
     /* brand = neon green accent */
+    --brand: #00ff11;
     --color-brand: var(--brand);
+
+    /* algorithm theme tokens (aligned to linked-list dark style across themes) */
+    --algo-shell-bg: #020617;
+    --algo-shell-fg: #f8fafc;
+    --algo-nav-bg: #020617;
+    --algo-border: #1e293b;
+    --algo-panel-bg: rgba(15, 23, 42, 0.4);
+    --algo-panel-soft: #0f172a;
+    --algo-canvas-bg: rgba(15, 23, 42, 0.4);
+    --algo-canvas-border: #1e293b;
+
+    /* Algorithm Visualization Colors */
+    --algo-node: #06b6d4;
+    --algo-node-stroke: #0891b2;
+    --algo-node-glow: rgba(6, 182, 212, 0.4);
+    --algo-node-visited: #00ff11;
+    --algo-node-visited-stroke: #00cc0e;
+    --algo-node-visited-glow: rgba(0, 255, 17, 0.4);
+    --algo-node-active: #ef4444;
+    --algo-node-active-glow: rgba(239, 68, 68, 0.4);
+    --algo-edge: #a78bfa;
+    --algo-compare: #f97316;
+    --algo-text: #000000;
+
+    --algo-input-bg: #1e293b;
+    --algo-input-border: #334155;
+    --algo-input-fg: #f8fafc;
+    --algo-input-placeholder: #64748b;
+
+    --algo-select-bg: #1e293b;
+    --algo-select-border: #334155;
+    --algo-select-fg: #f8fafc;
+    --algo-select-hover-border: #475569;
+
+    --algo-button-neutral-bg: #1e293b;
+    --algo-button-neutral-border: #334155;
+    --algo-button-neutral-fg: #cbd5e1;
+    --algo-button-neutral-hover-bg: rgba(6, 182, 212, 0.15);
+    --algo-button-neutral-hover-border: #06b6d4;
+    --algo-button-neutral-hover-fg: #22d3ee;
+
+    --algo-button-primary-bg: #1e293b;
+    --algo-button-primary-border: rgba(0, 255, 17, 0.5);
+    --algo-button-primary-fg: #00ff11;
+    --algo-button-primary-hover-bg: rgba(0, 255, 17, 0.15);
+    --algo-button-primary-hover-border: #00ff11;
+    --algo-button-primary-hover-fg: #00ff11;
+
+    --algo-button-success-bg: #1e293b;
+    --algo-button-success-border: rgba(16, 185, 129, 0.5);
+    --algo-button-success-fg: #10b981;
+    --algo-button-success-hover-bg: rgba(16, 185, 129, 0.15);
+    --algo-button-success-hover-border: #10b981;
+    --algo-button-success-hover-fg: #10b981;
+
+    --algo-button-danger-bg: #1e293b;
+    --algo-button-danger-border: rgba(244, 63, 94, 0.5);
+    --algo-button-danger-fg: #f43f5e;
+    --algo-button-danger-hover-bg: rgba(244, 63, 94, 0.15);
+    --algo-button-danger-hover-border: #f43f5e;
+    --algo-button-danger-hover-fg: #f43f5e;
+
+    --algo-muted-text: #64748b;
+    --algo-empty-text: #475569;
+    --algo-accent-text: #22d3ee;
 }
 
 .dark {
@@ -153,7 +219,72 @@ body {
     --sidebar-accent-foreground: oklch(0.985 0 0);
     --sidebar-border: oklch(1 0 0 / 10%);
     --sidebar-ring: oklch(0.552 0.016 285.938);
-    --brand: #00ff08;
+    --brand: #00ff11;
+
+    /* algorithm theme tokens (dark = linked-list-like surfaces, neutral controls) */
+    --algo-shell-bg: #020617;
+    --algo-shell-fg: #f8fafc;
+    --algo-nav-bg: #020617;
+    --algo-border: #1e293b;
+    --algo-panel-bg: rgba(15, 23, 42, 0.4);
+    --algo-panel-soft: #0f172a;
+    --algo-canvas-bg: rgba(15, 23, 42, 0.4);
+    --algo-canvas-border: #1e293b;
+
+    /* Algorithm Visualization Colors */
+    --algo-node: #06b6d4;
+    --algo-node-stroke: #0891b2;
+    --algo-node-glow: rgba(6, 182, 212, 0.4);
+    --algo-node-visited: #00ff11;
+    --algo-node-visited-stroke: #00cc0e;
+    --algo-node-visited-glow: rgba(0, 255, 17, 0.4);
+    --algo-node-active: #ef4444;
+    --algo-node-active-glow: rgba(239, 68, 68, 0.4);
+    --algo-edge: #a78bfa;
+    --algo-compare: #f97316;
+    --algo-text: #000000;
+
+    --algo-input-bg: #1e293b;
+    --algo-input-border: #334155;
+    --algo-input-fg: #f8fafc;
+    --algo-input-placeholder: #64748b;
+
+    --algo-select-bg: #1e293b;
+    --algo-select-border: #334155;
+    --algo-select-fg: #f8fafc;
+    --algo-select-hover-border: #475569;
+
+    --algo-button-neutral-bg: #1e293b;
+    --algo-button-neutral-border: #334155;
+    --algo-button-neutral-fg: #cbd5e1;
+    --algo-button-neutral-hover-bg: rgba(6, 182, 212, 0.15);
+    --algo-button-neutral-hover-border: #06b6d4;
+    --algo-button-neutral-hover-fg: #22d3ee;
+
+    --algo-button-primary-bg: #1e293b;
+    --algo-button-primary-border: rgba(0, 255, 17, 0.5);
+    --algo-button-primary-fg: #00ff11;
+    --algo-button-primary-hover-bg: rgba(0, 255, 17, 0.15);
+    --algo-button-primary-hover-border: #00ff11;
+    --algo-button-primary-hover-fg: #00ff11;
+
+    --algo-button-success-bg: #1e293b;
+    --algo-button-success-border: rgba(16, 185, 129, 0.5);
+    --algo-button-success-fg: #10b981;
+    --algo-button-success-hover-bg: rgba(16, 185, 129, 0.15);
+    --algo-button-success-hover-border: #10b981;
+    --algo-button-success-hover-fg: #10b981;
+
+    --algo-button-danger-bg: #1e293b;
+    --algo-button-danger-border: rgba(244, 63, 94, 0.5);
+    --algo-button-danger-fg: #f43f5e;
+    --algo-button-danger-hover-bg: rgba(244, 63, 94, 0.15);
+    --algo-button-danger-hover-border: #f43f5e;
+    --algo-button-danger-hover-fg: #f43f5e;
+
+    --algo-muted-text: #64748b;
+    --algo-empty-text: #475569;
+    --algo-accent-text: #22d3ee;
 }
 
 
@@ -257,6 +388,141 @@ body {
            hover:underline
            transition-all duration-150;
   }
+
+
+
+   .a
+    .algo-shell {
+        @apply min-h-screen flex flex-col transition-colors duration-300;
+        background-color: var(--algo-shell-bg);
+        color: var(--algo-shell-fg);
+    }
+
+    .algo-nav {
+        @apply border-b;
+        border-color: var(--algo-border);
+        background-color: var(--algo-nav-bg);
+    }
+
+    .algo-footer {
+        @apply border-t;
+        border-color: var(--algo-border);
+    }
+
+    .algo-panel {
+        @apply rounded-xl border;
+        border-color: var(--algo-border);
+        background-color: var(--algo-panel-bg);
+    }
+
+    .algo-canvas {
+        @apply border-y-2;
+        border-color: var(--algo-canvas-border);
+        background-color: var(--algo-canvas-bg);
+    }
+
+    .algo-input {
+        background-color: var(--algo-input-bg);
+        border-color: var(--algo-input-border);
+        color: var(--algo-input-fg);
+    }
+
+    .algo-input::placeholder {
+        color: var(--algo-input-placeholder);
+    }
+
+    .algo-select-trigger {
+        background-color: var(--algo-select-bg);
+        border-color: var(--algo-select-border);
+        color: var(--algo-select-fg);
+    }
+
+    .algo-select-trigger:hover {
+        border-color: var(--algo-select-hover-border);
+    }
+
+    .algo-select-content {
+        background-color: var(--algo-select-bg);
+        border-color: var(--algo-select-border);
+        color: var(--algo-select-fg);
+    }
+
+    .algo-divider {
+        @apply w-px h-6;
+        background-color: var(--algo-border);
+    }
+
+    .algo-btn-base {
+        @apply h-9 px-4 rounded-lg border-0 font-bold font-sans text-3xl transition-all whitespace-nowrap;
+    }
+
+    .algo-btn-neutral {
+        @apply inline-flex items-center justify-center h-9 px-4 rounded-lg border font-mono text-sm transition-all whitespace-nowrap;
+        background-color: var(--algo-button-neutral-bg);
+        border-color: var(--algo-button-neutral-border);
+        color: var(--algo-button-neutral-fg);
+    }
+
+    /* .algo-btn-neutral:hover {
+        background-color: var(--algo-button-neutral-hover-bg);
+        border-color: var(--algo-button-neutral-hover-border);
+        color: var(--algo-button-neutral-hover-fg);
+        box-shadow: 0 0 12px var(--algo-button-neutral-hover-border);
+    }
+ */
+    .algo-btn-primary {
+        @apply inline-flex items-center justify-center h-9 px-4 rounded-lg border font-mono text-sm transition-all whitespace-nowrap;
+        background-color: var(--algo-button-primary-bg);
+        border-color: var(--algo-button-primary-border);
+        color: var(--algo-button-primary-fg);
+    }
+
+    .algo-btn-primary:hover {
+        background-color: var(--algo-button-primary-hover-bg);
+        border-color: var(--algo-button-primary-hover-border);
+        color: var(--algo-button-primary-hover-fg);
+        box-shadow: 0 0 15px var(--algo-button-primary-hover-border);
+    }
+
+    .algo-btn-success {
+        @apply inline-flex items-center justify-center h-9 px-4 rounded-lg border font-mono text-sm transition-all whitespace-nowrap;
+        background-color: var(--algo-button-success-bg);
+        border-color: var(--algo-button-success-border);
+        color: var(--algo-button-success-fg);
+    }
+
+    .algo-btn-success:hover {
+        background-color: var(--algo-button-success-hover-bg);
+        border-color: var(--algo-button-success-hover-border);
+        color: var(--algo-button-success-hover-fg);
+        box-shadow: 0 0 15px var(--algo-button-success-hover-border);
+    }
+
+    .algo-btn-danger {
+        @apply inline-flex items-center justify-center h-9 px-4 rounded-lg border font-mono text-sm transition-all whitespace-nowrap;
+        background-color: var(--algo-button-danger-bg);
+        border-color: var(--algo-button-danger-border);
+        color: var(--algo-button-danger-fg);
+    }
+
+    .algo-btn-danger:hover {
+        background-color: var(--algo-button-danger-hover-bg);
+        border-color: var(--algo-button-danger-hover-border);
+        color: var(--algo-button-danger-hover-fg);
+        box-shadow: 0 0 15px var(--algo-button-danger-hover-border);
+    }
+
+    .algo-muted-text {
+        color: var(--algo-muted-text);
+    }
+
+    .algo-empty-text {
+        color: var(--algo-empty-text);
+    }
+
+    .algo-accent-text {
+        color: var(--algo-accent-text);
+    }
 }
 
 @keyframes page-fade-up {

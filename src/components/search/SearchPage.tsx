@@ -117,7 +117,7 @@ const SearchPage = () => {
         gsap.set(line, {
           attr: { d },
           strokeDasharray: "4 4",
-          stroke: "#00ff08",
+          stroke: "var(--brand)",
           strokeWidth: 2,
         });
         gsap.fromTo(

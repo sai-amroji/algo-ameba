@@ -28,17 +28,17 @@ const algoMap = [
 const getBarColor = (state: SortBarState | undefined) => {
   switch (state) {
     case "checking":
-      return "bg-[#00ff11] text-black shadow-[0_0_15px_rgba(0,255,17,0.6)] border-2 border-transparent font-bold";
+      return "bg-red-500 text-black shadow-sm border-2 border-transparent font-bold";
     case "comparing":
-      return "bg-cyan-500 text-black shadow-[0_0_15px_rgba(6,182,212,0.6)] border-2 border-transparent font-bold";
+      return "bg-yellow-500 text-black shadow-sm border-2 border-transparent font-bold";
     case "splitting":
-      return "bg-fuchsia-500 text-black shadow-[0_0_15px_rgba(217,70,239,0.6)] border-2 border-transparent font-bold";
+      return "bg-purple-400 text-black shadow-sm border-2 border-transparent font-bold";
     case "merging":
-      return "bg-amber-400 text-black shadow-[0_0_15px_rgba(251,191,36,0.6)] border-2 border-transparent font-bold";
+      return "bg-orange-400 text-black shadow-sm border-2 border-transparent font-bold";
     case "sorted":
-      return "bg-[#00ff11] text-black border-2 border-transparent font-bold";
+      return "bg-brand text-black border-2 border-transparent font-bold";
     default:
-      return "bg-slate-700 border-2 border-slate-600 text-slate-200";
+      return "bg-blue-700 border-2 border-algo-node-stroke text-algo-text";
   }
 };
 
@@ -150,7 +150,7 @@ const SortPage = () => {
       gsap.set(line, {
         attr: { d },
         strokeDasharray: "4 4",
-        stroke: "#00ff11",
+        stroke: "var(--brand)",
         strokeWidth: 2,
       });
       gsap.fromTo(

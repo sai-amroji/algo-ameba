@@ -5,12 +5,12 @@ import { useGSAP } from "@gsap/react";
 import * as d3 from "d3";
 
 const C = {
-  node: "#378ADD", nodeS: "#185FA5",
-  vis: "#1D9E75", visS: "#0F6E56",
-  active: "#D85A30",
-  edgeDraw: "#BA7517",
-  cmp: "#9F77DD",
-  txt: "#fff",
+  node: "var(--algo-node)", nodeS: "var(--algo-node-stroke)",
+  vis: "var(--algo-node-visited)", visS: "var(--algo-node-visited-stroke)",
+  active: "var(--algo-node-active)",
+  edgeDraw: "var(--algo-edge)",
+  cmp: "var(--algo-compare)",
+  txt: "var(--algo-text)",
 };
 
 const MODES = [
@@ -61,17 +61,17 @@ function CodePanel({ mode }: { mode: string }) {
   };
 
   return (
-    <div className="mt-8 rounded-xl border-[0.5px] border-blue-200 overflow-hidden shadow-sm">
-      <div className="flex items-center justify-between px-6 py-3 border-b-[0.5px] border-gray-200 bg-gray-50">
-        <span className="text-sm font-mono text-gray-600">{mode}.js — key logic</span>
+    <div className="mt-8 rounded-xl border-[0.5px] border-algo-border overflow-hidden shadow-sm">
+      <div className="flex items-center justify-between px-6 py-3 border-b-[0.5px] border-algo-border bg-algo-panel-soft">
+        <span className="text-sm font-mono text-algo-shell-fg">{mode}.js — key logic</span>
         <button
           onClick={handleCopy}
-          className="text-xs px-3 py-1.5 rounded-md border-[0.5px] border-gray-300 bg-white text-gray-700 hover:bg-gray-100 transition-all"
+          className="algo-btn-base algo-btn-neutral text-xs px-3 py-1.5"
         >
           {copied ? "✓ copied" : "copy"}
         </button>
       </div>
-      <pre className="m-0 px-6 py-4 font-mono text-xs leading-relaxed text-gray-800 overflow-x-auto whitespace-pre max-h-[340px] bg-white">
+      <pre className="m-0 px-6 py-4 font-mono text-xs leading-relaxed text-algo-shell-fg overflow-x-auto whitespace-pre max-h-[340px] bg-algo-panel-bg">
         <code>{CODE[mode as keyof typeof CODE]}</code>
       </pre>
     </div>
@@ -193,13 +193,13 @@ const HeapPage = () => {
   return (
 
 
-    <div className="w-full h-full ">
-          <div className="font-sans  gap-2  p-4 bg-white  border-[0.5px] border-gray-200">
+    <div className="w-full h-full bg-algo-shell text-algo-shell-fg font-audiowide">
+          <div className="gap-2 p-4 bg-algo-panel-bg border-[0.5px] border-algo-border rounded-xl">
       {/* ── Tabs ── */}
       <div className="flex gap-2 mb-4 m-2 flex-wrap">
-        <div >
-          <input className="border-2 h-[40px] rounded-xl border-black"/>
-          <button className="text-center bg-green-400 h-[40px] rounded-xl">
+        <div className="flex items-center gap-2">
+          <input placeholder="Enter Number" className="h-9 w-32 bg-algo-input-bg border-algo-input-border text-algo-input-fg placeholder:text-algo-shell-fg/50 focus-visible:ring-0 focus-visible:border-brand font-mono text-sm rounded-lg px-3"/>
+          <button className="algo-btn-base algo-btn-primary h-9 px-4 font-mono text-sm">
             Enter Number
           </button>
         </div>
@@ -209,8 +209,8 @@ const HeapPage = () => {
             onClick={() => { setMode(m.id); setReplayKey(k => k + 1); }}
             className={`text-sm px-4 py-1.5 rounded-lg border-[0.5px] transition-all
               ${mode === m.id 
-                ? "border-blue-500 bg-blue-50 text-blue-700 font-medium" 
-                : "border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100"}`}
+                ? "border-brand bg-brand/10 text-brand font-medium" 
+                : "border-algo-border bg-algo-panel-soft text-algo-shell-fg hover:bg-algo-panel-bg"}`}
           >
             {m.label}
           </button>
@@ -219,37 +219,37 @@ const HeapPage = () => {
 
       {/* ── Controls ── */}
       <div className="flex items-center gap-4 mb-3 flex-wrap">
-        <label className="text-sm text-gray-500">Speed</label>
+        <label className="text-sm text-algo-shell-fg">Speed</label>
         <input 
           type="range" min={0.25} max={2} step={0.25} value={speed}
           onChange={e => setSpeed(+e.target.value)} 
-          className="w-24 accent-blue-500 cursor-pointer" 
+          className="w-24 accent-brand cursor-pointer" 
         />
-        <span className="text-sm text-gray-600 min-w-[28px]">{speed}x</span>
+        <span className="text-sm text-algo-shell-fg min-w-[28px]">{speed}x</span>
         
         <button 
           onClick={() => setReplayKey(k => k + 1)}
-          className="text-sm px-3 py-1.5 rounded-md border-[0.5px] border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-all"
+          className="algo-btn-base algo-btn-neutral px-3 py-1.5 text-sm"
         >
           ↺ Replay
         </button>
         
         <button 
           onClick={() => setShowCode(s => !s)}
-          className={`text-sm px-3 py-1.5 rounded-md border-[0.5px] transition-all ml-auto
-            ${showCode ? "border-blue-300 bg-blue-50 text-blue-700" : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"}`}
+          className={`algo-btn-base px-3 py-1.5 text-sm ml-auto
+            ${showCode ? "algo-btn-primary" : "algo-btn-neutral"}`}
         >
           {showCode ? "Hide code" : "Show code"}
         </button>
       </div>
 
       {/* ── Info ── */}
-      <div className="text-sm text-gray-500 mb-4 h-5">
+      <div className="text-sm text-algo-shell-fg mb-4 h-5 opacity-70">
         {INFO[mode as keyof typeof INFO]}
       </div>
 
       {/* ── React declarative SVG Canvas ── */}
-      <div className="bg-gray-50 rounded-xl border-[0.5px] border-gray-200 overflow-hidden">
+      <div className="bg-algo-canvas-bg rounded-xl border-[0.5px] border-algo-canvas-border overflow-hidden">
         <svg ref={containerRef} className="w-full h-auto block overflow-visible" viewBox="0 0 680 300">
           
           <g className="edges-layer">
@@ -309,8 +309,8 @@ const HeapPage = () => {
           { color: C.edgeDraw, label: "edge draw" },
           { color: C.cmp, label: "comparing" },
         ].map(l => (
-          <div key={l.label} className="flex items-center gap-2 text-xs text-gray-600">
-            <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: l.color }} />
+          <div key={l.label} className="flex items-center gap-2 text-xs text-algo-shell-fg">
+            <div className="w-2.5 h-2.5 rounded-full border border-algo-border" style={{ backgroundColor: l.color }} />
             {l.label}
           </div>
         ))}

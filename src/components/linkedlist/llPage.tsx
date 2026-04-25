@@ -334,7 +334,7 @@ const LinkedListPage = () => {
 
       {/* ── Navbar ───────────────────────────────────────────────── */}
       <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-3
-        bg-slate-950 border-b border-slate-800">
+        bg-slate-950 border-0 border-slate-800">
 
         <div className="flex flex-wrap items-center gap-2">
           <Input
@@ -354,14 +354,14 @@ const LinkedListPage = () => {
           />
           {(["insertAtHead","insertAtTail","insertAtIndex"] as const).map((op) => (
             <button key={op} onClick={() => handleOp(op)}
-              className="h-9 px-4 rounded-lg bg-slate-800 border border-[#00ff11]/50 text-[#00ff11] font-mono text-sm hover:bg-[#00ff11]/10 hover:border-[#00ff11] transition-all whitespace-nowrap">
+              className="h-9 px-4 rounded-lg bg-green-600 border border-0 text-white font-mono text-sm hover:bg-green-500 hover:border-[#00ff11] transition-all whitespace-nowrap">
               {op === "insertAtHead" ? "Insert Head" : op === "insertAtTail" ? "Insert Tail" : "Insert At"}
             </button>
           ))}
           <div className="w-px h-6 bg-slate-800 mx-1" />
           {(["deleteAtHead","deleteAtTail","deleteAtIndex","reverse","clear"] as const).map((op) => (
             <button key={op} onClick={() => handleOp(op)}
-              className="h-9 px-4 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 font-mono text-sm hover:border-cyan-500 hover:text-cyan-400 transition-all whitespace-nowrap">
+              className="h-9 px-4 rounded-lg bg-red-800 border border-red-500 text-white border-0 font-mono text-sm hover:bg-red-500 hover:text-white transition-all whitespace-nowrap">
               {op === "deleteAtHead" ? "Del Head" : op === "deleteAtTail" ? "Del Tail"
                 : op === "deleteAtIndex" ? "Del At" : op.charAt(0).toUpperCase() + op.slice(1)}
             </button>
@@ -392,7 +392,7 @@ const LinkedListPage = () => {
         <div className="flex flex-col items-start mb-1">
           <div ref={headRef}
             className="flex flex-col items-center justify-center w-36 h-16
-              border-2 border-transparent rounded-xl bg-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.4)] font-mono text-black font-bold">
+              border-2 border-transparent rounded-xl bg-blue-200 font-mono text-black font-bold">
             <span className="text-[9px] text-black/70 uppercase tracking-widest mb-0.5">HEAD</span>
             <span className="text-black text-sm font-semibold">
               {list.length > 0 ? list[0].addr : "NULL"}
@@ -446,7 +446,7 @@ const LinkedListPage = () => {
                 <div className="flex flex-col items-center">
                   <div
                     ref={(el) => { if (el) itemRefs.current.set(item.id, el); }}
-                    className="flex border-2 border-transparent rounded-xl bg-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.4)] text-black font-bold
+                    className="flex border-2 border-transparent rounded-xl bg-blue-600  text-white  text-black font-bold
                       items-center justify-around"
                     style={{ 
                       width: config.isDoubly ? "200px" : "144px",
@@ -581,7 +581,7 @@ const LinkedListPage = () => {
       </div>
 
       {/* ── Footer ───────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between px-8 py-4 border-t border-slate-800
+      <div className="flex items-center justify-between px-8 py-4 border-0 border-slate-800
         text-xs font-mono text-slate-500">
         <span>nodes: <span className="text-cyan-500">{activeLen}</span></span>
         <span>{config.label}</span>
