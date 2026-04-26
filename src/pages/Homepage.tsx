@@ -8,6 +8,8 @@ import { ROUTES } from "@/constants/routes";
 import { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 import { flushSync } from "react-dom";
+import gsap from "@/gsapSetup";
+import { useGSAP } from "@gsap/react";
 
 const RightArrow = ({ className = "w-6 h-6 text-white" }) => (
   <svg
@@ -31,6 +33,17 @@ const Homepage = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const svgHeapRef = useRef<SVGSVGElement>(null); // Added ref for Heap
+  const searchCardRef = useRef<HTMLDivElement>(null);
+  const searchHoverTimelineRef = useRef<gsap.core.Timeline | null>(null);
+  const sortCardRef = useRef<HTMLDivElement>(null);
+  const sortHoverTimelineRef = useRef<gsap.core.Timeline | null>(null);
+  const stackCardRef = useRef<HTMLDivElement>(null);
+  const stackHoverTimelineRef = useRef<gsap.core.Timeline | null>(null);
+  const queueCardRef = useRef<HTMLDivElement>(null);
+  const queueHoverTimelineRef = useRef<gsap.core.Timeline | null>(null);
+  const linkedListCardRef = useRef<HTMLDivElement>(null);
+  const linkedListPointerRef = useRef<HTMLDivElement>(null);
+  const linkedListHoverTimelineRef = useRef<gsap.core.Timeline | null>(null);
 
   const treeData = {
     num: 10,
@@ -70,6 +83,15 @@ const Homepage = () => {
   };
 
   const safeLength = 15;
+  const sortingBars = [
+    { char: "S", height: 75 },
+    { char: "O", height: 175 },
+    { char: "R", height: 45 },
+    { char: "T", height: 75 },
+    { char: "I", height: 89 },
+    { char: "N", height: 99 },
+    { char: "G", height: 230 },
+  ];
   const [nodes, setNodes] = useState<{ id: number, x: number, y: number }[]>([]);
   const [links, setLinks] = useState<{ source: number, target: number }[]>([]);
   const [bars, setBars] = useState<number[]>([]);
@@ -144,6 +166,443 @@ const Homepage = () => {
     if (!svgHeapRef.current) return;
     drawHierarchy(svgHeapRef.current, heapData);
   }, [heapData]);
+
+  const { contextSafe } = useGSAP({ scope: searchCardRef });
+
+  const resetSearchLetters = contextSafe(() => {
+    const letters = gsap.utils.toArray<HTMLElement>(".search-letter");
+    searchHoverTimelineRef.current?.kill();
+    searchHoverTimelineRef.current = null;
+
+    gsap.to(letters, {
+      backgroundColor: "#1d4ed8",
+      x: 0,
+      scale: 1,
+      duration: 0.2,
+      overwrite: "auto",
+    });
+  });
+
+  const playSearchHover = contextSafe(() => {
+    const letters = gsap.utils.toArray<HTMLElement>(".search-letter");
+    if (!letters.length) return;
+
+    const startIndex = Math.floor(gsap.utils.random(0, letters.length - 1, 1));
+    const stopIndex = Math.floor(gsap.utils.random(startIndex, letters.length - 1, 1));
+
+    searchHoverTimelineRef.current?.kill();
+
+    gsap.set(letters, {
+      backgroundColor: "#1d4ed8",
+      x: 0,
+      scale: 1,
+      overwrite: "auto",
+    });
+
+    const tl = gsap.timeline();
+
+    for (let index = startIndex; index <= stopIndex; index += 1) {
+      tl.to(letters[index], {
+        backgroundColor: "#facc15",
+        x: 12,
+        duration: 0.18,
+        ease: "power2.out",
+      });
+
+      if (index > startIndex) {
+        tl.to(letters[index - 1], {
+          x: 0,
+          duration: 0.14,
+          ease: "power1.out",
+        }, "<");
+      }
+    }
+
+    tl.to(letters[stopIndex], {
+      backgroundColor: "#22c55e",
+      x: 0,
+      scale: 1.08,
+      duration: 0.24,
+      ease: "power2.out",
+    });
+
+    searchHoverTimelineRef.current = tl;
+  });
+
+  const { contextSafe: sortingContextSafe } = useGSAP({ scope: sortCardRef });
+
+  const resetSortingBars = sortingContextSafe(() => {
+    const bars = gsap.utils.toArray<HTMLElement>(".sorting-bar");
+    sortHoverTimelineRef.current?.kill();
+    sortHoverTimelineRef.current = null;
+
+    gsap.to(bars, {
+      backgroundColor: "#1d4ed8",
+      duration: 0.2,
+      overwrite: "auto",
+    });
+
+    bars.forEach((bar) => {
+      const baseHeight = Number(bar.dataset.baseHeight || 75);
+      gsap.to(bar, {
+        height: baseHeight,
+        duration: 0.24,
+        ease: "power2.out",
+        overwrite: "auto",
+      });
+    });
+  });
+
+  const playSortingHover = sortingContextSafe(() => {
+    const bars = gsap.utils.toArray<HTMLElement>(".sorting-bar");
+    if (bars.length < 2) return;
+
+    sortHoverTimelineRef.current?.kill();
+
+    const firstIndex = Math.floor(gsap.utils.random(0, bars.length - 1, 1));
+    let secondIndex = Math.floor(gsap.utils.random(0, bars.length - 1, 1));
+    while (secondIndex === firstIndex) {
+      secondIndex = Math.floor(gsap.utils.random(0, bars.length - 1, 1));
+    }
+
+    const firstBar = bars[firstIndex];
+    const secondBar = bars[secondIndex];
+    const firstBase = Number(firstBar.dataset.baseHeight || 75);
+    const secondBase = Number(secondBar.dataset.baseHeight || 75);
+
+    const firstSwapHeight = Math.max(40, Math.round(secondBase * 0.75));
+    const secondSwapHeight = Math.min(250, Math.round(firstBase * 1.2));
+
+    gsap.set(bars, {
+      backgroundColor: "#1d4ed8",
+      overwrite: "auto",
+    });
+
+    const tl = gsap.timeline();
+
+    tl.to([firstBar, secondBar], {
+      backgroundColor: "#facc15",
+      duration: 0.15,
+      ease: "power1.out",
+    });
+
+    tl.to(firstBar, {
+      height: firstSwapHeight,
+      duration: 0.3,
+      ease: "power2.inOut",
+    });
+
+    tl.to(secondBar, {
+      height: secondSwapHeight,
+      duration: 0.3,
+      ease: "power2.inOut",
+    }, "<");
+
+    tl.to([firstBar, secondBar], {
+      backgroundColor: "#22c55e",
+      duration: 0.18,
+      ease: "power1.out",
+    });
+
+    sortHoverTimelineRef.current = tl;
+  });
+
+  const { contextSafe: stackContextSafe } = useGSAP({ scope: stackCardRef });
+
+  const resetStackHover = stackContextSafe(() => {
+    const stackItems = gsap.utils.toArray<HTMLElement>(".stack-item");
+    stackHoverTimelineRef.current?.kill();
+    stackHoverTimelineRef.current = null;
+
+    gsap.to(stackItems, {
+      y: 0,
+      rotation: 0,
+      scale: 1,
+      backgroundColor: "#1d4ed8",
+      duration: 0.2,
+      ease: "power1.out",
+      overwrite: "auto",
+    });
+  });
+
+  const playStackHover = stackContextSafe(() => {
+    const stackItems = gsap.utils.toArray<HTMLElement>(".stack-item");
+    if (!stackItems.length) return;
+
+    const topItem = stackItems[0];
+    stackHoverTimelineRef.current?.kill();
+
+    gsap.set(stackItems, {
+      y: 0,
+      rotation: 0,
+      scale: 1,
+      backgroundColor: "#1d4ed8",
+      overwrite: "auto",
+    });
+
+    const tl = gsap.timeline();
+
+    tl.to(topItem, {
+      backgroundColor: "#facc15",
+      y: -28,
+      duration: 0.26,
+      ease: "power2.out",
+    });
+
+    tl.to(topItem, {
+      rotation: -12,
+      scale: 1.06,
+      transformOrigin: "50% 100%",
+      duration: 0.2,
+      ease: "power2.out",
+    });
+
+    tl.to(topItem, {
+      backgroundColor: "#22c55e",
+      duration: 0.16,
+      ease: "power1.out",
+    });
+
+    stackHoverTimelineRef.current = tl;
+  });
+
+  const { contextSafe: queueContextSafe } = useGSAP({ scope: queueCardRef });
+
+  const resetQueueHover = queueContextSafe(() => {
+    const queueItems = gsap.utils.toArray<HTMLElement>(".queue-item");
+    queueHoverTimelineRef.current?.kill();
+    queueHoverTimelineRef.current = null;
+
+    gsap.to(queueItems, {
+      x: 0,
+      y: 0,
+      rotation: 0,
+      scale: 1,
+      opacity: 1,
+      backgroundColor: "#1d4ed8",
+      duration: 0.22,
+      ease: "power1.out",
+      overwrite: "auto",
+    });
+  });
+
+  const playQueueHover = queueContextSafe(() => {
+    const queueItems = gsap.utils.toArray<HTMLElement>(".queue-item");
+    if (!queueItems.length) return;
+
+    const dequeueItem = queueItems[queueItems.length - 1];
+    const frontItem = queueItems[0];
+    if (!dequeueItem || !frontItem) return;
+
+    queueHoverTimelineRef.current?.kill();
+
+    gsap.set(queueItems, {
+      x: 0,
+      y: 0,
+      rotation: 0,
+      scale: 1,
+      opacity: 1,
+      backgroundColor: "#1d4ed8",
+      overwrite: "auto",
+    });
+
+    const dequeueRect = dequeueItem.getBoundingClientRect();
+    const frontRect = frontItem.getBoundingClientRect();
+    const gap = 18;
+    const moveToFrontX = frontRect.left - dequeueRect.left - gap;
+    const remainingItems = queueItems.slice(0, -1);
+    const forwardShift = 22;
+
+    const tl = gsap.timeline();
+
+    tl.to(dequeueItem, {
+      backgroundColor: "#facc15",
+      duration: 0.14,
+      ease: "power1.out",
+    });
+
+    tl.to(dequeueItem, {
+      x: 56,
+      y: -36,
+      rotation: 12,
+      duration: 0.24,
+      ease: "power2.out",
+    });
+
+    tl.to(dequeueItem, {
+      opacity: 0,
+      duration: 0.14,
+      ease: "power1.in",
+    });
+
+    tl.to(remainingItems, {
+      x: forwardShift,
+      duration: 0.28,
+      ease: "power2.out",
+      stagger: 0.03,
+    }, "<");
+
+    tl.set(dequeueItem, {
+      x: moveToFrontX - 28,
+      y: -10,
+      rotation: -8,
+    });
+
+    tl.to(dequeueItem, {
+      opacity: 1,
+      x: moveToFrontX,
+      y: 0,
+      rotation: 0,
+      duration: 0.42,
+      ease: "power2.inOut",
+    });
+
+    tl.to(remainingItems, {
+      x: 200,
+      duration: 0.24,
+      ease: "power2.inOut",
+      stagger: 0.02,
+    }, "<0.12");
+
+    tl.to(dequeueItem, {
+      backgroundColor: "#22c55e",
+      duration: 0.18,
+      ease: "power1.out",
+    });
+
+    queueHoverTimelineRef.current = tl;
+  });
+
+  const { contextSafe: linkedListContextSafe } = useGSAP({ scope: linkedListCardRef });
+
+  const getLinkedPointerPosition = (node: HTMLElement, container: HTMLElement) => {
+    const nodeRect = node.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+
+    return {
+      x: nodeRect.left - containerRect.left + nodeRect.width / 2 - 30,
+      y: nodeRect.top - containerRect.top - 62,
+    };
+  };
+
+  const resetLinkedListHover = linkedListContextSafe(() => {
+    const nodes = gsap.utils.toArray<HTMLElement>(".linked-node");
+    const pointer = linkedListPointerRef.current;
+    const container = linkedListCardRef.current;
+
+    linkedListHoverTimelineRef.current?.kill();
+    linkedListHoverTimelineRef.current = null;
+
+    gsap.to(nodes, {
+      backgroundColor: "#1d4ed8",
+      scale: 1,
+      duration: 0.18,
+      overwrite: "auto",
+    });
+
+    if (pointer && container && nodes.length) {
+      const startPos = getLinkedPointerPosition(nodes[0], container);
+      gsap.to(pointer, {
+        x: startPos.x,
+        y: startPos.y,
+        opacity: 1,
+        duration: 0.2,
+        ease: "power2.out",
+        overwrite: "auto",
+      });
+    }
+  });
+
+  const playLinkedListHover = linkedListContextSafe(() => {
+    const nodes = gsap.utils.toArray<HTMLElement>(".linked-node");
+    const pointer = linkedListPointerRef.current;
+    const container = linkedListCardRef.current;
+
+    if (!nodes.length || !pointer || !container) return;
+
+    linkedListHoverTimelineRef.current?.kill();
+
+    const stopIndex = Math.floor(gsap.utils.random(0, nodes.length - 1, 1));
+    const startPos = getLinkedPointerPosition(nodes[0], container);
+
+    gsap.set(nodes, {
+      backgroundColor: "#1d4ed8",
+      scale: 1,
+      overwrite: "auto",
+    });
+
+    gsap.set(pointer, {
+      x: startPos.x,
+      y: startPos.y,
+      opacity: 1,
+      overwrite: "auto",
+    });
+
+    const tl = gsap.timeline();
+
+    for (let index = 0; index <= stopIndex; index += 1) {
+      const pos = getLinkedPointerPosition(nodes[index], container);
+
+      tl.to(pointer, {
+        x: pos.x,
+        y: pos.y,
+        duration: 0.34,
+        ease: "power2.out",
+      });
+
+      tl.to(nodes[index], {
+        backgroundColor: "#facc15",
+        duration: 0.12,
+        ease: "power1.out",
+      }, "<");
+
+      if (index > 0) {
+        tl.to(nodes[index - 1], {
+          backgroundColor: "#1d4ed8",
+          duration: 0.1,
+          ease: "power1.out",
+        }, "<");
+      }
+    }
+
+    tl.to(nodes[stopIndex], {
+      backgroundColor: "#22c55e",
+      scale: 1.06,
+      duration: 0.24,
+      ease: "power2.out",
+    });
+
+    linkedListHoverTimelineRef.current = tl;
+  });
+
+  useEffect(() => {
+    if (!linkedListCardRef.current || !linkedListPointerRef.current) return;
+
+    const firstNode = linkedListCardRef.current.querySelector(".linked-node") as HTMLElement | null;
+    if (!firstNode) return;
+
+    const pos = getLinkedPointerPosition(firstNode, linkedListCardRef.current);
+    gsap.set(linkedListPointerRef.current, {
+      x: pos.x,
+      y: pos.y,
+      opacity: 1,
+    });
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      searchHoverTimelineRef.current?.kill();
+      searchHoverTimelineRef.current = null;
+      sortHoverTimelineRef.current?.kill();
+      sortHoverTimelineRef.current = null;
+      stackHoverTimelineRef.current?.kill();
+      stackHoverTimelineRef.current = null;
+      queueHoverTimelineRef.current?.kill();
+      queueHoverTimelineRef.current = null;
+      linkedListHoverTimelineRef.current?.kill();
+      linkedListHoverTimelineRef.current = null;
+    };
+  }, []);
 
 
   // Reusable function to draw both Tree and Heap cohesively
@@ -241,14 +700,19 @@ const Homepage = () => {
       <section className="section-fade py-16 flex flex-col items-center gap-6 mx-10 ">
 
         {/* Search Container */}
-        <div className="flex flex-col w-full justify-center items-center m-5 p-5 bg-slate-900 rounded-lg hover:border-green-500  hover:border-2 transition-easeIn  ">
+        <div
+          ref={searchCardRef}
+          onMouseEnter={playSearchHover}
+          onMouseLeave={resetSearchLetters}
+          className="flex flex-col w-full justify-center items-center m-5 p-5 bg-slate-900 rounded-lg hover:border-green-500 hover:border-2 transition-easeIn"
+        >
           <div className="flex p-1 m-2 flex-row align-center content-center justify-center gap-2 items-center border-2 rounded-sm border-black w-full h-[75px]">
-            <div className="flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center h-full w-full px-10 text-white font-bold">S</div>
-            <div className="flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center h-full w-full px-10 text-white font-bold">E</div>
-            <div className="flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center h-full w-full px-10 text-white font-bold">A</div>
-            <div className="flex rounded-sm bg-green-400 border-2 border-black justify-center items-center h-full w-full px-10 text-white font-bold">R</div>
-            <div className="flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center h-full w-full px-10 text-white font-bold">C</div>
-            <div className="flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center h-full w-full px-10 text-white font-bold">H</div>
+            <div data-char="S" className="search-letter flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center h-full w-full px-10 text-white font-bold">S</div>
+            <div data-char="E" className="search-letter flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center h-full w-full px-10 text-white font-bold">E</div>
+            <div data-char="A" className="search-letter flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center h-full w-full px-10 text-white font-bold">A</div>
+            <div data-char="R" className="search-letter flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center h-full w-full px-10 text-white font-bold">R</div>
+            <div data-char="C" className="search-letter flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center h-full w-full px-10 text-white font-bold">C</div>
+            <div data-char="H" className="search-letter flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center h-full w-full px-10 text-white font-bold">H</div>
           </div>
           <div className="self-start mt-2 w-full p-2">
             <h1 className="flex justify-start text-white font-bold text-2xl p-2 rounded cursor-pointer hover:underline" onClick={() => navigate('/search')}>Search</h1>
@@ -258,28 +722,44 @@ const Homepage = () => {
 
         {/* Stack & Sorting Container */}
         <div className="flex flex-row w-full gap-10 items-stretch">
-          <div className="flex-1 flex flex-col justify-between items-center p-5 bg-slate-900 rounded-lg min-h-[500px] hover:border-green-500  hover:border-2 transition-easeIn">
+          <div
+            ref={stackCardRef}
+            onMouseEnter={playStackHover}
+            onMouseLeave={resetStackHover}
+            className="flex-1 flex flex-col justify-between items-center p-5 bg-slate-900 rounded-lg min-h-[500px] hover:border-green-500 hover:border-2 transition-easeIn"
+          >
+            <p className="self-start rounded-sm bg-slate-800 px-3 py-1 text-xs font-bold uppercase tracking-wide text-green-300 border border-green-500">
+              Head
+            </p>
             <div className="flex p-1 m-2 flex-col rounded-sm justify-center items-center border-2 border-y-0 border-b-2 border-black h-full w-[300px]">
-              <div className="flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center mb-1 h-full w-full px-10 text-white font-bold">S</div>
-              <div className="flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center mb-1 h-full w-full px-10 text-white font-bold">T</div>
-              <div className="flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center mb-1 h-full w-full px-10 text-white font-bold">A</div>
-              <div className="flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center mb-1 h-full w-full px-10 text-white font-bold">C</div>
-              <div className="flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center mb-1 h-full w-full px-10 text-white font-bold">K</div>
+              <div className="stack-item flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center mb-1 h-full w-full px-10 text-white font-bold">S</div>
+              <div className="stack-item flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center mb-1 h-full w-full px-10 text-white font-bold">T</div>
+              <div className="stack-item flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center mb-1 h-full w-full px-10 text-white font-bold">A</div>
+              <div className="stack-item flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center mb-1 h-full w-full px-10 text-white font-bold">C</div>
+              <div className="stack-item flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center mb-1 h-full w-full px-10 text-white font-bold">K</div>
             </div>
             <div className="self-start mt-2 w-full p-2">
               <h1 className="flex justify-start text-white font-bold text-2xl p-2 rounded cursor-pointer hover:underline" onClick={() => navigate("/stack")}>Stack</h1>
             </div>
           </div>
 
-          <div className="flex-1 flex flex-col justify-between items-center p-5 bg-slate-900 rounded-lg min-h-[500px] hover:border-green-500  hover:border-2 transition-easeIn">
+          <div
+            ref={sortCardRef}
+            onMouseEnter={playSortingHover}
+            onMouseLeave={resetSortingBars}
+            className="flex-1 flex flex-col justify-between items-center p-5 bg-slate-900 rounded-lg min-h-[500px] hover:border-green-500 hover:border-2 transition-easeIn"
+          >
             <div className="flex py-1 my-2 flex-row rounded-lg items-end justify-center gap-2 border-0 w-full h-full">
-              <div className="flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center h-[75px] w-[35px] text-white font-bold">S</div>
-              <div className="flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center h-[175px] w-[35px] text-white font-bold">O</div>
-              <div className="flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center h-[45px] w-[35px] text-white font-bold">R</div>
-              <div className="flex rounded-sm bg-yellow-300 border-2 border-black justify-center items-center h-[75px] w-[35px] text-white font-bold">T</div>
-              <div className="flex rounded-sm bg-yellow-300 border-2 border-black justify-center items-center h-[89px] w-[35px] text-white font-bold">I</div>
-              <div className="flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center h-[99px] w-[35px] text-white font-bold">N</div>
-              <div className="flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center h-[230px] w-[35px] text-white font-bold">G</div>
+              {sortingBars.map((bar) => (
+                <div
+                  key={bar.char}
+                  data-base-height={bar.height}
+                  className="sorting-bar flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center w-[35px] text-white font-bold"
+                  style={{ height: `${bar.height}px` }}
+                >
+                  {bar.char}
+                </div>
+              ))}
             </div>
             <div className="self-start mt-2 w-full p-2">
               <h1 className="flex justify-start text-white font-bold text-2xl p-2 rounded cursor-pointer hover:underline" onClick={() => navigate("/sort")}>Sorting</h1>
@@ -288,13 +768,18 @@ const Homepage = () => {
         </div>
 
         {/* Queue Container */}
-        <div className="flex flex-col w-full justify-center items-center m-5 p-5 bg-slate-900 rounded-lg hover:border-green-500  hover:border-2 transition-easeIn">
+        <div
+          ref={queueCardRef}
+          onMouseEnter={playQueueHover}
+          onMouseLeave={resetQueueHover}
+          className="flex flex-col w-full justify-center items-center m-5 p-5 bg-slate-900 rounded-lg hover:border-green-500 hover:border-2 transition-easeIn"
+        >
           <div className="flex p-1 m-2 flex-row align-center content-center justify-center gap-2 items-center border-2 border-x-0 border-b-2 border-black w-full h-[75px] rounded-sm ">
-            <div className="flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center h-full w-full px-10 text-white font-bold">Q</div>
-            <div className="flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center h-full w-full px-10 text-white font-bold">U</div>
-            <div className="flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center h-full w-full px-10 text-white font-bold">E</div>
-            <div className="flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center h-full w-full px-10 text-white font-bold">U</div>
-            <div className="flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center h-full w-full px-10 text-white font-bold">E</div>
+            <div data-char="Q" className="queue-item flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center h-full w-full px-10 text-white font-bold">Q</div>
+            <div data-char="U" className="queue-item flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center h-full w-full px-10 text-white font-bold">U</div>
+            <div data-char="E" className="queue-item flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center h-full w-full px-10 text-white font-bold">E</div>
+            <div data-char="U" className="queue-item flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center h-full w-full px-10 text-white font-bold">U</div>
+            <div data-char="E" className="queue-item flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center h-full w-full px-10 text-white font-bold">E</div>
           </div>
           <div className="self-start mt-2 w-full p-2">
             <h1 className="flex justify-start text-white font-bold text-2xl p-2 rounded cursor-pointer hover:underline" onClick={() => navigate("/queue")}>Queue</h1>
@@ -364,11 +849,22 @@ const Homepage = () => {
         </div>
 
         {/* Linked List Container */}
-        <div className="flex flex-col justify-between items-center h-[250px] w-full flex bg-slate-900 rounded-lg p-5 mt-6 hover:border-green-500  hover:border-2 transition-easeIn">
+        <div
+          ref={linkedListCardRef}
+          onMouseEnter={playLinkedListHover}
+          onMouseLeave={resetLinkedListHover}
+          className="relative flex flex-col justify-between items-center h-[250px] w-full flex bg-slate-900 rounded-lg p-5 mt-6 hover:border-green-500 hover:border-2 transition-easeIn"
+        >
+          <div
+            ref={linkedListPointerRef}
+            className="pointer-events-none absolute left-0 top-0 rounded-md bg-blue-200 px-6 py-2 text-base font-bold uppercase tracking-wide text-white border-2 border-blue-300 shadow-sm"
+          >
+            Head
+          </div>
           <div className="h-full w-full flex justify-center items-center gap-2">
             {["L", "I", "N", "K", "E", "D"].map((char, index) => (
               <div key={index} className="flex flex-row items-center justify-center gap-2">
-                <div className="h-[80px] w-[100px] bg-blue-700 rounded-sm p-2 border-2 border-black flex justify-center items-center text-white text-3xl font-bold">
+                <div className="linked-node h-[70px] w-[130px] bg-blue-700 rounded-sm p-2 border-2 border-black flex justify-center items-center text-white text-3xl font-bold">
                   {char}
                 </div>
                 {index !== 5 && <RightArrow />}

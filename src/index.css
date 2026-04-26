@@ -188,7 +188,7 @@ body {
 }
 
 .dark {
-    --background: oklch(24.188% 0.01138 285.492);
+    --background:#010513;
     --foreground: oklch(0.985 0 0);
     --card: oklch(0.21 0.006 285.885);
     --card-foreground: oklch(0.985 0 0);
@@ -232,7 +232,7 @@ body {
     --algo-canvas-border: #1e293b;
 
     /* Algorithm Visualization Colors */
-    --algo-node: #06b6d4;
+    --algo-node: #5506d4;
     --algo-node-stroke: #0891b2;
     --algo-node-glow: rgba(6, 182, 212, 0.4);
     --algo-node-visited: #00ff11;
@@ -374,7 +374,7 @@ body {
   /* AlgoCard - for homepage algorithm cards */
   .algo-card {
     @apply bg-card rounded-2xl px-6 pt-6 w-full max-w-[440px] h-[360px]
-        border-2 border-border/70
+                border-2 border-border/70
            hover:border-[#00ff08]
            hover:shadow-[0_0_35px_rgba(0,255,8,0.15)]
            hover:-translate-y-2

@@ -281,6 +281,13 @@ const LandingPage = () => {
       ease: "sine.inOut",
     });
 
+//     Observer.create({
+//   target: window, // can be any element (selector text is fine)
+//   type: "wheel,touch", // comma-delimited list of what to listen for
+//   onUp: () => previous(),
+//   onDown: () => next(),
+// });
+
     Draggable.create(".drag", { type: "x,y", dragResistance: 0.2 });
 
     if (buttonRef.current && buttonBgRef.current) {

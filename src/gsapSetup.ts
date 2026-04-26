@@ -8,6 +8,7 @@ import Flip from "gsap/Flip";
 import DrawSVGPlugin from "gsap/DrawSVGPlugin"; // used for active dotted line animations (bonus plugin)
 import { useGSAP } from "@gsap/react";
 import TextPlugin from "gsap/TextPlugin";
+import { Observer,Draggable } from "gsap/all";
 
 // Register plugins once. This avoids duplicate registration warnings and keeps bundle size minimal.
 gsap.registerPlugin(
@@ -17,7 +18,9 @@ gsap.registerPlugin(
   Flip,
   DrawSVGPlugin,
   useGSAP,
-  TextPlugin
+  TextPlugin,
+  Draggable,
+  Observer
 );
 
 export default gsap;

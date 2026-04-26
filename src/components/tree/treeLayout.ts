@@ -28,7 +28,12 @@ export interface LayoutResult {
 export function computeBSTLayout(d3Root: any, svgW = 680, svgH = 300): LayoutResult {
   const PAD = { x: 30, y: 40 };
   const hier = d3.hierarchy(d3Root);
-  d3.tree().size([svgW - PAD.x * 2, svgH - PAD.y * 2])(hier);
+  
+  // Prevent negative sizes on initial load
+  const w = Math.max(10, svgW - PAD.x * 2);
+  const h = Math.max(10, svgH - PAD.y * 2);
+  
+  d3.tree().size([w, h])(hier);
 
   const nodes: RenderNode[] = hier.descendants().map((n: any) => ({
     id: n.data.val,
@@ -53,7 +58,12 @@ export function computeBSTLayout(d3Root: any, svgW = 680, svgH = 300): LayoutRes
 export function computeAVLLayout(d3Root: any, svgW = 680, svgH = 300): LayoutResult {
   const PAD = { x: 20, y: 30 };
   const hier = d3.hierarchy(d3Root);
-  d3.cluster().size([svgW - PAD.x * 2, svgH - PAD.y * 2])(hier);
+  
+  // Prevent negative sizes on initial load
+  const w = Math.max(10, svgW - PAD.x * 2);
+  const h = Math.max(10, svgH - PAD.y * 2);
+  
+  d3.cluster().size([w, h])(hier);
 
   const nodes: RenderNode[] = hier.descendants().map((n: any) => ({
     id: n.data.val,

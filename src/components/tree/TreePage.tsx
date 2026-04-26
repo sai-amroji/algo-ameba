@@ -1,559 +1,432 @@
-// ─────────────────────────────────────────────────────────────────────────────
-//  TreePage.tsx — visual + animation layer only
-//
-//  Layering:
-//    1. Algorithm  → bstAlgo.ts / avlAlgo.ts   (pure TS, no React/GSAP)
-//    2. Layout     → treeLayout.ts              (D3 computes x/y, no DOM)
-//    3. Visual     → this file                  (React renders SVG, GSAP animates)
-// ─────────────────────────────────────────────────────────────────────────────
-
-import React, { useRef, useState, useMemo } from "react";
-import gsap from "@/gsapSetup";
+import { Select } from "@radix-ui/react-select";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import {
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import { useRef, useMemo, useState } from "react";
+import * as d3 from "d3";
 import { useGSAP } from "@gsap/react";
+import gsap from "../../gsapSetup";
 
-// ── Algorithm layer ──────────────────────────────────────────────────────────
-import {
-  type BSTNode,
-  bstInsert, bstDelete, bstSearch, bstInorder, bstToD3,
-  DEFAULT_BST,
-} from "./bstAlgo";
-import {
-  type AVLNode,
-  avlInsert, avlDelete, avlSearch, avlToD3,
-  DEFAULT_AVL,
-} from "./avlAlgo";
-
-// ── Layout layer ─────────────────────────────────────────────────────────────
-import { computeBSTLayout, computeAVLLayout,type  LayoutResult } from "./treeLayout";
-
-// ─────────────────────────────────────────────────────────────────────────────
-//  Constants
-// ─────────────────────────────────────────────────────────────────────────────
-
-const C = {
-  node: "#378ADD", nodeS: "#185FA5",
-  vis: "#1D9E75", visS: "#0F6E56",
-  active: "#D85A30",
-  edgeDraw: "#BA7517",
-  cmp: "#9F77DD",
-  txt: "#fff",
-  search: "#E8C84A",
-};
-
-type Mode = "bst" | "avl";
-
-const MODES: { id: Mode; label: string }[] = [
-  { id: "bst", label: "Binary Search Tree" },
-  { id: "avl", label: "AVL Tree" },
-];
-
-const INFO: Record<Mode, string> = {
-  bst: "D3 tree layout → node positions. GSAP timeline → sequential insert + in-order traversal.",
-  avl: "D3 cluster layout → balanced spacing. GSAP DrawSVG reveals edges after rotations.",
-};
-
-// ─────────────────────────────────────────────────────────────────────────────
-//  Code snippets (display only)
-// ─────────────────────────────────────────────────────────────────────────────
-
-const CODE: Record<Mode, string> = {
-  bst: `// bstAlgo.ts — pure insert (no React, no GSAP)
-export function bstInsert(root: BSTNode | null, val: number): BSTNode {
-  if (!root) return { val, left: null, right: null };
-  if (val < root.val) return { ...root, left: bstInsert(root.left, val) };
-  if (val > root.val) return { ...root, right: bstInsert(root.right, val) };
-  return root; // duplicate — no-op
+interface TreeNode {
+  id: string;
+  val: number;
+  right: TreeNode | null;
+  left: TreeNode | null;
 }
 
-// treeLayout.ts — D3 computes (x, y) positions, no DOM
-const hier = d3.hierarchy(bstToD3(tree));
-d3.tree().size([620, 210])(hier);
-
-// TreePage.tsx — GSAP only animates, never touches data
-tl.to(\`.link-50-30\`, { drawSVG: "0% 100%", duration: 0.4 });
-tl.to(\`.node-50\`,    { scale: 1, ease: "back.out(1.7)" });`,
-
-  avl: `// avlAlgo.ts — self-balancing insert
-export function avlInsert(root: AVLNode | null, val: number): AVLNode {
-  if (!root) return { val, height: 1, left: null, right: null };
-  if (val < root.val) root = { ...root, left: avlInsert(root.left, val) };
-  else if (val > root.val) root = { ...root, right: avlInsert(root.right, val) };
-  else return root; // duplicate
-  return balance(updateHeight(root)); // ← rotations happen here
+export interface RenderNode {
+  id: string;
+  val: number;
+  x: number;
+  y: number;
 }
 
-// treeLayout.ts — D3 cluster for uniform leaf depth
-const hier = d3.hierarchy(avlToD3(tree));
-d3.cluster().size([640, 220])(hier);
-
-// TreePage.tsx — GSAP stagger reveals nodes then edges
-tl.to(".tree-node", { scale: 1, stagger: 0.08, ease: "back.out(1.5)" });
-tl.to(".tree-link", { drawSVG: "0% 100%", stagger: 0.07 }, 0.5);`,
-};
-
-// ─────────────────────────────────────────────────────────────────────────────
-//  Sub-components
-// ─────────────────────────────────────────────────────────────────────────────
-
-function CodePanel({ mode }: { mode: Mode }) {
-  const [copied, setCopied] = useState(false);
-
-  return (
-    <div className="mt-6 rounded-xl border-[0.5px] border-blue-200 overflow-hidden shadow-sm">
-      <div className="flex items-center justify-between px-6 py-3 border-b-[0.5px] border-slate-700 bg-slate-900">
-        <span className="text-sm font-mono text-slate-300">{mode}Algo.ts + treeLayout.ts + TreePage.tsx</span>
-        <button
-          onClick={() => {
-            navigator.clipboard.writeText(CODE[mode]).then(() => {
-              setCopied(true);
-              setTimeout(() => setCopied(false), 1800);
-            });
-          }}
-          className="text-xs px-3 py-1.5 rounded-md border-[0.5px] border-slate-600 bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all"
-        >
-          {copied ? "✓ copied" : "copy"}
-        </button>
-      </div>
-      <pre className="m-0 px-6 py-4 font-mono text-xs leading-relaxed text-slate-200 overflow-x-auto whitespace-pre max-h-[280px] bg-slate-950">
-        <code>{CODE[mode]}</code>
-      </pre>
-    </div>
-  );
+export interface RenderEdge {
+  id: string;
+  d: string;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  BST Visual — handles its own GSAP timeline
-// ─────────────────────────────────────────────────────────────────────────────
+// ─── PURE ALGORITHM FUNCTIONS ────────────────────────────────────────────────
 
-interface BSTVisualProps {
-  layout: LayoutResult;
-  replayKey: number;
-  speed: number;
-  highlightPath: number[];   // nodes to highlight (search / insert path)
+function insertBST(node: TreeNode | null | undefined, val: number): TreeNode {
+  if (!node) {
+    return { id: crypto.randomUUID(), val, left: null, right: null };
+  }
+  if (val < node.val) {
+    return { ...node, left: insertBST(node.left, val) };
+  }
+  if (val > node.val) {
+    return { ...node, right: insertBST(node.right, val) };
+  }
+  return node;
 }
 
-function BSTVisual({ layout, replayKey, speed, highlightPath }: BSTVisualProps) {
-  const svgRef = useRef<SVGSVGElement>(null);
-
-  useGSAP(() => {
-    if (!layout.nodes.length) return;
-
-    // Reset
-    gsap.set(".tree-node", { scale: 0, transformOrigin: "center center" });
-    gsap.set(".tree-link", { drawSVG: "0% 0%" });
-    gsap.set(".tree-circle", { fill: C.node, stroke: C.nodeS });
-    gsap.set(".traverse-dot", { opacity: 0 });
-
-    const tl = gsap.timeline({ timeScale: speed });
-
-    // ── Insert animation: nodes appear in BFS order ──
-    // Build BFS order from link ids (parent always precedes child)
-    const appeared = new Set<number>();
-    const insertOrder: number[] = [];
-
-    // Root has no link — add it first
-    const rootNode = layout.nodes.find(
-      n => !layout.links.some(l => l.id.split("-")[1] === String(n.id))
-    );
-    if (rootNode) insertOrder.push(rootNode.id);
-
-    // BFS via links
-    let frontier = rootNode ? [rootNode.id] : [];
-    while (frontier.length) {
-      const next: number[] = [];
-      for (const pid of frontier) {
-        for (const l of layout.links) {
-          const [src, tgt] = l.id.split("-").map(Number);
-          if (src === pid && !appeared.has(tgt)) {
-            appeared.add(tgt);
-            insertOrder.push(tgt);
-            next.push(tgt);
-          }
-        }
-      }
-      frontier = next;
+function deleteBST(
+  node: TreeNode | null,
+  val: number
+): { tree: TreeNode | null; successorId: string | null } {
+  function _delete(
+    node: TreeNode | null,
+    val: number,
+    successorId: { current: string | null }
+  ): TreeNode | null {
+    if (!node) return null;
+    if (val < node.val) {
+      return { ...node, left: _delete(node.left, val, successorId) };
     }
-
-    let t = 0;
-    insertOrder.forEach((v, i) => {
-      // Draw edge to this node (if not root)
-      const parentLink = layout.links.find(l => Number(l.id.split("-")[1]) === v);
-      if (parentLink) {
-        tl.to(`.link-${parentLink.id}`, {
-          drawSVG: "0% 100%", duration: 0.35, ease: "power2.inOut"
-        }, t);
-        t += 0.2;
-      }
-      tl.to(`.node-${v}`, { scale: 1, duration: 0.35, ease: "back.out(1.7)" }, t);
-      t += 0.4;
-    });
-
-    // ── In-order traversal dot ──
-    t += 0.4;
-    const inorder = layout.nodes
-      .slice()
-      .sort((a, b) => a.id - b.id); // in-order by value for BST
-
-    tl.to(".traverse-dot", { opacity: 1, duration: 0.2 }, t);
-    inorder.forEach((n, i) => {
-      tl.to(".traverse-dot", {
-        attr: { cx: n.x, cy: n.y },
-        duration: i === 0 ? 0.01 : 0.45,
-        ease: "power2.inOut",
-      }, t);
-      t += i === 0 ? 0 : 0.35;
-      tl.to(`.circle-${n.id}`, { fill: C.vis, stroke: C.visS, duration: 0.2 }, t);
-      t += 0.3;
-    });
-    tl.to(".traverse-dot", { opacity: 0, duration: 0.3 }, t);
-
-    // ── Highlight search path (overlay, runs after main timeline) ──
-    if (highlightPath.length) {
-      highlightPath.forEach((v, i) => {
-        const found = i === highlightPath.length - 1;
-        tl.to(`.circle-${v}`, {
-          fill: found ? C.search : C.active,
-          stroke: found ? "#b8960a" : "#a03010",
-          duration: 0.25,
-        }, t + i * 0.35);
-      });
+    if (val > node.val) {
+      return { ...node, right: _delete(node.right, val, successorId) };
     }
+    if (!node.left) return node.right;
+    if (!node.right) return node.left;
 
-  }, { dependencies: [layout, replayKey, speed, highlightPath], scope: svgRef, revertOnUpdate: true });
-
-  return (
-    <svg ref={svgRef} className="w-full h-auto block overflow-visible" viewBox="0 0 680 300">
-      <g className="edges-layer">
-        {layout.links.map(l => (
-          <path
-            key={l.id}
-            className={`tree-link link-${l.id}`}
-            d={l.d}
-            stroke={C.edgeDraw}
-            strokeWidth="2"
-            fill="none"
-            strokeLinecap="round"
-          />
-        ))}
-      </g>
-      <g className="nodes-layer">
-        {layout.nodes.map(n => (
-          <g key={n.id} className={`tree-node node-${n.id}`} transform={`translate(${n.x}, ${n.y})`}>
-            <circle
-              className={`tree-circle circle-${n.id}`}
-              r="20"
-              fill={C.node}
-              stroke={C.nodeS}
-              strokeWidth="1.5"
-            />
-            <text y="5" textAnchor="middle" fill={C.txt} fontSize="12" fontWeight="500">
-              {n.id}
-            </text>
-          </g>
-        ))}
-      </g>
-      <circle className="traverse-dot" r="7" fill={C.active} opacity="0" cx="0" cy="0" />
-    </svg>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-//  AVL Visual — handles its own GSAP timeline
-// ─────────────────────────────────────────────────────────────────────────────
-
-interface AVLVisualProps {
-  layout: LayoutResult;
-  replayKey: number;
-  speed: number;
-  highlightPath: number[];
-}
-
-function AVLVisual({ layout, replayKey, speed, highlightPath }: AVLVisualProps) {
-  const svgRef = useRef<SVGSVGElement>(null);
-
-  useGSAP(() => {
-    if (!layout.nodes.length) return;
-
-    gsap.set(".tree-node", { scale: 0, transformOrigin: "center center" });
-    gsap.set(".tree-link", { drawSVG: "0% 0%" });
-    gsap.set(".tree-circle", { fill: C.node, stroke: C.nodeS });
-
-    const tl = gsap.timeline({ timeScale: speed });
-
-    layout.nodes.forEach((n, i) => {
-      tl.to(`.node-${n.id}`, { scale: 1, duration: 0.3, ease: "back.out(1.5)" }, i * 0.07);
-    });
-
-    layout.links.forEach((l, i) => {
-      tl.to(`.link-${l.id}`, {
-        drawSVG: "0% 100%", duration: 0.3, ease: "power2.inOut"
-      }, 0.5 + i * 0.06);
-    });
-
-    // Highlight search/insert path
-    if (highlightPath.length) {
-      const baseT = 0.5 + layout.links.length * 0.06 + 0.3;
-      highlightPath.forEach((v, i) => {
-        const found = i === highlightPath.length - 1;
-        tl.to(`.circle-${v}`, {
-          fill: found ? C.search : C.active,
-          duration: 0.25,
-        }, baseT + i * 0.3);
-      });
+    let successor = node.right;
+    while (successor.left) {
+      successor = successor.left;
     }
+    successorId.current = successor.id;
 
-  }, { dependencies: [layout, replayKey, speed, highlightPath], scope: svgRef, revertOnUpdate: true });
+    return {
+      ...node,
+      val: successor.val,
+      id: successor.id,
+      right: _delete(node.right, successor.val, successorId),
+    };
+  }
 
-  return (
-    <svg ref={svgRef} className="w-full h-auto block overflow-visible" viewBox="0 0 680 300">
-      <g className="edges-layer">
-        {layout.links.map(l => (
-          <path
-            key={l.id}
-            className={`tree-link link-${l.id}`}
-            d={l.d}
-            stroke={C.edgeDraw}
-            strokeWidth="1.5"
-            fill="none"
-            strokeLinecap="round"
-          />
-        ))}
-      </g>
-      <g className="nodes-layer">
-        {layout.nodes.map(n => (
-          <g key={n.id} className={`tree-node node-${n.id}`} transform={`translate(${n.x}, ${n.y})`}>
-            <circle
-              className={`tree-circle circle-${n.id}`}
-              r="17"
-              fill={C.node}
-              stroke={C.nodeS}
-              strokeWidth="1.5"
-            />
-            <text y="4" textAnchor="middle" fill={C.txt} fontSize="10" fontWeight="500">
-              {n.id}
-            </text>
-            {/* Height badge */}
-            <text y="-22" textAnchor="middle" fill={C.cmp} fontSize="9" opacity="0.8">
-              h{n.meta?.height}
-            </text>
-          </g>
-        ))}
-      </g>
-    </svg>
-  );
+  const successorId = { current: null as string | null };
+  const tree = _delete(node, val, successorId);
+  return { tree, successorId: successorId.current };
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  Main page
-// ─────────────────────────────────────────────────────────────────────────────
+function searchBST(node: TreeNode | null, val: number): string | null {
+  if (!node) return null;
+  if (val === node.val) return node.id;
+  return val < node.val ? searchBST(node.left, val) : searchBST(node.right, val);
+}
+
+function inOrderTraversal(node: TreeNode | null, result: number[] = []): number[] {
+  if (!node) return result;
+  inOrderTraversal(node.left, result);
+  result.push(node.val);
+  inOrderTraversal(node.right, result);
+  return result;
+}
+
+function preOrderTraversal(node: TreeNode | null, result: number[] = []): number[] {
+  if (!node) return result;
+  result.push(node.val);
+  preOrderTraversal(node.left, result);
+  preOrderTraversal(node.right, result);
+  return result;
+}
+
+function postOrderTraversal(node: TreeNode | null, result: number[] = []): number[] {
+  if (!node) return result;
+  postOrderTraversal(node.left, result);
+  postOrderTraversal(node.right, result);
+  result.push(node.val);
+  return result;
+}
+
+function levelOrderTraversal(root: TreeNode | null): number[] {
+  const result: number[] = [];
+  if (!root) return result;
+  const queue: TreeNode[] = [root];
+  while (queue.length > 0) {
+    const node = queue.shift()!;
+    result.push(node.val);
+    if (node.left) queue.push(node.left);
+    if (node.right) queue.push(node.right);
+  }
+  return result;
+}
+
+// ─── REACT COMPONENT ────────────────────────────────────────────────────────
 
 const TreePage = () => {
-  const [mode, setMode] = useState<Mode>("bst");
-  const [speed, setSpeed] = useState(1);
-  const [showCode, setShowCode] = useState(false);
-  const [replayKey, setReplayKey] = useState(0);
+  const [algo, setAlgo] = useState("Binary Search Tree");
+  const [traversal, setTraversal] = useState("Preorder");
   const [inputValue, setInputValue] = useState("");
-  const [statusMsg, setStatusMsg] = useState("");
-  const [highlightPath, setHighlightPath] = useState<number[]>([]);
+  const [treeRoot, setTreeRoot] = useState<TreeNode | null>(null);
+  const containerRef = useRef<SVGSVGElement>(null);
 
-  // ── Separate tree state per mode ─────────────────────────────────────────
-  const [bstTree, setBstTree] = useState<BSTNode>(DEFAULT_BST);
-  const [avlTree, setAvlTree] = useState<AVLNode>(DEFAULT_AVL);
+  const traversalOptions: Record<string, (node: TreeNode | null) => number[]> = {
+    Preorder: preOrderTraversal,
+    Inorder: inOrderTraversal,
+    Postorder: postOrderTraversal,
+    LevelOrder: levelOrderTraversal,
+  };
 
-  // ── Layout (D3 computation, no DOM) ──────────────────────────────────────
-  const layout = useMemo<LayoutResult>(() => {
-    if (mode === "bst") {
-      const d3Root = bstToD3(bstTree);
-      return d3Root ? computeBSTLayout(d3Root) : { nodes: [], links: [] };
+  const algorithms: Record<string, string[]> = {
+    "Binary Tree": ["Preorder", "Inorder", "Postorder"],
+    "Binary Search Tree": ["Preorder", "Inorder", "Postorder"],
+    "AVL Tree": ["Preorder", "Inorder", "Postorder"],
+    "Red-Black Tree": ["Preorder", "Inorder", "Postorder"],
+    "Segment Tree": ["Preorder", "Inorder", "Postorder"],
+    "Fenwick Tree": ["Preorder", "Inorder", "Postorder"],
+  };
+
+  // ─── D3 LAYOUT ENGINE ────────────────────────────────────────────────────
+
+  const { nodes, edges } = useMemo(() => {
+    if (!treeRoot) return { nodes: [] as RenderNode[], edges: [] as RenderEdge[] };
+
+    const hierarchyRoot = d3.hierarchy(treeRoot, (d) => {
+      const children = [];
+      if (d.left) children.push(d.left);
+      if (d.right) children.push(d.right);
+      return children.length > 0 ? children : null;
+    });
+
+    const treeLayout = d3.tree<TreeNode>().nodeSize([60, 80]);
+    treeLayout(hierarchyRoot);
+
+    const pathGenerator = d3
+      .linkVertical<any, any>()
+      .x((d) => d.x)
+      .y((d) => d.y);
+
+    const calculatedNodes: RenderNode[] = hierarchyRoot.descendants().map((d) => ({
+      id: d.data.id,
+      val: d.data.val,
+      x: d.x,
+      y: d.y,
+    }));
+
+    const calculatedEdges: RenderEdge[] = hierarchyRoot.links().map((link) => ({
+      id: `${link.source.data.val}-${link.target.data.val}`,
+      d: pathGenerator(link) as string,
+    }));
+
+    return { nodes: calculatedNodes, edges: calculatedEdges };
+  }, [treeRoot]);
+
+  // ─── GSAP SETUP — must come before any handler that uses contextSafe ──────
+  // FIX 1: useGSAP (and therefore contextSafe) must be declared BEFORE the
+  // handlers that reference it. JS hoisting does not apply to const declarations.
+
+  const { contextSafe } = useGSAP(
+    () => {
+      if (edges.length === 0) return;
+
+      gsap.fromTo(
+        ".edge",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.8, stagger: 0.05, ease: "power1.out" }
+      );
+
+      // FIX 4: Node entrance animation was missing — added scale-in for nodes
+      gsap.fromTo(
+        ".node circle",
+        { scale: 0, transformOrigin: "50% 50%" },
+        { scale: 1, duration: 0.5, stagger: 0.04, ease: "back.out(1.7)" }
+      );
+    },
+    { scope: containerRef, dependencies: [edges] }
+  );
+
+  // ─── HANDLERS ────────────────────────────────────────────────────────────
+
+  const onInsert = (val: string) => {
+    const num = Number(val);
+    if (val.trim() === "" || isNaN(num)) {
+      alert("Please enter a valid number.");
+      return;
+    }
+    setTreeRoot((prev) => insertBST(prev, num));
+    setInputValue("");
+  };
+
+  const onRandom = () => {
+    let newTree: TreeNode | null = null;
+    const randomValues = new Set<number>();
+    while (randomValues.size < 7) {
+      randomValues.add(Math.floor(Math.random() * 100));
+    }
+    randomValues.forEach((val) => {
+      newTree = insertBST(newTree, val);
+    });
+    setTreeRoot(newTree);
+  };
+
+  // FIX 2: Compute deleteBST result synchronously before setTreeRoot so that
+  // successorId is reliably captured — setState updaters run asynchronously and
+  // closures inside them are not guaranteed to write back to outer variables in
+  // time for the GSAP call that follows.
+  // FIX 3: Wrapped with contextSafe so the GSAP tween is tracked by the context
+  // and properly cleaned up on unmount / re-render.
+  const onDelete = contextSafe((val: string) => {
+    if (val.trim() === "") return;
+
+    const result = deleteBST(treeRoot, Number(val));
+    setTreeRoot(result.tree);
+
+    if (result.successorId) {
+      gsap.to(`#node-${result.successorId}`, {
+        fill: "#e53e3e",
+        stroke: "#9b2c2c",
+        strokeWidth: 4,
+        duration: 1.5,
+        ease: "power1.inOut",
+      });
+    }
+
+    setInputValue("");
+  });
+
+  // FIX 3: Wrapped with contextSafe (was already intended but the original code
+  // had contextSafe declared after this function, causing a runtime error).
+  const onSearch = contextSafe((val: string) => {
+    if (val.trim() === "") return;
+    setInputValue("");
+
+    const id = searchBST(treeRoot, Number(val));
+    if (id) {
+      gsap.to(`#node-${id}`, {
+        fill: "#22c55e",
+        stroke: "#ffffff",
+        strokeWidth: 4,
+        duration: 1.3,
+        yoyo: true,
+        repeat: 3,
+        ease: "power1.inOut",
+      });
     } else {
-      const d3Root = avlToD3(avlTree);
-      return d3Root ? computeAVLLayout(d3Root) : { nodes: [], links: [] };
+      alert("Value not found!");
     }
-  }, [mode, bstTree, avlTree]);
-
-  // ── Helpers ───────────────────────────────────────────────────────────────
-  const parseInput = (): number | null => {
-    const n = parseInt(inputValue, 10);
-    if (isNaN(n) || n < 0 || n > 999) {
-      setStatusMsg("⚠ Enter a whole number 0–999");
-      return null;
-    }
-    return n;
-  };
-
-  const triggerReplay = () => setReplayKey(k => k + 1);
-
-  const handleInsert = () => {
-    const n = parseInput();
-    if (n === null) return;
-    if (mode === "bst") setBstTree(prev => bstInsert(prev, n));
-    else              setAvlTree(prev => avlInsert(prev, n));
-    setHighlightPath([]);
-    setStatusMsg(`✓ Inserted ${n}`);
-    setInputValue("");
-    triggerReplay();
-  };
-
-  const handleDelete = () => {
-    const n = parseInput();
-    if (n === null) return;
-    if (mode === "bst") setBstTree(prev => bstDelete(prev, n) ?? DEFAULT_BST);
-    else              setAvlTree(prev => avlDelete(prev, n) ?? DEFAULT_AVL);
-    setHighlightPath([]);
-    setStatusMsg(`✓ Deleted ${n}`);
-    setInputValue("");
-    triggerReplay();
-  };
-
-  const handleSearch = () => {
-    const n = parseInput();
-    if (n === null) return;
-    const path = mode === "bst"
-      ? bstSearch(bstTree, n)
-      : avlSearch(avlTree, n);
-
-    const found = path.length > 0 && path[path.length - 1] === n;
-    setHighlightPath(path);
-    setStatusMsg(found
-      ? `✓ Found ${n} (path: ${path.join(" → ")})`
-      : `✗ ${n} not found (searched: ${path.join(" → ")})`
-    );
-    triggerReplay();
-  };
-
-  const handleReset = () => {
-    if (mode === "bst") setBstTree(DEFAULT_BST);
-    else              setAvlTree(DEFAULT_AVL);
-    setHighlightPath([]);
-    setStatusMsg("Reset to default tree");
-    triggerReplay();
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") handleInsert();
-  };
-
-  // ── Inorder display (BST only) ────────────────────────────────────────────
-  const inorderStr = mode === "bst"
-    ? bstInorder(bstTree).join(", ")
-    : "";
+  });
 
   return (
-    <div className="w-full min-h-screen bg-slate-950 text-white p-4 font-sans">
-      <div className="max-w-4xl mx-auto">
-
-        {/* ── Header ── */}
-        <div className="mb-4 flex items-center justify-between flex-wrap gap-2">
-          <h1 className="text-lg font-semibold text-slate-200">Tree Visualiser</h1>
-          <div className="flex gap-2">
-            {MODES.map(m => (
-              <button
-                key={m.id}
-                onClick={() => { setMode(m.id); setHighlightPath([]); setStatusMsg(""); triggerReplay(); }}
-                className={`text-sm px-4 py-1.5 rounded-lg border-[0.5px] transition-all
-                  ${mode === m.id
-                    ? "border-blue-500 bg-blue-600 text-white font-medium"
-                    : "border-slate-600 bg-slate-800 text-slate-300 hover:bg-slate-700"}`}
-              >
-                {m.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* ── Controls ── */}
-        <div className="flex items-center gap-2 mb-3 flex-wrap">
-          <input
-            placeholder="0–999"
-            value={inputValue}
-            onChange={e => setInputValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            className="w-24 px-3 h-9 bg-slate-800 text-white rounded-lg border border-slate-600 focus:border-blue-500 focus:outline-none text-sm"
-          />
-          <button onClick={handleInsert}
-            className="h-9 px-3 rounded-lg bg-green-600 hover:bg-green-500 text-white text-sm border border-green-700 transition-all">
-            Insert
-          </button>
-          <button onClick={handleDelete}
-            className="h-9 px-3 rounded-lg bg-orange-600 hover:bg-orange-500 text-white text-sm border border-orange-700 transition-all">
-            Delete
-          </button>
-          <button onClick={handleSearch}
-            className="h-9 px-3 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-sm border border-violet-700 transition-all">
-            Search
-          </button>
-          <button onClick={handleReset}
-            className="h-9 px-3 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm border border-slate-600 transition-all">
-            Reset
-          </button>
-
-          <div className="flex items-center gap-2 ml-auto">
-            <label className="text-xs text-slate-400">Speed</label>
-            <input
-              type="range" min={0.25} max={2} step={0.25} value={speed}
-              onChange={e => setSpeed(+e.target.value)}
-              className="w-20 accent-blue-500 cursor-pointer"
+    <div>
+      <div className="w-full h-full p-5 mt-2 bg-slate-950">
+        <div className="flex justify-between items-center">
+          <div className="flex justify-start items-center gap-2 px-3 py-2 mx-2">
+            <Input
+              className="border-2 w-[400px]"
+              placeholder="Enter Number"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && onInsert(inputValue)}
             />
-            <span className="text-xs text-slate-400 min-w-[28px]">{speed}x</span>
-            <button onClick={triggerReplay}
-              className="h-9 px-3 rounded-md border border-slate-600 bg-slate-800 text-slate-300 hover:bg-slate-700 text-sm transition-all">
-              ↺
-            </button>
-            <button
-              onClick={() => setShowCode(s => !s)}
-              className={`h-9 px-3 rounded-md border text-sm transition-all
-                ${showCode ? "border-blue-500 bg-blue-900 text-blue-300" : "border-slate-600 bg-slate-800 text-slate-300 hover:bg-slate-700"}`}
-            >
-              {showCode ? "Hide code" : "Show code"}
-            </button>
-          </div>
-        </div>
-
-        {/* ── Status / Info ── */}
-        <div className="flex justify-between items-center mb-3 text-xs flex-wrap gap-1">
-          <span className="text-slate-400">{INFO[mode]}</span>
-          {statusMsg && (
-            <span className={`font-mono px-2 py-0.5 rounded ${statusMsg.startsWith("✓") ? "text-green-400" : statusMsg.startsWith("✗") ? "text-red-400" : "text-yellow-400"}`}>
-              {statusMsg}
-            </span>
-          )}
-        </div>
-
-        {/* ── SVG Canvas ── */}
-        <div className="bg-slate-900 rounded-xl border border-slate-700 overflow-hidden p-1">
-          {mode === "bst" ? (
-            <BSTVisual layout={layout} replayKey={replayKey} speed={speed} highlightPath={highlightPath} />
-          ) : (
-            <AVLVisual layout={layout} replayKey={replayKey} speed={speed} highlightPath={highlightPath} />
-          )}
-        </div>
-
-        {/* ── In-order display (BST) ── */}
-        {mode === "bst" && inorderStr && (
-          <div className="mt-2 text-xs text-slate-500 font-mono">
-            In-order: <span className="text-slate-300">{inorderStr}</span>
-          </div>
-        )}
-
-        {/* ── Legend ── */}
-        <div className="flex gap-4 mt-4 flex-wrap">
-          {[
-            { color: C.node, label: "unvisited" },
-            { color: C.vis, label: "visited" },
-            { color: C.active, label: "cursor / path" },
-            { color: C.search, label: "found" },
-            { color: C.edgeDraw, label: "edge" },
-            { color: C.cmp, label: "AVL height" },
-          ].map(l => (
-            <div key={l.label} className="flex items-center gap-1.5 text-xs text-slate-400">
-              <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: l.color }} />
-              {l.label}
+            <div className="flex justify-center items-center gap-2 text-white">
+              <Button
+                className="bg-green-600 hover:bg-green-700 text-white rounded-sm border-0"
+                onClick={() => onInsert(inputValue)}
+              >
+                Enter
+              </Button>
+              <Button
+                className="bg-blue-600 hover:bg-blue-700 text-white rounded-sm border-0"
+                onClick={onRandom}
+              >
+                Random
+              </Button>
+              <Button
+                className="bg-red-600 hover:bg-red-700 text-white rounded-sm border-0"
+                onClick={() => onDelete(inputValue)}
+              >
+                Delete
+              </Button>
+              <Button
+                className="bg-yellow-600 hover:bg-yellow-700 text-white rounded-sm border-0"
+                onClick={() => onSearch(inputValue)}
+              >
+                Search
+              </Button>
             </div>
-          ))}
-        </div>
+          </div>
 
-        {/* ── Code panel ── */}
-        {showCode && <CodePanel mode={mode} />}
+          <div className="flex justify-center items-center gap-2">
+            <Select value={algo} onValueChange={setAlgo}>
+              <SelectTrigger className="w-44 bg-algo-select-bg border-algo-select-border text-algo-select-fg h-9 hover:border-algo-border transition-colors font-mono text-sm">
+                <SelectValue placeholder="Select type" />
+              </SelectTrigger>
+              <SelectContent className="bg-algo-select-bg border-algo-select-border text-algo-select-fg">
+                <SelectGroup>
+                  <SelectLabel className="text-algo-muted-text font-mono text-xs">
+                    Select Algorithm
+                  </SelectLabel>
+                  {Object.keys(algorithms).map((a) => (
+                    <SelectItem
+                      key={a}
+                      value={a}
+                      className="capitalize font-mono text-sm focus:bg-algo-panel-soft focus:text-algo-shell-fg"
+                    >
+                      {a}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={traversal}
+              onValueChange={(val) => {
+                setTraversal(val);
+                const fn = traversalOptions[val];
+                if (fn && treeRoot) {
+                  console.log(`${val}:`, fn(treeRoot));
+                }
+              }}
+            >
+              <SelectTrigger className="w-44 bg-algo-select-bg border-algo-select-border text-algo-select-fg h-9 hover:border-algo-border transition-colors font-mono text-sm">
+                <SelectValue placeholder="Select type" />
+              </SelectTrigger>
+              <SelectContent className="bg-algo-select-bg border-algo-select-border text-algo-select-fg">
+                <SelectGroup>
+                  <SelectLabel className="text-algo-muted-text font-mono text-xs">
+                    Traversal Options
+                  </SelectLabel>
+                  {Object.keys(traversalOptions).map((a) => (
+                    <SelectItem
+                      key={a}
+                      value={a}
+                      className="capitalize font-mono text-sm focus:bg-algo-panel-soft focus:text-algo-shell-fg"
+                    >
+                      {a}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-row justify-center items-center bg-slate-900 min-h-[600px]">
+        <div className="flex flex-row tree-container justify-center items-center w-full">
+          <svg
+            ref={containerRef}
+            className="tree bg-slate-950 flex-grow"
+            width="100%"
+            height="1200"
+            viewBox="0 0 800 800"
+          >
+            <g transform="translate(400, 50)">
+              {edges.map((edge: RenderEdge) => (
+                <path
+                  className="edge"
+                  key={edge.id}
+                  d={edge.d}
+                  id={`edge-${edge.id}`}
+                  stroke="#555"
+                  strokeWidth="2"
+                  fill="none"
+                />
+              ))}
+
+              {nodes.map((node: RenderNode) => (
+                <g key={node.id} className="node" transform={`translate(${node.x}, ${node.y})`}>
+                  <circle
+                    id={`node-${node.id}`}
+                    r={20}
+                    fill="#4A90E2"
+                    stroke="#2c5a8e"
+                    strokeWidth="2"
+                  />
+                  <text
+                    textAnchor="middle"
+                    dy=".3em"
+                    fill="#fff"
+                    fontSize="13px"
+                    fontFamily="sans-serif"
+                    fontWeight="bold"
+                  >
+                    {node.val}
+                  </text>
+                </g>
+              ))}
+            </g>
+          </svg>
+        </div>
       </div>
     </div>
   );
