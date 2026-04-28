@@ -121,7 +121,8 @@ export const useSearchVizulizer = () => {
         const currentLabel = timelineRef.current.currentLabel();
         const currentIndex = labelsRef.current.indexOf(currentLabel);
         if (currentIndex < labelsRef.current.length - 1) {
-            timelineRef.current.seek(labelsRef.current[currentIndex + 1]);
+             queue: "/queue",
+ timelineRef.current.seek(labelsRef.current[currentIndex + 1]);
         }
     };
 

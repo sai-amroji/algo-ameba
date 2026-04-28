@@ -5,6 +5,7 @@ import QueuePage from "@/components/queue/queuePage.tsx";
 import StackPage from "@/components/stack/stackPage.tsx";
 import LinkedListPage from "@/components/linkedlist/llPage.tsx";
 import GraphPage from "@/components/graph/GraphPage.tsx";
+import HeapPage from "@/components/heap/HeapPage.tsx";
 import TreePage from "@/components/tree/TreePage.tsx";
 import Homepage from "@/pages/Homepage.tsx";
 import LandingPage from "@/pages/LandingPage.tsx";
@@ -19,19 +20,14 @@ function App() {
                 <Route path={ROUTES.home} element={<Homepage />} />
                 <Route path={ROUTES.algorithms} element={<Homepage />} />
                 <Route path={ROUTES.about} element={<AboutPage />} />
-
                 <Route path={ROUTES.sort} element={<SortPage />} />
-                <Route path={ROUTES.mergeSort} element={<SortPage />} />
                 <Route path={ROUTES.search} element={<SearchPage />} />
-                <Route path={ROUTES.binarySearch} element={<SearchPage />} />
-                <Route path={ROUTES.selectionSort} element={<SortPage />} />
-                <Route path={ROUTES.insertionSort} element={<SortPage />} />
-                <Route path={ROUTES.insertionSortLegacy} element={<SortPage />} />
                 <Route path={ROUTES.queue} element={<QueuePage />} />
                 <Route path={ROUTES.stack} element={<StackPage />} />
                 <Route path={ROUTES.linkedlist} element={<LinkedListPage />} />
                 <Route path={ROUTES.graph} element={<GraphPage />} />
                 <Route path={ROUTES.tree} element={<TreePage />} />
+                <Route path={ROUTES.heap} element={<HeapPage />} />
 
                 <Route path="*" element={<Navigate to={ROUTES.landing} replace />} />
             </Routes>

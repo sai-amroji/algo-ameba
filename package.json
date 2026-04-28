@@ -27,6 +27,7 @@
     "d3-array": "^3.2.4",
     "d3-hierarchy": "^3.1.2",
     "data-structure-typed": "^2.6.1",
+    "datastructures-js": "^13.0.0",
     "gsap": "^3.13.0",
     "lucide-react": "^0.525.0",
     "next-themes": "^0.4.6",

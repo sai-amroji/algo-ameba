@@ -1,5 +1,3 @@
-import { algos } from "@/constants/algosInfo";
-import AlgoCard from "@/components/AlgoCard.tsx";
 import { Input } from "@/components/ui/input.tsx";
 import { ModeToggle } from "@/components/mode-toggle.tsx";
 import { useNavigate } from "react-router-dom";
@@ -7,7 +5,6 @@ import logo from "../../public/Ameba.png";
 import { ROUTES } from "@/constants/routes";
 import { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
-import { flushSync } from "react-dom";
 import gsap from "@/gsapSetup";
 import { useGSAP } from "@gsap/react";
 
@@ -28,6 +25,8 @@ const RightArrow = ({ className = "w-6 h-6 text-white" }) => (
   </svg>
 );
 
+const graphLetters = ["G", "R", "A", "P", "H"];
+
 const Homepage = () => {
   const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -45,19 +44,23 @@ const Homepage = () => {
   const linkedListPointerRef = useRef<HTMLDivElement>(null);
   const linkedListHoverTimelineRef = useRef<gsap.core.Timeline | null>(null);
 
+
+
+  
+
   const treeData = {
-    num: 10,
+    num: "T",
     children: [
       {
-        num: 5, children: [
-          { num: 3, children: [] },
-          { num: 7, children: [] }
+        num: "R", children: [
+          { num: "E", children: [] },
+          { num: "E", children: [] }
         ]
       },
       {
-        num: 15, children: [
-          { num: 12, children: [] },
-          { num: 20, children: [] }
+        num: "A", children: [
+          { num: "L", children: [] },
+          { num: "G", children: [] }
         ]
       },
     ]
@@ -65,16 +68,16 @@ const Homepage = () => {
 
   // Valid Max-Heap Data structure
   const heapData = {
-    num: 50,
+    num: "H",
     children: [
       {
-        num: 40, children: [
-          { num: 20, children: [] },
-          { num: 15, children: [] }
+        num: "E", children: [
+          { num: "A", children: [] },
+          { num: "P", children: [] }
         ]
       },
       {
-        num: 35, children: [
+        num: "S", children: [
           { num: 10, children: [] },
           { num: 25, children: [] }
         ]
@@ -92,20 +95,12 @@ const Homepage = () => {
     { char: "N", height: 99 },
     { char: "G", height: 230 },
   ];
-  const [nodes, setNodes] = useState<{ id: number, x: number, y: number }[]>([]);
+  const [nodes, setNodes] = useState<{ id: number, label: string, x: number, y: number }[]>([]);
   const [links, setLinks] = useState<{ source: number, target: number }[]>([]);
-  const [bars, setBars] = useState<number[]>([]);
 
   // GRAPH SIMULATION EFFECT
   useEffect(() => {
-    let safeLength = 15;
-    const random = Array.from({ length: safeLength }, (_, index) => ({
-      value: index + 1,
-      id: index,
-    })).sort(() => Math.random() - 0.5);
-    flushSync(() => {
-      setBars(random as any);
-    });
+    const safeLength = graphLetters.length;
 
     // FIXED: Use a hardcoded viewBox coordinate system instead of window.innerWidth
     const simWidth = 1000;
@@ -114,6 +109,7 @@ const Homepage = () => {
 
     const initialNodes = Array.from({ length: safeLength }, (_, i) => ({
       id: i,
+      label: graphLetters[i],
       x: Math.random() * (simWidth - nodeRadius * 2) + nodeRadius,
       y: Math.random() * (simHeight - nodeRadius * 2) + nodeRadius,
       vx: 0,
@@ -151,7 +147,9 @@ const Homepage = () => {
         setLinks([...initialLinks]);
       });
 
-    return () => simulation.stop();
+    return () => {
+      simulation.stop();
+    };
   }, [safeLength]);
 
 
@@ -478,10 +476,14 @@ const Homepage = () => {
   const getLinkedPointerPosition = (node: HTMLElement, container: HTMLElement) => {
     const nodeRect = node.getBoundingClientRect();
     const containerRect = container.getBoundingClientRect();
+    const pointerWidth = linkedListPointerRef.current?.offsetWidth ?? 88;
+    const pointerHeight = linkedListPointerRef.current?.offsetHeight ?? 34;
+    const rawX = nodeRect.left - containerRect.left + nodeRect.width / 2 - pointerWidth / 2;
+    const rawY = nodeRect.top - containerRect.top - pointerHeight - 8;
 
     return {
-      x: nodeRect.left - containerRect.left + nodeRect.width / 2 - 30,
-      y: nodeRect.top - containerRect.top - 62,
+      x: Math.max(8, Math.min(rawX, containerRect.width - pointerWidth - 8)),
+      y: Math.max(8, rawY),
     };
   };
 
@@ -630,7 +632,7 @@ const Homepage = () => {
       .attr("class", "link")
       .attr("d", d3.linkVertical<any, any>().x((d: any) => d.x).y((d: any) => d.y))
       .attr("fill", "none")
-      .attr("stroke", "black") // Cohesive black lines
+      .attr("stroke", "white") // Cohesive black lines
       .attr("stroke-width", 2);
 
     const nodes = svg.selectAll(".node")
@@ -643,7 +645,7 @@ const Homepage = () => {
     nodes.append("circle")
       .attr("r", 25) // Cohesive larger sizing
       .attr("fill", "#1d4ed8") // Tailwind bg-blue-700 to match other cards
-      .attr("stroke", "black")
+      .attr("stroke", "white")
       .attr("stroke-width", 2);
 
     nodes.append("text")
@@ -706,7 +708,7 @@ const Homepage = () => {
           onMouseLeave={resetSearchLetters}
           className="flex flex-col w-full justify-center items-center m-5 p-5 bg-slate-900 rounded-lg hover:border-green-500 hover:border-2 transition-easeIn"
         >
-          <div className="flex p-1 m-2 flex-row align-center content-center justify-center gap-2 items-center border-2 rounded-sm border-black w-full h-[75px]">
+          <div className="flex p-1 m-2 flex-row align-center content-center justify-center gap-2 items-center border-2 rounded-sm border-wh w-full h-[75px]">
             <div data-char="S" className="search-letter flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center h-full w-full px-10 text-white font-bold">S</div>
             <div data-char="E" className="search-letter flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center h-full w-full px-10 text-white font-bold">E</div>
             <div data-char="A" className="search-letter flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center h-full w-full px-10 text-white font-bold">A</div>
@@ -728,9 +730,6 @@ const Homepage = () => {
             onMouseLeave={resetStackHover}
             className="flex-1 flex flex-col justify-between items-center p-5 bg-slate-900 rounded-lg min-h-[500px] hover:border-green-500 hover:border-2 transition-easeIn"
           >
-            <p className="self-start rounded-sm bg-slate-800 px-3 py-1 text-xs font-bold uppercase tracking-wide text-green-300 border border-green-500">
-              Head
-            </p>
             <div className="flex p-1 m-2 flex-col rounded-sm justify-center items-center border-2 border-y-0 border-b-2 border-black h-full w-[300px]">
               <div className="stack-item flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center mb-1 h-full w-full px-10 text-white font-bold">S</div>
               <div className="stack-item flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center mb-1 h-full w-full px-10 text-white font-bold">T</div>
@@ -798,8 +797,15 @@ const Homepage = () => {
           </div>
 
           <div className="flex-1 flex flex-col w-full justify-between items-center p-5 bg-slate-900 rounded-lg min-h-[400px] hover:border-green-500  hover:border-2 transition-easeIn">
-            <div className="h-full w-full flex justify-center items-center">
+            <div className="h-full w-full flex flex-col justify-center items-center">
               <svg ref={svgHeapRef} width="600" height="350"></svg>
+            <div className="flex p-1 m-2 flex-row align-center content-center justify-center gap-2 items-center border-2 border-x-0 border-b-2 border-white w-full h-[60px] rounded-sm ">
+            <div data-char="Q" className="queue-item flex rounded-sm bg-blue-700 border-2 border-white justify-center items-center h-full w-full px-10 text-white w-[60px] font-bold">H</div>
+            <div data-char="U" className="queue-item flex rounded-sm bg-blue-700 border-2 border-white justify-center items-center h-full w-full px-10 text-white w-[60px] font-bold">E</div>
+            <div data-char="E" className="queue-item flex rounded-sm bg-blue-700 border-2 border-white justify-center items-center h-full w-full px-10 text-white w-[60px] font-bold">A</div>
+            <div data-char="U" className="queue-item flex rounded-sm bg-blue-700 border-2 border-white justify-center items-center h-full w-full px-10 text-white w-[60px] font-bold">P</div>          </div>
+
+              
             </div>
             <div className="self-start mt-2 w-full p-2">
               <h1 className="flex justify-start text-white font-bold text-2xl p-2 rounded cursor-pointer hover:underline" onClick={() => navigate("/heap")}>Heap</h1>
@@ -823,23 +829,34 @@ const Homepage = () => {
                   className="d3-link"
                   d={`M ${sourceNode.x} ${sourceNode.y} L ${targetNode.x} ${targetNode.y}`}
                   fill="none"
-                  stroke="black" // Changed to match borders
+                  stroke="white"
                   strokeWidth="3"
                 />
               );
             })}
             
             {nodes.map((node) => (
-              <circle
-                className='ddrag'
-                key={node.id}
-                cx={node.x}
-                cy={node.y}
-                r="25"
-                fill="#1d4ed8" // bg-blue-700
-                stroke="black"
-                strokeWidth="2"
-              />
+              <g key={node.id} className='ddrag'>
+                <circle
+                  cx={node.x}
+                  cy={node.y}
+                  r="25"
+                  fill="#1d4ed8" // bg-blue-700
+                  stroke="black"
+                  strokeWidth="2"
+                />
+                <text
+                  x={node.x}
+                  y={node.y}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  fill="white"
+                  fontSize="16"
+                  fontWeight="700"
+                >
+                  {node.label}
+                </text>
+              </g>
             ))}
           </svg>
 
@@ -857,7 +874,7 @@ const Homepage = () => {
         >
           <div
             ref={linkedListPointerRef}
-            className="pointer-events-none absolute left-0 top-0 rounded-md bg-blue-200 px-6 py-2 text-base font-bold uppercase tracking-wide text-white border-2 border-blue-300 shadow-sm"
+            className="pointer-events-none absolute left-0 top-0 rounded-md bg-blue-200 px-4 py-2 text-sm font-bold uppercase tracking-wide text-slate-900 border border-blue-300 shadow-sm"
           >
             Head
           </div>

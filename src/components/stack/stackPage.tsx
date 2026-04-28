@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Input } from "../ui/input.tsx";
 import {
   Select,
@@ -45,6 +45,25 @@ const StackPage = () => {
   const markExiting = (id: number) =>
     setStack((prev) => prev.map((i) => (i.id === id ? { ...i, status: "popping" as Status } : i)));
 
+
+
+
+  useEffect(() => {
+    if(stack.length === 0) generateRandom();
+  },[stack])
+
+  const generateRandom = () => {
+     let size = Math.floor(Math.random() * 10);
+
+
+     while (size > 0) {
+        const num = Math.floor(Math.random() * 100);
+        push(num);
+        size--;
+      }
+
+
+  }
   const push = (value: number) => {
     if (isFull) return toast("Stack is full!");
     const item = makeItem(value);

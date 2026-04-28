@@ -46,11 +46,8 @@ const LinkedListPage = () => {
   const [input, setInput]   = useState("");
   const [pos,   setPos]     = useState("");
 
-  const [list, setList] = useState<LLNode[]>(() => [
-    { id: 0, value: 10, addr: genAddr() },
-    { id: 1, value: 20, addr: genAddr() },
-    { id: 2, value: 30, addr: genAddr() },
-  ]);
+  const [list, setList] = useState<LLNode[]>([]);
+
   const [removingIds, setRemovingIds] = useState<Set<number>>(new Set());
 
   const screenRef        = useRef<HTMLDivElement>(null);
@@ -91,21 +88,40 @@ const LinkedListPage = () => {
   });
 
   /* run entrance anims after React commits new nodes */
-  useEffect(() => {
-    if (!pending.current.size) return;
-    pending.current.forEach((id) => {
-      const el   = itemRefs.current.get(id);
-      const nextLine = nextArrowRefs.current.get(id);
-      const prevLine = prevArrowRefs.current.get(id);
-      if (el) animNodeIn(el);
-      if (nextLine) animArrowIn(nextLine);
-      if (prevLine) animArrowIn(prevLine);
-    });
-    if (headRef.current)
-      gsap.fromTo(headRef.current, { scale: 1.12 }, { scale: 1, duration: 0.55, ease: "elastic.out(1,0.5)" });
-    pending.current.clear();
-  }, [list]);
+  // useEffect(() => {
+  //   if (!pending.current.size) return;
+  //   pending.current.forEach((id) => {
+  //     const el   = itemRefs.current.get(id);
+  //     const nextLine = nextArrowRefs.current.get(id);
+  //     const prevLine = prevArrowRefs.current.get(id);
+  //     if (el) animNodeIn(el);
+  //     if (nextLine) animArrowIn(nextLine);
+  //     if (prevLine) animArrowIn(prevLine);
+  //   });
+  //   if (headRef.current)
+  //     gsap.fromTo(headRef.current, { scale: 1.12 }, { scale: 1, duration: 0.55, ease: "elastic.out(1,0.5)" });
+  //   pending.current.clear();
+  // }, [list]);
 
+
+
+  useEffect(() => {
+    if(list.length == 0){
+      generateRandom()
+    }
+  },[list])
+
+
+ const generateRandom = () => {
+
+   let size = Math.floor(Math.random()*10);
+
+   while(size > 0){
+     insert(Math.floor(Math.random()*10),0)
+     size--;
+   }
+
+ }
   /* ── INSERT ─────────────────────────────────────────────────────────── */
   const insert = contextSafe((value: number, position: number) => {
     const newNode: LLNode = { 

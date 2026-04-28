@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { useRef, useMemo, useState } from "react";
+import { useRef, useMemo, useState, useEffect } from "react";
 import * as d3 from "d3";
 import { useGSAP } from "@gsap/react";
 import gsap from "../../gsapSetup";
@@ -138,11 +138,13 @@ const TreePage = () => {
   const [treeRoot, setTreeRoot] = useState<TreeNode | null>(null);
   const containerRef = useRef<SVGSVGElement>(null);
 
+  
+
   const traversalOptions: Record<string, (node: TreeNode | null) => number[]> = {
-    Preorder: preOrderTraversal,
-    Inorder: inOrderTraversal,
-    Postorder: postOrderTraversal,
-    LevelOrder: levelOrderTraversal,
+    "Preorder": preOrderTraversal,
+    "Inorder": inOrderTraversal,
+    "Postorder": postOrderTraversal,
+    "LevelOrder": levelOrderTraversal,
   };
 
   const algorithms: Record<string, string[]> = {
@@ -177,8 +179,8 @@ const TreePage = () => {
     const calculatedNodes: RenderNode[] = hierarchyRoot.descendants().map((d) => ({
       id: d.data.id,
       val: d.data.val,
-      x: d.x,
-      y: d.y,
+      x: d.x ?? 0,
+      y: d.y ?? 0,
     }));
 
     const calculatedEdges: RenderEdge[] = hierarchyRoot.links().map((link) => ({
@@ -193,6 +195,13 @@ const TreePage = () => {
   // FIX 1: useGSAP (and therefore contextSafe) must be declared BEFORE the
   // handlers that reference it. JS hoisting does not apply to const declarations.
 
+
+  useEffect(() => {
+      
+    if(treeRoot == null) {  
+     onRandom();
+    }
+  },[treeRoot])
   const { contextSafe } = useGSAP(
     () => {
       if (edges.length === 0) return;
@@ -262,6 +271,13 @@ const TreePage = () => {
     setInputValue("");
   });
 
+  const onRun = contextSafe(() => {
+    const traversalFn = traversalOptions[traversal];
+    if (!treeRoot || !traversalFn) return;
+
+    console.log(`${traversal}:`, traversalFn(treeRoot));
+  });
+
   // FIX 3: Wrapped with contextSafe (was already intended but the original code
   // had contextSafe declared after this function, causing a runtime error).
   const onSearch = contextSafe((val: string) => {
@@ -285,8 +301,8 @@ const TreePage = () => {
   });
 
   return (
-    <div>
-      <div className="w-full h-full p-5 mt-2 bg-slate-950">
+    <div className="flex flex-col overflow-hidden bg-slate-950">
+      <div className="sticky top-0 z-30  border-0 border-slate-800/70 bg-slate-950/95 backdrop-blur">
         <div className="flex justify-between items-center">
           <div className="flex justify-start items-center gap-2 px-3 py-2 mx-2">
             <Input
@@ -347,6 +363,10 @@ const TreePage = () => {
               </SelectContent>
             </Select>
 
+            <div className="flex justify-center items-center gap-2">
+
+
+
             <Select
               value={traversal}
               onValueChange={(val) => {
@@ -377,17 +397,21 @@ const TreePage = () => {
                 </SelectGroup>
               </SelectContent>
             </Select>
+            <button className="flex h-fit w-fit px-4 py-2 bg-blue-500 rounded-lg hover:bg-blue-600" onClick={onRun}>
+              Run
+            </button>
+                </div>
           </div>
         </div>
       </div>
 
-      <div className="flex flex-row justify-center items-center bg-slate-900 min-h-[600px]">
-        <div className="flex flex-row tree-container justify-center items-center w-full">
+      <div className="flex flex-1 min-h-0 flex-row justify-center items-center bg-slate-900 overflow-auto">
+        <div className="flex flex-row tree-container justify-center items-center w-full min-h-full">
           <svg
             ref={containerRef}
             className="tree bg-slate-950 flex-grow"
             width="100%"
-            height="1200"
+            height="100%"
             viewBox="0 0 800 800"
           >
             <g transform="translate(400, 50)">

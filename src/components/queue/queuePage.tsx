@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Input } from "../ui/input.tsx";
 import {
   Select,
@@ -40,6 +40,29 @@ const QueuePage = () => {
 
   const { contextSafe } = useGSAP({ scope: queueContainerRef });
 
+
+  
+  
+  
+  useEffect(() => {
+    if(queue.length == 0){
+      generateRandomArray()
+    }
+  },[queue])
+
+  
+  const generateRandomArray = () => {
+  
+
+    let num = Math.floor(Math.random() * 10) ; // Generate between 3 and 7 items
+
+    while(num > 0){
+      enqueue(Math.floor(Math.random()*10))
+      num -=1
+    }
+
+  
+  };
   const animateIn = contextSafe((el: HTMLDivElement) => {
     gsap.fromTo(
       el,

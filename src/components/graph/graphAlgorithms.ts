@@ -1,116 +1,409 @@
-// Graph algorithm frame definitions
+// // Graph algorithm frame definitions
 
-export interface GraphFrame {
-  nodes: Array<{
-    id: number;
-    state: "active" | "visited" | "unvisited" | "found";
-    color?: string;
-  }>;
-  edges: Array<{
-    source: number;
-    target: number;
-    state: "active" | "visited" | "unvisited";
-  }>;
-  queue?: number[];
-  stack?: number[];
-  description: string;
+// export interface GraphFrame {
+//   nodes: Array<{
+//     id: number;
+//     state: "active" | "visited" | "unvisited" | "found";
+//     color?: string;
+//   }>;
+//   edges: Array<{
+//     source: number;
+//     target: number;
+//     state: "active" | "visited" | "unvisited";
+//   }>;
+//   queue?: number[];
+//   stack?: number[];
+//   description: string;
+// }
+
+// // BFS Algorithm
+// export const bfsFrames = (startNode: number, nodes: number[]): GraphFrame[] => {
+//   const frames: GraphFrame[] = [];
+//   const visited = new Set<number>();
+//   const queue = [startNode];
+//   visited.add(startNode);
+
+//   // Initial frame
+//   frames.push({
+//     nodes: nodes.map((n) => ({
+//       id: n,
+//       state: n === startNode ? "active" : "unvisited",
+//     })),
+//     edges: [],
+//     queue: [startNode],
+//     description: `Starting BFS from node ${startNode}`,
+//   });
+
+//   // Process queue
+//   while (queue.length > 0) {
+//     const current = queue.shift()!;
+
+//     // Simulate neighbor discovery (for demo)
+//     const neighbors = getNeighbors(current, nodes);
+//     for (const neighbor of neighbors) {
+//       if (!visited.has(neighbor)) {
+//         visited.add(neighbor);
+//         queue.push(neighbor);
+
+//         frames.push({
+//           nodes: nodes.map((n) => ({
+//             id: n,
+//             state: visited.has(n) ? "visited" : n === neighbor ? "active" : "unvisited",
+//           })),
+//           edges: [],
+//           queue: [...queue],
+//           description: `Visiting node ${neighbor}`,
+//         });
+//       }
+//     }
+//   }
+
+//   return frames;
+// };
+
+// // DFS Algorithm
+// export const dfsFrames = (startNode: number, nodes: number[]): GraphFrame[] => {
+//   const frames: GraphFrame[] = [];
+//   const visited = new Set<number>();
+//   const stack = [startNode];
+
+//   frames.push({
+//     nodes: nodes.map((n) => ({
+//       id: n,
+//       state: n === startNode ? "active" : "unvisited",
+//     })),
+//     edges: [],
+//     stack: [startNode],
+//     description: `Starting DFS from node ${startNode}`,
+//   });
+
+//   while (stack.length > 0) {
+//     const current = stack.pop()!;
+
+//     if (!visited.has(current)) {
+//       visited.add(current);
+
+//       frames.push({
+//         nodes: nodes.map((n) => ({
+//           id: n,
+//           state: visited.has(n) ? "visited" : n === current ? "active" : "unvisited",
+//         })),
+//         edges: [],
+//         stack: [...stack],
+//         description: `Processing node ${current}`,
+//       });
+
+//       // Simulate neighbors
+//       const neighbors = getNeighbors(current, nodes).reverse();
+//       for (const neighbor of neighbors) {
+//         if (!visited.has(neighbor)) {
+//           stack.push(neighbor);
+//         }
+//       }
+//     }
+//   }
+
+//   return frames;
+// };
+
+// // Helper function
+// const getNeighbors = (node: number, nodes: number[]): number[] => {
+//   // Simple demo: each node connects to next 1-2 nodes
+//   const neighbors: number[] = [];
+//   if (node + 1 < nodes.length) neighbors.push(node + 1);
+//   if (node + 2 < nodes.length && Math.random() > 0.5) neighbors.push(node + 2);
+//   return neighbors;
+// };
+
+
+
+
+function  buildAdjList(nodes:any[],links:any[],isDirected:boolean){
+ 
+  const adj = new Map<number,AdjEdge[]>();
+
+  nodes.forEach((node) => adj.set(node.id,[]))
+
+
+  links.forEach((link) => {
+    const src = link.source.id ?? link.source
+    const dst = link.target.id ?? link.target
+    const wt = link.weight || 1;
+
+    adj.get(src)?.push({target:dst,weight:wt})
+
+    if(!isDirected){
+          adj.get(dst)?.push({target:src,weight:wt})
+
+    }
+
+  });
+
+
+  return adj;
 }
 
-// BFS Algorithm
-export const bfsFrames = (startNode: number, nodes: number[]): GraphFrame[] => {
-  const frames: GraphFrame[] = [];
-  const visited = new Set<number>();
-  const queue = [startNode];
-  visited.add(startNode);
 
-  // Initial frame
-  frames.push({
-    nodes: nodes.map((n) => ({
-      id: n,
-      state: n === startNode ? "active" : "unvisited",
-    })),
-    edges: [],
-    queue: [startNode],
-    description: `Starting BFS from node ${startNode}`,
-  });
+function runBFS(adj:Map<number,AdjEdge[]>,startId:number,targetId?:number){
 
-  // Process queue
-  while (queue.length > 0) {
-    const current = queue.shift()!;
 
-    // Simulate neighbor discovery (for demo)
-    const neighbors = getNeighbors(current, nodes);
-    for (const neighbor of neighbors) {
-      if (!visited.has(neighbor)) {
-        visited.add(neighbor);
-        queue.push(neighbor);
 
-        frames.push({
-          nodes: nodes.map((n) => ({
-            id: n,
-            state: visited.has(n) ? "visited" : n === neighbor ? "active" : "unvisited",
-          })),
-          edges: [],
-          queue: [...queue],
-          description: `Visiting node ${neighbor}`,
-        });
+  const animateNodes:number[] = [];
+  const animateEdges:{source:number,target:number}[] = [];
+  const visited = new Set<number>() 
+
+    const queue:number[] = [startId]
+
+    animateNodes.push(startId)
+    visited.add(startId)
+
+    
+
+
+
+    while(queue.length > 0){
+     const node = queue.shift()!;
+     if(node == targetId){
+        break
+     }
+
+     const nei = adj.get(node) || []
+     for(const edge of nei){
+      if(!visited.has(edge.target)){
+   visited.add(edge.target);
+   queue.push(edge.target);
+
+
+   animateEdges.push({source:node,target:edge.target})
+   animateNodes.push(edge.target)
+
+
+
       }
+     }
+     
     }
-  }
 
-  return frames;
-};
 
-// DFS Algorithm
-export const dfsFrames = (startNode: number, nodes: number[]): GraphFrame[] => {
-  const frames: GraphFrame[] = [];
+
+    return {animateNodes,animateEdges}
+}
+
+function runDFS(adj: Map<number, AdjEdge[]>, startId: number, targetId?: number) {
+  const animateNodes: number[] = [];
+  const animateEdges: { source: number; target: number }[] = [];
   const visited = new Set<number>();
-  const stack = [startNode];
-
-  frames.push({
-    nodes: nodes.map((n) => ({
-      id: n,
-      state: n === startNode ? "active" : "unvisited",
-    })),
-    edges: [],
-    stack: [startNode],
-    description: `Starting DFS from node ${startNode}`,
-  });
+  
+  const stack: { child: number; parent: number | null }[] = [{ child: startId, parent: null }];
 
   while (stack.length > 0) {
-    const current = stack.pop()!;
+    const { child, parent } = stack.pop()!;
 
-    if (!visited.has(current)) {
-      visited.add(current);
+    if (!visited.has(child)) {
+      visited.add(child);
+      
+      // Record for GSAP
+      animateNodes.push(child);
+      if (parent !== null) {
+        animateEdges.push({ source: parent, target: child });
+      }
 
-      frames.push({
-        nodes: nodes.map((n) => ({
-          id: n,
-          state: visited.has(n) ? "visited" : n === current ? "active" : "unvisited",
-        })),
-        edges: [],
-        stack: [...stack],
-        description: `Processing node ${current}`,
-      });
+      if (child === targetId) break;
 
-      // Simulate neighbors
-      const neighbors = getNeighbors(current, nodes).reverse();
-      for (const neighbor of neighbors) {
-        if (!visited.has(neighbor)) {
-          stack.push(neighbor);
+      const nei = adj.get(child) || [];
+      // Loop backwards to traverse left-to-right visually
+      for (let i = nei.length - 1; i >= 0; i--) {
+        const edge = nei[i];
+        if (!visited.has(edge.target)) {
+          stack.push({ child: edge.target, parent: child });
         }
       }
     }
   }
 
-  return frames;
-};
+  return { animateNodes, animateEdges };
+}
 
-// Helper function
-const getNeighbors = (node: number, nodes: number[]): number[] => {
-  // Simple demo: each node connects to next 1-2 nodes
-  const neighbors: number[] = [];
-  if (node + 1 < nodes.length) neighbors.push(node + 1);
-  if (node + 2 < nodes.length && Math.random() > 0.5) neighbors.push(node + 2);
-  return neighbors;
-};
+
+
+// ... other imports
+
+
+function runDijstras(adj: Map<number, AdjEdge[]>, startId: number, targetId?: number) {
+  const animateNodes: number[] = [];
+  const animateEdges: { source: number; target: number }[] = [];
+  
+  const dist = new Map<number, number>();
+  // NEW: Keep track of the best parent for the final path reconstruction
+  const parentMap = new Map<number, number | null>(); 
+
+  adj.forEach((_, key) => dist.set(key, Infinity));
+  dist.set(startId, 0);
+  parentMap.set(startId, null);
+
+  const visited = new Set<number>();
+  
+  const pq = new MinPriorityQueue<{ curr: number; cost: number; parent: number | null }>((item) => item.cost);
+  pq.enqueue({ curr: startId, cost: 0, parent: null });
+
+  while (!pq.isEmpty()) {
+    const { curr, cost, parent } = pq.dequeue();
+
+    if (visited.has(curr)) continue;
+    
+    visited.add(curr);
+    
+    // Record exploration for GSAP
+    animateNodes.push(curr);
+    if (parent !== null) {
+      animateEdges.push({ source: parent, target: curr });
+    }
+
+    if (curr === targetId) break;
+
+    const nei = adj.get(curr) || [];
+    for (const edge of nei) {
+      if (!visited.has(edge.target)) {
+        const newCost = cost + edge.weight;
+        
+        if (newCost < (dist.get(edge.target) || Infinity)) {
+          dist.set(edge.target, newCost);
+          parentMap.set(edge.target, curr); // Record the path!
+          pq.enqueue({ curr: edge.target, cost: newCost, parent: curr });
+        }
+      }
+    }
+  }
+
+  // NEW: Reconstruct the Shortest Path!
+  const shortestPathNodes: number[] = [];
+  const shortestPathEdges: { source: number; target: number }[] = [];
+
+  // If a target was provided and we successfully reached it
+  if (targetId !== undefined && visited.has(targetId)) {
+    let current: number | null | undefined = targetId;
+    
+    while (current !== null && current !== undefined) {
+      shortestPathNodes.push(current);
+      const p = parentMap.get(current);
+      if (p !== null && p !== undefined) {
+        shortestPathEdges.push({ source: p, target: current });
+      }
+      current = p;
+    }
+    
+    // Reverse them because we traced backwards from target to start
+    shortestPathNodes.reverse();
+    shortestPathEdges.reverse();
+  }
+
+  // Return the new path arrays to GSAP
+  return { animateNodes, animateEdges, shortestPathNodes, shortestPathEdges };
+}
+
+
+function runKruskals(adj:Map<number,AdjEdge[]>,startId:number,targetId?:number){
+
+
+
+
+  const animateNodes:number[] = []
+  const animateEdges:{source:number,target:number}[] = [];
+  const visited = new Set<number>();
+
+  const stack:{curr:number,parent:number | null}[] = [
+    {curr:startId,parent:null}
+  ]
+
+
+  while(stack.length > 0){
+    const {curr,parent} = stack.pop();
+
+
+
+    if(!visited.has(curr)){
+      visited.add(curr)
+      animateNodes.push(curr)
+    }
+
+    if(parent !== null){
+      animateEdges.push({source:parent,target:curr});
+    }
+
+
+    if(curr == targetId){
+      break
+    }
+
+    const nei = adj.get(curr) || []
+
+
+    for(let i = nei.length-1; i >= 0 ; i--){
+      const edge = nei[i]
+      if(!visited.has(edge.target)){
+        stack.push({curr:edge.target,parent:curr})
+      }
+    }
+
+  }
+
+
+
+  return {animateNodes,animateEdges}
+
+}
+function runPrims(adj:Map<number,AdjEdge[]>,startId:number,targetId?:number){
+
+
+
+
+  const animateNodes:number[] = []
+  const animateEdges:{source:number,target:number}[] = [];
+  const visited = new Set<number>();
+
+  const stack:{curr:number,parent:number | null}[] = [
+    {curr:startId,parent:null}
+  ]
+
+
+  while(stack.length > 0){
+    const {curr,parent} = stack.pop();
+
+
+
+    if(!visited.has(curr)){
+      visited.add(curr)
+      animateNodes.push(curr)
+    }
+
+    if(parent !== null){
+      animateEdges.push({source:parent,target:curr});
+    }
+
+
+    if(curr == targetId){
+      break
+    }
+
+    const nei = adj.get(curr) || []
+
+
+    for(let i = nei.length-1; i >= 0 ; i--){
+      const edge = nei[i]
+      if(!visited.has(edge.target)){
+        stack.push({curr:edge.target,parent:curr})
+      }
+    }
+
+  }
+
+
+
+  return {animateNodes,animateEdges}
+
+}
+
+
+
+
+export {buildAdjList,runBFS,runDFS,runDijstras,runKruskals,runPrims}
