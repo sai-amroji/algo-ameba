@@ -16,6 +16,10 @@ import algorithms from "./graphConfig";
 import { runBFS, runDFS, runDijstras, buildAdjList } from "./graphAlgorithms";
 const EDGE_BASE_COLOR = "#64748b"; // slate-500: visible on light and dark backgrounds
 
+// Resolve a CSS custom property value at call-time (respects current theme)
+const getCSSVar = (varName: string) =>
+  getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+
 
 const GraphPage = () => {
   // --- 1. State Management ---
@@ -77,14 +81,13 @@ const GraphPage = () => {
     const tl = gsap.timeline();
 
     // 1. Reset everything to default colors
-    tl.to("circle", { fill: "#3b82f6", duration: 0.2 });
+    tl.to("circle", { fill: getCSSVar("--node"), duration: 0.2 });
     tl.to("line", { stroke: EDGE_BASE_COLOR, strokeWidth: 2, duration: 0.2 }, "<");
 
     // 2. Highlight Start Node
-    tl.to(`#node-${animateNodes[0]}`, { fill: "#eab308", duration: 0.2 });
+    tl.to(`#node-${animateNodes[0]}`, { fill: getCSSVar("--compare"), duration: 0.2 });
 
     // 3. EXPLORATION PHASE
-    // Let's make exploration slightly faster so we get to the answer quicker
     for (let i = 0; i < animateEdges.length; i++) {
       const edge = animateEdges[i];
       const nextNode = animateNodes[i + 1];
@@ -92,41 +95,36 @@ const GraphPage = () => {
       tl.to(`#edge-${edge.source}-${edge.target}, #edge-${edge.target}-${edge.source}`, {
         stroke: EDGE_BASE_COLOR,
         strokeWidth: 3,
-        duration: 0.15 // Faster!
+        duration: 0.15
       });
 
       tl.to(`#node-${nextNode}`, {
-        fill: "#22c55e", // Green for visited nodes
+        fill: getCSSVar("--node-visited"),
         duration: 0.15,
         ease: "power1.inOut"
       });
     }
 
     // 4. SHORTEST PATH PHASE (DIJKSTRA ONLY)
-    // If the algorithm returned a shortest path, draw it boldly!
     if (shortestPathEdges && shortestPathEdges.length > 0) {
-      
-      // Pause for half a second for dramatic effect before revealing the path
       tl.to({}, { duration: 0.5 });
 
       for (let i = 0; i < shortestPathEdges.length; i++) {
         const edge = shortestPathEdges[i];
         const nextNode = shortestPathNodes[i + 1];
 
-        // Draw the shortest path edge thick and red
         tl.to(`#edge-${edge.source}-${edge.target}, #edge-${edge.target}-${edge.source}`, {
-          stroke: "#ef4444", // Red-500
+          stroke: getCSSVar("--node-active"),
           strokeWidth: 6,
           duration: 0.3
         });
 
-        // Color the path nodes red (but don't overwrite the yellow start node)
         if (nextNode !== animateNodes[0]) {
           tl.to(`#node-${nextNode}`, {
-            fill: "#ef4444", // Red-500
+            fill: getCSSVar("--node-active"),
             duration: 0.3,
             ease: "back.out(1.5)"
-          }, "<"); // Run at the same time as the edge animation
+          }, "<");
         }
       }
     }
@@ -145,9 +143,8 @@ const GraphPage = () => {
 
     const tl = gsap.timeline();
 
-
     tl.to("circle",{
-      fill:"blue",
+      fill: getCSSVar("--node"),
       duration:0.2
     })
     tl.to("line",{
@@ -156,28 +153,23 @@ const GraphPage = () => {
       duration:0.2
     },"<")
 
-
-
     tl.to(`#node-${animateNodes[0]}`,{
-        fill:"yellow",
+        fill: getCSSVar("--compare"),
         duration:0.2
     })
-
 
     for(let i = 0 ; i < animateEdges.length ; i++){
       const edge = animateEdges[i];
       const nextNode = animateNodes[i+1];
 
       tl.to(`#edge-${edge.source}-${edge.target}, #edge-${edge.target}-${edge.source}`,{
-        stroke:"green",
+        stroke: getCSSVar("--node-visited"),
         strokeWidth:4,
-        drawSVG:"0% 100%",
         duration:0.4
       })
 
-
       tl.to(`#node-${nextNode}`,{
-        fill:"green",
+        fill: getCSSVar("--node-visited"),
         duration:0.4,
         ease:"back.out(1.5)"
       })
@@ -276,8 +268,8 @@ const GraphPage = () => {
       .append("circle")
       .attr("id",(d:any) => `node-${d.id}`)
       .attr("r", 25)
-      .attr("fill", "#3b82f6")
-      .attr("stroke", "#000")
+      .attr("fill", getCSSVar("--node"))
+      .attr("stroke", getCSSVar("--node-stroke"))
       .attr("stroke-width", 2);
 
     node
@@ -285,7 +277,7 @@ const GraphPage = () => {
       .text((d: any) => d.label)
       .attr("text-anchor", "middle")
       .attr("dy", ".35em")
-      .attr("fill", "#fff")
+      .attr("fill", getCSSVar("--text"))
       .attr("font-size", "14px")
       .attr("font-family", "monospace");
 
@@ -298,7 +290,7 @@ const GraphPage = () => {
       .append("text")
       .text((d: any) => (isWeighted ? d.weight : ""))
       .attr("font-size", "12px")
-      .attr("fill", "white");
+      .attr("fill", getCSSVar("--foreground"));
 
     simulation.on("tick", () => {
       link
@@ -437,14 +429,14 @@ const GraphPage = () => {
         {/* Algorithm Selector */}
         <div className="right-section flex justify-center items-center gap-4">
           <Select value={algo} onValueChange={setAlgo}>
-            <SelectTrigger className="w-56 h-9 transition-colors font-mono text-sm">
+            <SelectTrigger className="w-56 select-trigger">
               <SelectValue placeholder="Select type" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="select-content">
               <SelectGroup>
-                <SelectLabel className="font-mono text-xs">Algorithms</SelectLabel>
+                <SelectLabel>Graph Algorithm</SelectLabel>
                 {Object.keys(algorithms).map((a) => (
-                  <SelectItem key={a} value={a} className="capitalize font-mono text-sm">
+                  <SelectItem key={a} value={a}>
                     {a}
                   </SelectItem>
                 ))}

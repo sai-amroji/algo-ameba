@@ -25,29 +25,29 @@ const Navbar = ({
   setSelectedAlgo,
 }: NavbarProps) => {
   return (
-    <nav className="flex w-full flex-row justify-between p-3">
+    <nav className="flex w-full flex-row justify-between p-3 bg-nav">
       <div className="flex items-center gap-2">
         <Input
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
-          className="max-w-[400px]"
+          className="max-w-[400px] input"
           placeholder="Enter number"
         />
         <button
           onClick={handleInsert}
-          className="bg-green-300 px-4 py-1 rounded-sm"
+          className="btn-primary"
         >
           Insert
         </button>
       </div>
 
       <Select value={selectedAlgo} onValueChange={setSelectedAlgo}>
-        <SelectTrigger className="w-[180px]">
+        <SelectTrigger className="w-[180px] select-trigger">
           <SelectValue placeholder="Select Sorting" />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="select-content">
           <SelectGroup>
-            <SelectLabel>Choose Sorting algo</SelectLabel>
+            <SelectLabel>Sorting</SelectLabel>
             <SelectItem value="Bubble Sort">Bubble Sort</SelectItem>
             <SelectItem value="Insertion Sort">Insertion Sort</SelectItem>
             <SelectItem value="Selection Sort">Selection Sort</SelectItem>

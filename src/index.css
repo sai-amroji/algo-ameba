@@ -131,7 +131,7 @@ body {
     --canvas-bg: var(--background);
     --canvas-border: transparent;
 
-    /* Algorithm Visualization Colors */
+    /* Algorithm Visualization Colors — SVG / D3 nodes */
     --node: #3b82f6;
     --node-stroke: #2563eb;
     --node-glow: rgba(59, 130, 246, 0.4);
@@ -142,7 +142,58 @@ body {
     --node-active-glow: rgba(239, 68, 68, 0.4);
     --edge: #94a3b8;
     --compare: #f97316;
-    --text: #0f172a;
+    --text: #ffffff;       /* SVG node label text — stays white over colored circles */
+
+    /* ── Visualization element tokens (HTML nodes / bars) ── */
+    /* Default bar / queue item / stack item */
+    --viz-item-bg:        #2563eb;   /* rich blue — readable on both backgrounds */
+    --viz-item-text:      #ffffff;
+    --viz-item-border:    #1d4ed8;
+
+    /* Sorting bar states */
+    --viz-bar-default-bg:    #2563eb;
+    --viz-bar-default-text:  #ffffff;
+    /* pivot: the bar being held as reference (selection min, insertion key) */
+    --viz-bar-checking-bg:   #ef4444;   /* red */
+    --viz-bar-checking-text: #ffffff;
+    /* comparing: bar being measured against pivot */
+    --viz-bar-comparing-bg:  #f59e0b;   /* amber */
+    --viz-bar-comparing-text:#000000;
+    /* swapping: two bars are actively exchanging positions */
+    --viz-bar-swapping-bg:   #f43f5e;   /* rose */
+    --viz-bar-swapping-text: #ffffff;
+    --viz-bar-splitting-bg:  #8b5cf6;   /* violet */
+    --viz-bar-splitting-text:#ffffff;
+    --viz-bar-merging-bg:    #f97316;   /* orange */
+    --viz-bar-merging-text:  #ffffff;
+    /* placed: bar was chosen in merge comparison and written to output */
+    --viz-bar-placed-bg:     #06b6d4;   /* cyan */
+    --viz-bar-placed-text:   #ffffff;
+    --viz-bar-sorted-bg:     #00ff11;   /* brand green */
+    --viz-bar-sorted-text:   #000000;
+
+    /* Search bar states */
+    --viz-search-default-bg:   #2563eb;
+    --viz-search-default-text: #ffffff;
+    --viz-search-checking-bg:  #f59e0b;
+    --viz-search-checking-text:#000000;
+    --viz-search-found-bg:     #00ff11;
+    --viz-search-found-text:   #000000;
+    --viz-search-discard-bg:   #64748b;
+    --viz-search-discard-text: #ffffff;
+
+    /* Canvas backgrounds for visualizer areas */
+    --viz-canvas-bg:      #e8edf5;   /* slightly off-white in light mode */
+    --viz-canvas-border:  #cbd5e1;
+
+    /* HEAD / pointer box (linked list) */
+    --viz-ptr-bg:         #bfdbfe;   /* blue-200 in light */
+    --viz-ptr-text:       #1e3a5f;
+
+    /* Linked-list node */
+    --viz-ll-node-bg:     #2563eb;
+    --viz-ll-node-text:   #ffffff;
+    --viz-ll-divider:     rgba(0,0,0,0.2);
 
     --input-bg: #f1f5f9;
     --input-border: #cbd5e1;
@@ -152,6 +203,8 @@ body {
     --select-bg: #f1f5f9;
     --select-border: #cbd5e1;
     --select-fg: #0f172a;
+    --select-hover: #e5e7eb;
+    --select-hover-bg: #e5e7eb;
     --select-hover-border: #94a3b8;
 
     /* Generate / Neutral: Purple */
@@ -175,7 +228,7 @@ body {
     --btn-danger-hover-bg: #dc2626;
 
     --muted-text: #64748b;
-    --empty-text: #475569;
+    --empty-text: #64748b;
     --accent-text: #2563eb;
 }
 
@@ -223,7 +276,7 @@ body {
     --canvas-bg: var(--background);
     --canvas-border: transparent;
 
-    /* Algorithm Visualization Colors */
+    /* Algorithm Visualization Colors — SVG / D3 nodes */
     --node: #5506d4;
     --node-stroke: #0891b2;
     --node-glow: rgba(6, 182, 212, 0.4);
@@ -234,7 +287,53 @@ body {
     --node-active-glow: rgba(239, 68, 68, 0.4);
     --edge: #a78bfa;
     --compare: #f97316;
-    --text: #f8fafc;
+    --text: #ffffff;       /* SVG node label text — white over dark circles */
+
+    /* ── Visualization element tokens (HTML nodes / bars) ── */
+    --viz-item-bg:        #3b82f6;   /* brighter blue on dark bg */
+    --viz-item-text:      #ffffff;
+    --viz-item-border:    #6366f1;
+
+    /* Sorting bar states */
+    --viz-bar-default-bg:    #1d4ed8;
+    --viz-bar-default-text:  #ffffff;
+    --viz-bar-checking-bg:   #ef4444;
+    --viz-bar-checking-text: #ffffff;
+    --viz-bar-comparing-bg:  #f59e0b;
+    --viz-bar-comparing-text:#000000;
+    --viz-bar-swapping-bg:   #fb7185;   /* rose — swap in progress */
+    --viz-bar-swapping-text: #ffffff;
+    --viz-bar-splitting-bg:  #8b5cf6;
+    --viz-bar-splitting-text:#ffffff;
+    --viz-bar-merging-bg:    #f97316;
+    --viz-bar-merging-text:  #ffffff;
+    --viz-bar-placed-bg:     #22d3ee;   /* cyan — element placed in merge output */
+    --viz-bar-placed-text:   #000000;
+    --viz-bar-sorted-bg:     #00ff11;
+    --viz-bar-sorted-text:   #000000;
+
+    /* Search bar states */
+    --viz-search-default-bg:   #1d4ed8;
+    --viz-search-default-text: #ffffff;
+    --viz-search-checking-bg:  #f59e0b;
+    --viz-search-checking-text:#000000;
+    --viz-search-found-bg:     #00ff11;
+    --viz-search-found-text:   #000000;
+    --viz-search-discard-bg:   #475569;
+    --viz-search-discard-text: #94a3b8;
+
+    /* Canvas backgrounds for visualizer areas */
+    --viz-canvas-bg:      #0a0f1e;   /* near-black in dark mode */
+    --viz-canvas-border:  #1e293b;
+
+    /* HEAD / pointer box (linked list) */
+    --viz-ptr-bg:         #1e3a5f;   /* dark blue in dark mode */
+    --viz-ptr-text:       #bfdbfe;
+
+    /* Linked-list node */
+    --viz-ll-node-bg:     #1d4ed8;
+    --viz-ll-node-text:   #ffffff;
+    --viz-ll-divider:     rgba(255,255,255,0.15);
 
     --input-bg: #1e293b;
     --input-border: #334155;
@@ -244,6 +343,8 @@ body {
     --select-bg: #1e293b;
     --select-border: #334155;
     --select-fg: #f8fafc;
+    --select-hover: #334155;
+    --select-hover-bg: #334155;
     --select-hover-border: #475569;
 
     /* Generate / Neutral: Purple */
@@ -266,8 +367,8 @@ body {
     --btn-danger-fg: #ffffff;
     --btn-danger-hover-bg: #dc2626;
 
-    --muted-text: #64748b;
-    --empty-text: #475569;
+    --muted-text: #94a3b8;
+    --empty-text: #64748b;
     --accent-text: #22d3ee;
 }
 
@@ -457,12 +558,65 @@ body {
 
     .page {
       @apply flex flex-col justify-center items-center h-full w-full mt-5;
-      background-color: var(--bg-background);  
+      background-color: var(--background);
     }
 
     .container {
-       @apply flex flex-col w-full h-full justify-center items-center 
+       @apply flex flex-col w-full h-full justify-center items-center
     }
+
+    /* ── Visualization canvas (SVG / HTML drawing areas) ── */
+    .viz-canvas {
+        background-color: var(--viz-canvas-bg);
+        border-color: var(--viz-canvas-border);
+    }
+
+    /* ── Queue / Stack item card ── */
+    .viz-item {
+        background-color: var(--viz-item-bg);
+        color: var(--viz-item-text);
+        border-color: var(--viz-item-border);
+    }
+
+    /* ── Linked-list node box ── */
+    .viz-ll-node {
+        background-color: var(--viz-ll-node-bg);
+        color: var(--viz-ll-node-text);
+    }
+    .viz-ll-divider {
+        background-color: var(--viz-ll-divider);
+    }
+
+    /* ── Linked-list HEAD pointer ── */
+    .viz-ptr {
+        background-color: var(--viz-ptr-bg);
+        color: var(--viz-ptr-text);
+    }
+
+    /* ── Sort bar states ── */
+    .viz-bar          { background-color: var(--viz-bar-default-bg);   color: var(--viz-bar-default-text);   }
+    .viz-bar-checking { background-color: var(--viz-bar-checking-bg);  color: var(--viz-bar-checking-text);  }
+    .viz-bar-comparing{ background-color: var(--viz-bar-comparing-bg); color: var(--viz-bar-comparing-text); }
+    /* rose flash — two bars are physically swapping positions */
+    .viz-bar-swapping { background-color: var(--viz-bar-swapping-bg);  color: var(--viz-bar-swapping-text);
+                        box-shadow: 0 0 0 2px var(--viz-bar-swapping-bg), 0 0 12px rgba(244,63,94,0.45); }
+    .viz-bar-splitting{ background-color: var(--viz-bar-splitting-bg); color: var(--viz-bar-splitting-text); }
+    .viz-bar-merging  { background-color: var(--viz-bar-merging-bg);   color: var(--viz-bar-merging-text);   }
+    /* cyan flash — element was chosen in merge compare and written to output */
+    .viz-bar-placed   { background-color: var(--viz-bar-placed-bg);    color: var(--viz-bar-placed-text);
+                        box-shadow: 0 0 0 2px var(--viz-bar-placed-bg), 0 0 12px rgba(6,182,212,0.45); }
+    /* hollow ghost — value was taken from this slot; it is now empty */
+    .viz-bar-consumed { opacity: 0.18;
+                        background-color: transparent;
+                        border: 2px dashed var(--viz-bar-default-bg) !important;
+                        color: transparent; }
+    .viz-bar-sorted   { background-color: var(--viz-bar-sorted-bg);    color: var(--viz-bar-sorted-text);    }
+
+    /* ── Search bar states ── */
+    .viz-search        { background-color: var(--viz-search-default-bg); color: var(--viz-search-default-text); }
+    .viz-search-check  { background-color: var(--viz-search-checking-bg); color: var(--viz-search-checking-text); }
+    .viz-search-found  { background-color: var(--viz-search-found-bg);   color: var(--viz-search-found-text);   }
+    .viz-search-discard{ background-color: var(--viz-search-discard-bg); color: var(--viz-search-discard-text); opacity: 0.5; }
 }
 
 @keyframes page-fade-up {

@@ -12,7 +12,12 @@ export type SearchFrame = {
   duration: number;
   activeIds?: string[];
   discardedIds?: string[];
+  // Binary search: which side was just eliminated
+  leftDiscardedIds?: string[];  // fly to -x
+  rightDiscardedIds?: string[]; // fly to +x
   focusId?: string;
+  isFinalFound?: boolean;  // triggers celebration animation
+  isNotFound?: boolean;    // triggers all-grey ending
 };
 
 export type SearchRunResult = {
@@ -30,7 +35,7 @@ const linearSearch = (bars: SearchBar[], target: number): SearchRunResult => {
     const current = bars[index];
     frames.push({
       states: { [current.id]: "checking" },
-      duration: 0.35,
+      duration: 0.8, // enough for the highlight to be seen clearly
       activeIds: [current.id],
       discardedIds: bars.filter((bar) => bar.id !== current.id).map((bar) => bar.id),
       focusId: current.id,
@@ -45,7 +50,7 @@ const linearSearch = (bars: SearchBar[], target: number): SearchRunResult => {
   if (foundId) {
     frames.push({
       states: { [foundId]: "found" },
-      duration: 0.2,
+      duration: 1.2,
       activeIds: [foundId],
       discardedIds: bars.filter((bar) => bar.id !== foundId).map((bar) => bar.id),
       focusId: foundId,
@@ -53,7 +58,7 @@ const linearSearch = (bars: SearchBar[], target: number): SearchRunResult => {
   } else {
     frames.push({
       states: {},
-      duration: 0.2,
+      duration: 0.8,
       activeIds: [],
       discardedIds: bars.map((bar) => bar.id),
     });
@@ -74,26 +79,29 @@ const binarySearch = (bars: SearchBar[], target: number): SearchRunResult => {
   let high = sortedBars.length - 1;
   let foundId: string | undefined;
 
+  // Accumulate eliminated IDs with their side so every frame carries full history
+  const eliminatedLeft  = new Set<string>(); // bars eliminated from the left side (fly -x)
+  const eliminatedRight = new Set<string>(); // bars eliminated from the right side (fly +x)
+
   while (low <= high) {
     const mid = Math.floor((low + high) / 2);
-    const activeIds = sortedBars.slice(low, high + 1).map((bar) => bar.id);
-    const discardedIds = sortedBars
-      .filter((_, index) => index < low || index > high)
+    const activeIds     = sortedBars.slice(low, high + 1).map((bar) => bar.id);
+    const discardedIds  = sortedBars
+      .filter((_, i) => i < low || i > high)
       .map((bar) => bar.id);
-    const states: Record<string, SearchBarState> = {};
 
-    activeIds.forEach((id) => {
-      states[id] = "checking";
-    });
-    discardedIds.forEach((id) => {
-      states[id] = "discarded";
-    });
+    const states: Record<string, SearchBarState> = {};
+    activeIds.forEach((id)    => { states[id] = "checking";  });
+    discardedIds.forEach((id) => { states[id] = "discarded"; });
 
     frames.push({
       states,
-      duration: 0.35,
+      // 1.8s hold — animation itself takes ~1.1s, this gives ~0.7s of breath before next frame
+      duration: 1.8,
       activeIds,
       discardedIds,
+      leftDiscardedIds:  [...eliminatedLeft],
+      rightDiscardedIds: [...eliminatedRight],
       focusId: sortedBars[mid].id,
     });
 
@@ -103,8 +111,12 @@ const binarySearch = (bars: SearchBar[], target: number): SearchRunResult => {
     }
 
     if (sortedBars[mid].value < target) {
+      // Left half (low..mid) is now useless — slide them left (-x)
+      for (let i = low; i <= mid; i++) eliminatedLeft.add(sortedBars[i].id);
       low = mid + 1;
     } else {
+      // Right half (mid..high) is now useless — slide them right (+x)
+      for (let i = mid; i <= high; i++) eliminatedRight.add(sortedBars[i].id);
       high = mid - 1;
     }
   }
@@ -116,17 +128,24 @@ const binarySearch = (bars: SearchBar[], target: number): SearchRunResult => {
         ...Object.fromEntries(discardedIds.map((id) => [id, "discarded" as const])),
         [foundId]: "found",
       },
-      duration: 0.2,
+      // 2.5s — celebration animation (bars return + found rises) needs this room
+      duration: 2.5,
       activeIds: [foundId],
       discardedIds,
+      leftDiscardedIds:  [...eliminatedLeft],
+      rightDiscardedIds: [...eliminatedRight],
       focusId: foundId,
+      isFinalFound: true,
     });
   } else {
     frames.push({
       states: Object.fromEntries(sortedBars.map((bar) => [bar.id, "discarded" as const])),
-      duration: 0.2,
+      duration: 1.5,
       activeIds: [],
       discardedIds: sortedBars.map((bar) => bar.id),
+      leftDiscardedIds:  [...eliminatedLeft],
+      rightDiscardedIds: [...eliminatedRight],
+      isNotFound: true,
     });
   }
 

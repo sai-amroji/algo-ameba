@@ -708,13 +708,16 @@ const Homepage = () => {
           onMouseLeave={resetSearchLetters}
           className="flex flex-col w-full justify-center items-center m-5 p-5 bg-slate-900 rounded-lg hover:border-green-500 hover:border-2 transition-easeIn"
         >
-          <div className="flex p-1 m-2 flex-row align-center content-center justify-center gap-2 items-center border-2 rounded-sm border-wh w-full h-[75px]">
-            <div data-char="S" className="search-letter flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center h-full w-full px-10 text-white font-bold">S</div>
-            <div data-char="E" className="search-letter flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center h-full w-full px-10 text-white font-bold">E</div>
-            <div data-char="A" className="search-letter flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center h-full w-full px-10 text-white font-bold">A</div>
-            <div data-char="R" className="search-letter flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center h-full w-full px-10 text-white font-bold">R</div>
-            <div data-char="C" className="search-letter flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center h-full w-full px-10 text-white font-bold">C</div>
-            <div data-char="H" className="search-letter flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center h-full w-full px-10 text-white font-bold">H</div>
+          <div className="flex p-1 m-2 flex-row align-center content-center justify-center gap-2 items-stretch border-2 rounded-sm border-wh w-full min-h-[90px]">
+            {["S","E","A","R","C","H"].map((char) => (
+              <div
+                key={char}
+                data-char={char}
+                className="search-letter flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center flex-1 py-5 text-white font-bold text-lg"
+              >
+                {char}
+              </div>
+            ))}
           </div>
           <div className="self-start mt-2 w-full p-2">
             <h1 className="flex justify-start text-white font-bold text-2xl p-2 rounded cursor-pointer hover:underline" onClick={() => navigate('/search')}>Search</h1>
@@ -723,21 +726,26 @@ const Homepage = () => {
 
 
         {/* Stack & Sorting Container */}
-        <div className="flex flex-row w-full gap-10 items-stretch md:flex-col md:justify-center ">
+        {/* flex-row always — items fill equal width side by side on all screen sizes */}
+        <div className="flex flex-row w-full gap-6 items-stretch">
           <div
             ref={stackCardRef}
             onMouseEnter={playStackHover}
             onMouseLeave={resetStackHover}
-            className="flex-1 flex flex-col justify-between items-center p-5 bg-slate-900 rounded-lg min-h-[500px] hover:border-green-500 hover:border-2 transition-easeIn"
+            className="flex-1 flex flex-col justify-between items-center p-5 bg-slate-900 rounded-lg min-h-[340px] hover:border-green-500 hover:border-2 transition-easeIn"
           >
-            <div className="flex p-1 m-2 flex-col rounded-sm justify-center items-center border-2 border-y-0 border-b-2 border-black h-full w-[300px]">
-              <div className="stack-item flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center mb-1 h-full w-full px-10 text-white font-bold">S</div>
-              <div className="stack-item flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center mb-1 h-full w-full px-10 text-white font-bold">T</div>
-              <div className="stack-item flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center mb-1 h-full w-full px-10 text-white font-bold">A</div>
-              <div className="stack-item flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center mb-1 h-full w-full px-10 text-white font-bold">C</div>
-              <div className="stack-item flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center mb-1 h-full w-full px-10 text-white font-bold">K</div>
+            {/* Stack items: fixed width + explicit height so they never squash */}
+            <div className="flex flex-col gap-2 justify-center items-center w-full flex-1 py-2">
+              {["S","T","A","C","K"].map((char) => (
+                <div
+                  key={char}
+                  className="stack-item w-full max-w-[240px] h-14 rounded-sm bg-blue-700 border-2 border-black flex justify-center items-center text-white font-bold text-xl"
+                >
+                  {char}
+                </div>
+              ))}
             </div>
-            <div className="self-start mt-2 w-full p-2">
+            <div className="self-start w-full p-2">
               <h1 className="flex justify-start text-white font-bold text-2xl p-2 rounded cursor-pointer hover:underline" onClick={() => navigate("/stack")}>Stack</h1>
             </div>
           </div>
@@ -746,21 +754,21 @@ const Homepage = () => {
             ref={sortCardRef}
             onMouseEnter={playSortingHover}
             onMouseLeave={resetSortingBars}
-            className="flex-1 flex flex-col justify-between items-center p-5 bg-slate-900 rounded-lg min-h-[500px] hover:border-green-500 hover:border-2 transition-easeIn"
+            className="flex-1 flex flex-col justify-between items-center p-5 bg-slate-900 rounded-lg min-h-[340px] hover:border-green-500 hover:border-2 transition-easeIn"
           >
-            <div className="flex py-1 my-2 flex-row rounded-lg items-end justify-center gap-2 border-0 w-full h-full">
+            <div className="flex flex-row rounded-lg items-end justify-center gap-2 w-full flex-1 py-2">
               {sortingBars.map((bar) => (
                 <div
                   key={bar.char}
                   data-base-height={bar.height}
-                  className="sorting-bar flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center w-[35px] text-white font-bold"
+                  className="sorting-bar flex rounded-sm bg-blue-700 border-2 border-black justify-center items-end pb-1 w-[35px] text-white font-bold text-xs"
                   style={{ height: `${bar.height}px` }}
                 >
                   {bar.char}
                 </div>
               ))}
             </div>
-            <div className="self-start mt-2 w-full p-2">
+            <div className="self-start w-full p-2">
               <h1 className="flex justify-start text-white font-bold text-2xl p-2 rounded cursor-pointer hover:underline" onClick={() => navigate("/sort")}>Sorting</h1>
             </div>
           </div>

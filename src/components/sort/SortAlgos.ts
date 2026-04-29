@@ -7,7 +7,7 @@ export type SortBar = {
 	value: number;
 };
 
-export type SortBarState = "default" | "checking" | "comparing" | "sorted" | "splitting" | "merging";
+export type SortBarState = "default" | "checking" | "comparing" | "swapping" | "sorted" | "splitting" | "merging" | "placed" | "consumed";
 
 export type SortFrame = {
 	bars: SortBar[];
@@ -60,8 +60,9 @@ export const buildBubbleSortFrames = (initialBars: SortBar[]): SortFrame[] => {
 				sortedIds.forEach((id) => {
 					swappedStates[id] = "sorted";
 				});
-				swappedStates[bars[j].id] = "checking";
-				swappedStates[bars[j + 1].id] = "checking";
+				// rose flash — bars are physically exchanging positions
+				swappedStates[bars[j].id] = "swapping";
+				swappedStates[bars[j + 1].id] = "swapping";
 				pushFrame(frames, bars, swappedStates, 0.35);
 			}
 		}
@@ -122,8 +123,9 @@ export const buildSelectionSortFrames = (initialBars: SortBar[]): SortFrame[] =>
 			sortedIds.forEach((id) => {
 				swappedStates[id] = "sorted";
 			});
-			swappedStates[bars[i].id] = "checking";
-			swappedStates[bars[minIndex].id] = "checking";
+			// rose flash — selected minimum is swapping into its position
+			swappedStates[bars[i].id] = "swapping";
+			swappedStates[bars[minIndex].id] = "swapping";
 			pushFrame(frames, bars, swappedStates, 0.35);
 		}
 
@@ -248,70 +250,98 @@ export const buildMergeSortFrames = (initialBars: SortBar[]): SortFrame[] => {
 		let rightIndex = 0;
 		let writeIndex = low;
 
-		while (leftIndex < left.length && rightIndex < right.length) {
-			const compareStates: Record<string, SortBarState> = {};
-			for (let index = low; index <= high; index++) {
-				compareStates[bars[index].id] = "merging";
-			}
-			compareStates[left[leftIndex].id] = "checking";
-			compareStates[right[rightIndex].id] = "comparing";
-			pushFrame(frames, bars, compareStates, 0.6, buildRangeOffsets(low, high, depth, "merge"));
+		// Track IDs whose values have been "taken" from their original position.
+		// These grow cumulatively so every subsequent frame shows them as empty.
+		const consumedIds = new Set<string>();
 
+		// Helper: build a full state map for the current range.
+		// consumed positions → hollow shell, placed/checking/comparing → overlaid after.
+		const rangeStates = (overrides: Record<string, SortBarState> = {}): Record<string, SortBarState> => {
+			const s: Record<string, SortBarState> = {};
+			for (let i = low; i <= high; i++) {
+				s[bars[i].id] = consumedIds.has(bars[i].id) ? "consumed" : "merging";
+			}
+			// Overrides applied last (placed, checking, comparing win over consumed/merging)
+			Object.assign(s, overrides);
+			return s;
+		};
+
+		while (leftIndex < left.length && rightIndex < right.length) {
+			// Show the two live candidates against the orange/consumed background
+			pushFrame(
+				frames, bars,
+				rangeStates({ [left[leftIndex].id]: "checking", [right[rightIndex].id]: "comparing" }),
+				0.6,
+				buildRangeOffsets(low, high, depth, "merge")
+			);
+
+			let placedId: string;
 			if (left[leftIndex].value <= right[rightIndex].value) {
+				placedId = left[leftIndex].id;
 				bars[writeIndex] = { ...left[leftIndex] };
+				// Original source position for left[leftIndex] = low + leftIndex
+				// Only mark consumed if it's a different slot from writeIndex
+				if (writeIndex !== low + leftIndex) consumedIds.add(placedId);
 				leftIndex++;
 			} else {
+				placedId = right[rightIndex].id;
 				bars[writeIndex] = { ...right[rightIndex] };
+				if (writeIndex !== mid + 1 + rightIndex) consumedIds.add(placedId);
 				rightIndex++;
 			}
 
-			const afterWriteStates: Record<string, SortBarState> = {};
-			for (let index = low; index <= high; index++) {
-				afterWriteStates[bars[index].id] = "merging";
-			}
-			afterWriteStates[bars[writeIndex].id] = "checking";
-			pushFrame(frames, bars, afterWriteStates, 0.56, buildRangeOffsets(low, high, depth, "merge"));
+			// Cyan flash at writeIndex; source slot fades via consumedIds
+			pushFrame(
+				frames, bars,
+				rangeStates({ [bars[writeIndex].id]: "placed" }),
+				0.45,
+				buildRangeOffsets(low, high, depth, "merge")
+			);
 
 			writeIndex++;
 		}
 
 		while (leftIndex < left.length) {
-			const mergeStates: Record<string, SortBarState> = {};
-			for (let index = low; index <= high; index++) {
-				mergeStates[bars[index].id] = "merging";
-			}
-			mergeStates[left[leftIndex].id] = "checking";
-			pushFrame(frames, bars, mergeStates, 0.54, buildRangeOffsets(low, high, depth, "merge"));
+			pushFrame(
+				frames, bars,
+				rangeStates({ [left[leftIndex].id]: "checking" }),
+				0.42,
+				buildRangeOffsets(low, high, depth, "merge")
+			);
 
+			const placedId = left[leftIndex].id;
 			bars[writeIndex] = { ...left[leftIndex] };
-			const afterWriteStates: Record<string, SortBarState> = {};
-			for (let index = low; index <= high; index++) {
-				afterWriteStates[bars[index].id] = "merging";
-			}
-			afterWriteStates[bars[writeIndex].id] = "checking";
-			pushFrame(frames, bars, afterWriteStates, 0.5, buildRangeOffsets(low, high, depth, "merge"));
-
+			if (writeIndex !== low + leftIndex) consumedIds.add(placedId);
 			leftIndex++;
+
+			pushFrame(
+				frames, bars,
+				rangeStates({ [bars[writeIndex].id]: "placed" }),
+				0.38,
+				buildRangeOffsets(low, high, depth, "merge")
+			);
 			writeIndex++;
 		}
 
 		while (rightIndex < right.length) {
-			const mergeStates: Record<string, SortBarState> = {};
-			for (let index = low; index <= high; index++) {
-				mergeStates[bars[index].id] = "merging";
-			}
-			mergeStates[right[rightIndex].id] = "checking";
-			pushFrame(frames, bars, mergeStates, 0.54, buildRangeOffsets(low, high, depth, "merge"));
+			pushFrame(
+				frames, bars,
+				rangeStates({ [right[rightIndex].id]: "checking" }),
+				0.42,
+				buildRangeOffsets(low, high, depth, "merge")
+			);
 
+			const placedId = right[rightIndex].id;
 			bars[writeIndex] = { ...right[rightIndex] };
-			const afterWriteStates: Record<string, SortBarState> = {};
-			for (let index = low; index <= high; index++) {
-				afterWriteStates[bars[index].id] = "merging";
-			}
-			afterWriteStates[bars[writeIndex].id] = "checking";
-			pushFrame(frames, bars, afterWriteStates, 0.5, buildRangeOffsets(low, high, depth, "merge"));
-
+			if (writeIndex !== mid + 1 + rightIndex) consumedIds.add(placedId);
 			rightIndex++;
+
+			pushFrame(
+				frames, bars,
+				rangeStates({ [bars[writeIndex].id]: "placed" }),
+				0.38,
+				buildRangeOffsets(low, high, depth, "merge")
+			);
 			writeIndex++;
 		}
 	};
@@ -370,8 +400,9 @@ export const buildInsertionSortFrames = (initialBars: SortBar[]): SortFrame[] =>
 			sortedIds.forEach((id) => {
 				swapStates[id] = "sorted";
 			});
-			swapStates[bars[j - 1].id] = "checking";
-			swapStates[bars[j].id] = "comparing";
+			// rose flash — key element shifting left into correct slot
+			swapStates[bars[j - 1].id] = "swapping";
+			swapStates[bars[j].id] = "swapping";
 			pushFrame(frames, bars, swapStates, 0.3);
 
 			j -= 1;

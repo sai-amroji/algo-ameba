@@ -305,7 +305,7 @@ const TreePage = () => {
         <div className="flex justify-between items-center">
           <div className="flex justify-start items-center gap-2 px-3 py-2 mx-2">
             <Input
-              className="input w-[400px]"
+              className="input w-[400px] md:w-[100px]"
               placeholder="Enter Number"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
@@ -341,19 +341,16 @@ const TreePage = () => {
 
           <div className="flex justify-center items-center gap-2">
             <Select value={algo} onValueChange={setAlgo}>
-              <SelectTrigger className="w-44 bg-algo-select-bg border-algo-select-border text-algo-select-fg h-9 hover:border-algo-border transition-colors font-mono text-sm">
+              <SelectTrigger className="w-44 select-trigger">
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
-              <SelectContent className="bg-algo-select-bg border-algo-select-border text-algo-select-fg">
+              <SelectContent className="select-content">
                 <SelectGroup>
-                  <SelectLabel className="text-algo-muted-text font-mono text-xs">
-                    Select Algorithm
-                  </SelectLabel>
+                  <SelectLabel>Tree Algorithm</SelectLabel>
                   {Object.keys(algorithms).map((a) => (
                     <SelectItem
                       key={a}
                       value={a}
-                      className="capitalize font-mono text-sm focus:bg-algo-panel-soft focus:text-algo-shell-fg"
                     >
                       {a}
                     </SelectItem>
@@ -376,19 +373,16 @@ const TreePage = () => {
                 }
               }}
             >
-              <SelectTrigger className="w-44 bg-algo-select-bg border-algo-select-border text-algo-select-fg h-9 hover:border-algo-border transition-colors font-mono text-sm">
+              <SelectTrigger className="w-44 select-trigger">
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
-              <SelectContent className="bg-algo-select-bg border-algo-select-border text-algo-select-fg">
+              <SelectContent className="select-content">
                 <SelectGroup>
-                  <SelectLabel className="text-algo-muted-text font-mono text-xs">
-                    Traversal Options
-                  </SelectLabel>
+                  <SelectLabel>Traversal</SelectLabel>
                   {Object.keys(traversalOptions).map((a) => (
                     <SelectItem
                       key={a}
                       value={a}
-                      className="capitalize font-mono text-sm focus:bg-algo-panel-soft focus:text-algo-shell-fg"
                     >
                       {a}
                     </SelectItem>
@@ -396,7 +390,7 @@ const TreePage = () => {
                 </SelectGroup>
               </SelectContent>
             </Select>
-            <button className="flex h-fit w-fit px-4 py-2 bg-blue-500 rounded-lg hover:bg-blue-600" onClick={onRun}>
+            <button className="btn-success flex h-fit w-fit px-4 py-2" onClick={onRun}>
               Run
             </button>
                 </div>
@@ -404,7 +398,7 @@ const TreePage = () => {
         </div>
       </div>
 
-      <div className="flex flex-1 min-h-0 flex-row justify-center items-center bg-slate-900 overflow-auto">
+      <div className="flex flex-1 min-h-0 flex-row justify-center items-center viz-canvas overflow-auto">
         <div className="flex flex-row tree-container justify-center items-center w-full min-h-full">
           <svg
             ref={containerRef}
@@ -420,7 +414,7 @@ const TreePage = () => {
                   key={edge.id}
                   d={edge.d}
                   id={`edge-${edge.id}`}
-                  stroke="#555"
+                  stroke="var(--edge)"
                   strokeWidth="2"
                   fill="none"
                 />
@@ -431,14 +425,14 @@ const TreePage = () => {
                   <circle
                     id={`node-${node.id}`}
                     r={20}
-                    fill="#4A90E2"
-                    stroke="#2c5a8e"
+                    fill="var(--node)"
+                    stroke="var(--node-stroke)"
                     strokeWidth="2"
                   />
                   <text
                     textAnchor="middle"
                     dy=".3em"
-                    fill="#fff"
+                    fill="var(--text)"
                     fontSize="13px"
                     fontFamily="sans-serif"
                     fontWeight="bold"

@@ -137,10 +137,10 @@ export const useSearchVizulizer = () => {
 
     const getBarColor = (id: string) => {
         switch (barStates[id]) {
-            case "checking": return "bg-yellow-500 text-black shadow-sm font-bold";
-            case "found": return "bg-brand text-black shadow-sm font-bold";
-            case "discarded": return "bg-gray-500 text-white opacity-50";
-            default: return "bg-blue-700 text-white flex items-center justify-center";
+            case "checking":  return "viz-search-check shadow-sm font-bold";
+            case "found":     return "viz-search-found shadow-sm font-bold";
+            case "discarded": return "viz-search-discard";
+            default:          return "viz-search flex items-center justify-center";
         }
     };
 

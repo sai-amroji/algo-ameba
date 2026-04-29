@@ -258,19 +258,16 @@ const HeapPage = () => {
 
           <div className="flex justify-center items-center gap-2">
             <Select value={algo} onValueChange={setAlgo}>
-              <SelectTrigger className="w-44 select-bg select-border select-fg h-9  transition-colors font-mono text-sm">
+              <SelectTrigger className="w-44 select-trigger">
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
-              <SelectContent className="select-bg select-border select-fg">
+              <SelectContent className="select-content">
                 <SelectGroup>
-                  <SelectLabel className="muted-text font-mono text-xs">
-                    Select Algorithm
-                  </SelectLabel>
+                  <SelectLabel>Heap Algorithm</SelectLabel>
                   {Object.keys(algorithms).map((a) => (
                     <SelectItem
                       key={a}
                       value={a}
-                      className="capitalize font-mono text-sm focus:panel-soft focus:shell-fg"
                     >
                       {a}
                     </SelectItem>
@@ -288,7 +285,7 @@ const HeapPage = () => {
         </div>
       </div>
 
-      <div className="flex flex-1 min-h-0 flex-row justify-center items-center overflow-auto">
+      <div className="flex flex-1 min-h-0 flex-row justify-center items-center viz-canvas overflow-auto">
         <div className="flex flex-row tree-container justify-center items-center w-full min-h-full">
           <svg
             ref={containerRef}

@@ -373,14 +373,14 @@ const LinkedListPage = () => {
         </div>
 
         <Select value={listType} onValueChange={(type) => switchListType(type as ListType)}>
-          <SelectTrigger className="w-[240px] bg-slate-900 border-slate-700 text-white h-9 hover:border-slate-500 transition-colors font-mono text-sm rounded-lg">
+          <SelectTrigger className="w-[240px] select-trigger">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent className="bg-slate-900 border-slate-700 text-white">
+          <SelectContent className="select-content">
             <SelectGroup>
-              <SelectLabel className="text-slate-500 font-mono text-xs">List Type</SelectLabel>
+              <SelectLabel>List Type</SelectLabel>
               {(Object.keys(listTypeConfig) as ListType[]).map((type) => (
-                <SelectItem key={type} value={type} className="capitalize font-mono text-sm focus:bg-slate-800 focus:text-white">
+                <SelectItem key={type} value={type}>
                   {getConfig(type).label}
                 </SelectItem>
               ))}
@@ -396,9 +396,9 @@ const LinkedListPage = () => {
         <div className="flex flex-col items-start mb-1">
           <div ref={headRef}
             className="flex flex-col items-center justify-center w-36 h-16
-              border-2 border-transparent rounded-xl bg-blue-200 font-mono text-black font-bold">
-            <span className="text-[9px] text-black/70 uppercase tracking-widest mb-0.5">HEAD</span>
-            <span className="text-black text-sm font-semibold">
+              border-2 border-transparent rounded-xl viz-ptr font-mono font-bold">
+            <span className="text-[9px] uppercase tracking-widest mb-0.5 opacity-60">HEAD</span>
+            <span className="text-sm font-semibold">
               {list.length > 0 ? list[0].addr : "NULL"}
             </span>
           </div>
@@ -436,7 +436,7 @@ const LinkedListPage = () => {
           style={{ minHeight: 90 }}>
 
           {list.length === 0 && (
-            <p className="text-slate-600 font-mono text-sm tracking-wider self-center">— empty —</p>
+            <p className="muted-text font-mono text-sm tracking-wider self-center">— empty —</p>
           )}
 
           {list.map((item, index) => {
@@ -450,7 +450,7 @@ const LinkedListPage = () => {
                 <div className="flex flex-col items-center">
                   <div
                     ref={(el) => { if (el) itemRefs.current.set(item.id, el); }}
-                    className="flex border-2 border-transparent rounded-xl bg-blue-600  text-white  text-black font-bold
+                    className="flex border-2 border-transparent rounded-xl viz-ll-node font-bold
                       items-center justify-around"
                     style={{ 
                       width: config.isDoubly ? "200px" : "144px",
@@ -463,13 +463,13 @@ const LinkedListPage = () => {
                         <span className="text-sm font-mono px-1">
                           {prevAddr !== undefined ? prevAddr : "NULL"}
                         </span>
-                        <div className="w-px h-8 bg-black/30" />
+                        <div className="w-px h-8 viz-ll-divider" />
                       </>
                     )}
                     
                     <span className="text-xl leading-none">{item.value}</span>
                     
-                    <div className="w-px h-8 bg-black/30" />
+                    <div className="w-px h-8 viz-ll-divider" />
                     
                     <span className="text-sm font-mono px-1">
                       {nextAddr !== undefined ? nextAddr : "NULL"}
@@ -477,8 +477,8 @@ const LinkedListPage = () => {
                   </div>
                   
                   {/* own address below node */}
-                  <span className="text-[11px] font-mono text-slate-500 mt-1">
-                    addr: <span className="text-slate-400">{item.addr}</span>
+                  <span className="text-[11px] font-mono muted-text mt-1">
+                    addr: {item.addr}
                   </span>
                 </div>
 
@@ -573,7 +573,7 @@ const LinkedListPage = () => {
         )}
 
         {/* Legend */}
-        <div className="flex gap-5 mt-8 text-[11px] font-mono text-slate-600">
+        <div className="flex gap-5 mt-8 text-[11px] font-mono muted-text">
           <span><span className="text-cyan-500">■</span> active</span>
           <span><span className="text-orange-500">■</span> traversing</span>
           <span><span className="text-red-500">■</span> deleting</span>

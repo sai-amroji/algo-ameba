@@ -99,10 +99,22 @@ const LandingPage = () => {
         });
       }
       const hoverIn = contextSafe(() =>
-        gsap.to(split.chars, { textShadow: "0 0 20px #00ff08, 0 0 45px #00ff0866", y: -6, duration: 0.3, ease: "power2.out", stagger: { each: 0.04, from: "start" } })
+        gsap.to(split.chars, {
+          y: -8,
+          color: "#22d3ee",
+          duration: 0.35,
+          ease: "power2.out",
+          stagger: { each: 0.04, from: "start" },
+        })
       );
       const hoverOut = contextSafe(() =>
-        gsap.to(split.chars, { textShadow: "none", y: 0, duration: 0.25, ease: "power2.in", stagger: { each: 0.03, from: "end" } })
+        gsap.to(split.chars, {
+          y: 0,
+          color: "",          // revert to CSS-inherited color
+          duration: 0.28,
+          ease: "power2.in",
+          stagger: { each: 0.03, from: "end" },
+        })
       );
       titleEl.addEventListener("mouseenter", hoverIn);
       titleEl.addEventListener("mouseleave", hoverOut);

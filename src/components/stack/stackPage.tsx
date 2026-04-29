@@ -180,14 +180,14 @@ const StackPage = () => {
         </div>
 
         <Select value={algo} onValueChange={handleAlgoChange}>
-          <SelectTrigger className="w-44 select-bg select-border select-fg h-9 hover:border transition-colors font-mono text-sm">
+          <SelectTrigger className="w-44 select-trigger">
             <SelectValue placeholder="Select type" />
           </SelectTrigger>
-          <SelectContent className="select-bg select-border select-fg">
+          <SelectContent className="select-content">
             <SelectGroup>
-              <SelectLabel className="muted-text font-mono text-xs">Stack Type</SelectLabel>
+              <SelectLabel>Stack</SelectLabel>
               {Object.keys(ALGO_OPTIONS).map((a) => (
-                <SelectItem key={a} value={a} className="capitalize font-mono text-sm focus:panel-soft focus:shell-fg">
+                <SelectItem key={a} value={a}>
                   {a}
                 </SelectItem>
               ))}
@@ -207,17 +207,17 @@ const StackPage = () => {
           <div
             ref={containerRef}
             className="w-72 flex flex-col items-center gap-2 min-h-[480px] max-h-[620px] overflow-y-auto
-              border-2 rounded-2xl canvas-bg px-4 py-5"
+              border-2 rounded-2xl viz-canvas px-4 py-5"
           >
             {stack.length === 0 && (
-              <p className="text-black font-mono text-sm tracking-widest mt-auto mb-auto">— empty —</p>
+              <p className="muted-text font-mono text-sm tracking-widest mt-auto mb-auto">— empty —</p>
             )}
 
             {stack.map((item, idx) => (
               <div
                 key={item.id}
                 ref={(el) => { if (el) itemRefs.current.set(item.id, el); }}
-                className="w-full flex items-center justify-between rounded-xl bg-blue-500 px-4 py-0 flex-shrink-0 border-2 border-transparent  shadow-sm"
+                className="w-full flex items-center justify-between rounded-xl viz-item px-4 py-0 flex-shrink-0 border-2 shadow-sm"
                 style={{
                   height: 52,
                   opacity: 0,

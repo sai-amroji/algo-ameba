@@ -227,14 +227,14 @@ const QueuePage = () => {
         </div>
 
         <Select value={selectedAlgo} onValueChange={handleAlgoChange}>
-          <SelectTrigger className="w-44 transition-colors font-mono text-sm">
+          <SelectTrigger className="w-44 select-trigger">
             <SelectValue placeholder="Select type" />
           </SelectTrigger>
-          <SelectContent className="">
+          <SelectContent className="select-content">
             <SelectGroup>
-              <SelectLabel className="muted-text font-mono text-xs">Queue Type</SelectLabel>
+              <SelectLabel>Queue</SelectLabel>
               {algos.map((a) => (
-                <SelectItem key={a} value={a} className="capitalize font-mono text-sm">
+                <SelectItem key={a} value={a}>
                   {a}
                 </SelectItem>
               ))}
@@ -256,7 +256,7 @@ const QueuePage = () => {
         <div
           ref={queueContainerRef}
           className="w-full max-w-5xl min-h-[120px] flex items-center gap-3 flex-nowrap overflow-x-auto
-            border-2 rounded-2xl canvas px-6 py-5"
+            border-2 rounded-2xl viz-canvas px-6 py-5"
         >
           {queue.length === 0 && (
             <p className="muted-text font-mono text-sm tracking-widest mx-auto">— empty —</p>
@@ -271,7 +271,7 @@ const QueuePage = () => {
             >
               {/* Card */}
               <div
-                className="w-20 h-16 rounded-xl bg-blue-500 flex flex-col items-center justify-center gap-0.5 border-2 border-transparent font-bold  shadow-sm"
+                className="w-20 h-16 rounded-xl viz-item flex flex-col items-center justify-center gap-0.5 border-2 font-bold shadow-sm"
                 style={{ transition: "background-color 0.15s, box-shadow 0.15s" }}
               >
                 <span className="text-xl leading-none">{item.value}</span>

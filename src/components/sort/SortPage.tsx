@@ -28,17 +28,26 @@ const algoMap = [
 const getBarColor = (state: SortBarState | undefined) => {
   switch (state) {
     case "checking":
-      return "bg-red-500 text-black shadow-sm border-2 border-transparent font-bold";
+      return "viz-bar-checking shadow-sm border-2 border-transparent font-bold";
     case "comparing":
-      return "bg-yellow-500 text-black shadow-sm border-2 border-transparent font-bold";
+      return "viz-bar-comparing shadow-sm border-2 border-transparent font-bold";
+    case "swapping":
+      // rose ring — two bars are physically exchanging positions
+      return "viz-bar-swapping border-2 border-transparent font-bold";
+    case "placed":
+      // cyan ring — element was chosen in merge and written to output
+      return "viz-bar-placed border-2 border-transparent font-bold";
+    case "consumed":
+      // hollow ghost — value was taken from this slot, now empty
+      return "viz-bar-consumed";
     case "splitting":
-      return "bg-purple-400 text-black shadow-sm border-2 border-transparent font-bold";
+      return "viz-bar-splitting shadow-sm border-2 border-transparent font-bold";
     case "merging":
-      return "bg-orange-400 text-black shadow-sm border-2 border-transparent font-bold";
+      return "viz-bar-merging shadow-sm border-2 border-transparent font-bold";
     case "sorted":
-      return "bg-brand text-black border-2 border-transparent font-bold";
+      return "viz-bar-sorted border-2 border-transparent font-bold";
     default:
-      return "bg-blue-700 border-2 border-algo-node-stroke text-algo-text";
+      return "viz-bar border-2 border-transparent";
   }
 };
 
