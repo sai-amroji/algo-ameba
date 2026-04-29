@@ -159,6 +159,12 @@ const StackPage = () => {
           >
             Push
           </button>
+          <button
+            className="algo-btn-neutral bg-purple-500 hover:bg-purple-600 text-white border-0"
+            onClick={generateRandom}
+          >
+            Generate Random
+          </button>
           <div className="w-px h-6 bg-algo-border" />
           <div className="flex gap-2">
             {options.filter((o) => o !== "push").map((op) => (

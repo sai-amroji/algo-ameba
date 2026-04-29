@@ -320,10 +320,10 @@ const TreePage = () => {
                 Enter
               </Button>
               <Button
-                className="bg-blue-600 hover:bg-blue-700 text-white rounded-sm border-0"
+                className="bg-purple-500 hover:bg-purple-600 text-white rounded-sm border-0"
                 onClick={onRandom}
               >
-                Random
+                Generate Random
               </Button>
               <Button
                 className="bg-red-600 hover:bg-red-700 text-white rounded-sm border-0"

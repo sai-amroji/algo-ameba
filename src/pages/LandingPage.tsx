@@ -1,75 +1,31 @@
 import { GithubIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
-import { useRef, useMemo, useState, useEffect } from "react";
+import { useRef } from "react";
 import { ModeToggle } from "@/components/mode-toggle.tsx";
 import { ROUTES } from "@/constants/routes";
 import gsap from "@/gsapSetup";
 import { SplitText } from "gsap/SplitText";
 import { useGSAP } from "@gsap/react";
-import { Draggable, ScrambleTextPlugin } from "gsap/all";
+import { ScrambleTextPlugin } from "gsap/all";
 
-gsap.registerPlugin(SplitText, ScrambleTextPlugin, useGSAP, Draggable);
+gsap.registerPlugin(SplitText, ScrambleTextPlugin, useGSAP);
 
 const LandingPage = () => {
   const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement>(null);
-  const amebaRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const subtitleRef = useRef<HTMLParagraphElement>(null);
   const buttonRef = useRef<HTMLDivElement>(null);
   const buttonBgRef = useRef<HTMLDivElement>(null);
-
-  const count = 10;
+  const simpleComplexRef = useRef<HTMLDivElement>(null);
+  const ballRef = useRef<HTMLDivElement>(null);
+  const barRef = useRef<HTMLDivElement>(null);
+  const treeRef = useRef<HTMLDivElement>(null);
+  const graphRef = useRef<HTMLDivElement>(null);
 
   const wave1 = "M0,300 Q150,200 300,300 T600,300 T900,300 L900,600 L0,600 Z";
   const wave2 = "M0,300 Q150,400 300,300 T600,300 T900,300 L900,600 L0,600 Z";
-
-  // FIX: positions in vh/vw so circles truly fill the full viewport
-  const circles = useMemo(() => {
-    return Array.from({ length: 50 }).map((_, i) => {
-      const size = Math.floor(Math.random() * 80) + 10;
-      return {
-        id: i,
-        size,
-        top: Math.random() * 100,   // vh
-        left: Math.random() * 100,  // vw
-        color: `hsl(${Math.random() * 360}, 70%, 60%)`,
-        floatAmount: Math.random() * 20 + 10,
-        floatDuration: Math.random() * 2 + 2,
-      };
-    });
-  }, [count]);
-
-  const [bars, setBars] = useState<number[]>([]);
-  const [amebaMarkup, setAmebaMarkup] = useState("");
-
-  useEffect(() => {
-    const controller = new AbortController();
-
-    fetch("/Ameba.svg", { signal: controller.signal })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Failed to load Ameba.svg");
-        }
-        return response.text();
-      })
-      .then((svgText) => {
-        setAmebaMarkup(svgText);
-      })
-      .catch(() => {
-        // Keep the page functional even if the decorative SVG fails to load.
-        setAmebaMarkup("");
-      });
-
-    return () => controller.abort();
-  }, []);
-
-  useEffect(() => {
-    const bars = Array.from({ length: 20 }, () => Math.floor(Math.random() * 100));
-    setBars(bars);
-  }, [20]);
-
   const { contextSafe } = useGSAP();
 
   const onClick = contextSafe(() => {
@@ -89,57 +45,41 @@ const LandingPage = () => {
   });
 
   useGSAP(() => {
-    gsap.set(".overlay-text", {
-      position: "absolute",
-      left: "50%",
-      top: "50%",
-      xPercent: -50,
-      yPercent: -50,
-      zIndex: 9999,
+    if (!simpleComplexRef.current || !ballRef.current || !barRef.current || !treeRef.current || !graphRef.current) {
+      return;
+    }
+
+    gsap.set([barRef.current, treeRef.current, graphRef.current], { autoAlpha: 0, scale: 0.9 });
+    gsap.set(ballRef.current, { autoAlpha: 1, scale: 1 });
+
+    const timeline = gsap.timeline({
+      scrollTrigger: {
+        trigger: simpleComplexRef.current,
+        start: "top top",
+        end: "+=500%",
+        scrub: 0.8,
+        pin: true,
+        snap: {
+          snapTo: "labels",
+          duration: { min: 0.2, max: 0.6 },
+          ease: "power1.inOut",
+        },
+      },
     });
 
-    circles.forEach((circle) => {
-      gsap.to(`.circle-${circle.id}`, {
-        y: circle.floatAmount,
-        duration: circle.floatDuration,
-        ease: "sine.inOut",
-        yoyo: true,
-        repeat: -1,
-        delay: Math.random() * 0.5,
-      });
-    });
-  }, { dependencies: [circles.length] });
-
-  useGSAP(() => {
-    const checkCollisions = () => {
-      const circleElements = Array.from(document.querySelectorAll(".drag"));
-      for (let i = 0; i < circleElements.length; i++) {
-        for (let j = i + 1; j < circleElements.length; j++) {
-          const el1 = circleElements[i] as HTMLElement;
-          const el2 = circleElements[j] as HTMLElement;
-          const rect1 = el1.getBoundingClientRect();
-          const rect2 = el2.getBoundingClientRect();
-          const center1 = { x: rect1.left + rect1.width / 2, y: rect1.top + rect1.height / 2, r: rect1.width / 2 };
-          const center2 = { x: rect2.left + rect2.width / 2, y: rect2.top + rect2.height / 2, r: rect2.width / 2 };
-          const dx = center2.x - center1.x;
-          const dy = center2.y - center1.y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
-          const minDistance = center1.r + center2.r;
-          if (distance < minDistance) {
-            gsap.to(el1, { filter: "brightness(1.5)", duration: 0.2, yoyo: true, repeat: 1, overwrite: false });
-            gsap.to(el2, { filter: "brightness(1.5)", duration: 0.2, yoyo: true, repeat: 1, overwrite: false });
-            gsap.to([el1, el2], { scale: 1.2, duration: 0.15, yoyo: true, repeat: 1, overwrite: false });
-            const bounceStrength = 20;
-            const angle = Math.atan2(dy, dx);
-            gsap.to(el1, { x: `+=${Math.cos(angle) * -bounceStrength}`, y: `+=${Math.sin(angle) * -bounceStrength}`, duration: 0.3, ease: "power1.out", overwrite: false });
-            gsap.to(el2, { x: `+=${Math.cos(angle) * bounceStrength}`, y: `+=${Math.sin(angle) * bounceStrength}`, duration: 0.3, ease: "power1.out", overwrite: false });
-          }
-        }
-      }
-    };
-    gsap.ticker.add(checkCollisions);
-    return () => gsap.ticker.remove(checkCollisions);
-  }, { dependencies: [circles.length] });
+    timeline
+      .addLabel("ball")
+      .to(ballRef.current, { width: 220, height: 18, borderRadius: 10, duration: 1 })
+      .to(barRef.current, { autoAlpha: 1, scale: 1, duration: 0.6 }, "<")
+      .addLabel("bar")
+      .to(ballRef.current, { autoAlpha: 0, duration: 0.4 })
+      .to(barRef.current, { autoAlpha: 0, duration: 0.4 })
+      .to(treeRef.current, { autoAlpha: 1, scale: 1, duration: 0.6 })
+      .addLabel("tree")
+      .to(treeRef.current, { autoAlpha: 0, duration: 0.4 })
+      .to(graphRef.current, { autoAlpha: 1, scale: 1, duration: 0.6 })
+      .addLabel("graph");
+  }, { scope: containerRef });
 
   useGSAP(() => {
     const titleEl = titleRef.current;
@@ -174,94 +114,6 @@ const LandingPage = () => {
     }
   }, { scope: containerRef });
 
-  useGSAP(() => {
-    if (!amebaRef.current || !amebaMarkup) {
-      return;
-    }
-
-    const paths = Array.from(
-      amebaRef.current.querySelectorAll<SVGPathElement>("path"),
-    );
-
-    if (paths.length === 0) {
-      return;
-    }
-
-    const outerPath = paths[0];
-    const eyePaths = paths.filter((pathElement) => {
-      const fill = (pathElement.getAttribute("fill") || "").toUpperCase();
-      return fill.startsWith("#F") || fill.startsWith("#E");
-    }).slice(0, 2);
-    const leadPaths = [outerPath, ...eyePaths].filter(Boolean);
-    const leadSet = new Set(leadPaths);
-    const restPaths = paths.filter((pathElement) => !leadSet.has(pathElement));
-
-    paths.forEach((pathElement) => {
-      const originalFill = pathElement.getAttribute("fill") || "#22c55e";
-      pathElement.dataset.originalFill = originalFill;
-    });
-
-    gsap.set(paths, {
-      drawSVG: "0% 0%",
-      stroke: (_index, target) => (target as SVGPathElement).dataset.originalFill || "#22c55e",
-      strokeWidth: 1.6,
-      fill: "transparent",
-      opacity: 0.9,
-      strokeLinecap: "round",
-      strokeLinejoin: "round",
-    });
-
-    const timeline = gsap.timeline({ defaults: { ease: "power2.out" } });
-
-    // First draw key paths (outer shape + eyes), then rush the rest and fill.
-    timeline.to(leadPaths, {
-      drawSVG: "0% 100%",
-      duration: 0.55,
-      stagger: 0.06,
-    });
-
-    timeline.to(
-      restPaths,
-      {
-        drawSVG: "0% 100%",
-        duration: 0.5,
-        stagger: { amount: 0.4, from: "start" },
-      },
-      "-=0.1"
-    );
-
-    timeline.to(
-      paths,
-      {
-        fill: (_index, target) =>
-          (target as SVGPathElement).dataset.originalFill || "#22c55e",
-        duration: 0.18,
-        stagger: { amount: 0.2, from: "start" },
-        ease: "power1.out",
-      },
-      "-=0.02"
-    );
-
-    const hasMorphSVG = Boolean(
-      (gsap as unknown as { plugins?: Record<string, unknown> }).plugins?.MorphSVGPlugin
-    );
-
-    if (hasMorphSVG && outerPath) {
-      // If MorphSVG is available in the runtime, keep a subtle post-draw breathing motion.
-      timeline.to(
-        outerPath,
-        {
-          scale: 1.01,
-          transformOrigin: "50% 50%",
-          duration: 0.35,
-          repeat: 1,
-          yoyo: true,
-          ease: "sine.inOut"
-        },
-        ">"
-      );
-    }
-  }, { dependencies: [amebaMarkup], scope: containerRef, revertOnUpdate: true });
 
   useGSAP(() => {
     gsap.to(".wave-layer", {
@@ -288,8 +140,6 @@ const LandingPage = () => {
 //   onDown: () => next(),
 // });
 
-    Draggable.create(".drag", { type: "x,y", dragResistance: 0.2 });
-
     if (buttonRef.current && buttonBgRef.current) {
       gsap
         .timeline({ delay: 0.9 })
@@ -313,33 +163,12 @@ const LandingPage = () => {
 
         <div className="flex-1 flex flex-col items-center justify-center gap-10 px-8 text-center">
 
-          {/* FIX: circles live in a fixed full-viewport layer so they spread everywhere */}
-          <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 1 }}>
-            {circles.map((circle) => (
-              <div
-                key={circle.id}
-                className={`circle-${circle.id} absolute rounded-full drag pointer-events-auto`}
-                style={{
-                  width: `${circle.size}px`,
-                  height: `${circle.size}px`,
-                  top: `${circle.top}vh`,
-                  left: `${circle.left}vw`,
-                  backgroundColor: circle.color,
-                  zIndex: Math.floor(circle.top * 100),
-                  transform: "translate(-50%, -50%)",
-                  boxShadow: `0 ${circle.size / 5}px ${circle.size / 3}px rgba(0,0,0,0.3)`,
-                  transition: "box-shadow 0.3s ease",
-                }}
-              />
-            ))}
-          </div>
-
           <div className="relative flex justify-center items-center w-full" style={{ zIndex: 2 }}>
-            <div
-              ref={amebaRef}
+            <img
+              src="/Ameba.png"
+              alt=""
               aria-hidden="true"
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-100 pointer-events-none min-w-[800px] w-full max-w-[500px] [&>svg]:w-full [&>svg]:h-auto"
-              dangerouslySetInnerHTML={amebaMarkup ? { __html: amebaMarkup } : undefined}
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-100 pointer-events-none min-w-[800px] w-full max-w-[520px] h-auto"
             />
             <div className="flex flex-col items-center text-center" style={{ zIndex: 3 }}>
               <h1
@@ -386,12 +215,58 @@ const LandingPage = () => {
           </div>
         </div>
 
-        <div className="w-full h-[1000px] flex m-2">
+        <div className="w-full h-[1000px] flex m-2" ref={simpleComplexRef}>
           <h1 className="font-[audiowide] text-[50px] absolute m-5 nav-link z-10">Simpler to Complex Animations</h1>
-          <div className="flex justify-center items-center overflow-hidden relative">
-            {bars.map((bar) => (
-              <div key={bar} className="flex flex-col bar justify-center self-end items-center bg-blue-600 overflow-hidden" style={{ height: `${bar}%`, width: "75px" }} />
-            ))}
+          <div className="flex justify-center items-center w-full overflow-hidden relative">
+            <div className="relative flex items-center justify-center w-full max-w-4xl h-[520px]">
+              <div
+                ref={ballRef}
+                className="bg-blue-500 shadow-[0_0_30px_rgba(59,130,246,0.5)]"
+                style={{ width: 24, height: 24, borderRadius: 9999 }}
+              />
+
+              <div
+                ref={barRef}
+                className="absolute flex gap-2 items-end"
+              >
+                {[60, 120, 90, 160, 110].map((height, idx) => (
+                  <div
+                    key={`bar-${idx}`}
+                    className="w-7 rounded-md bg-blue-500"
+                    style={{ height }}
+                  />
+                ))}
+              </div>
+
+              <div ref={treeRef} className="absolute flex flex-col items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-emerald-500" />
+                <div className="flex gap-10">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-emerald-400" />
+                    <div className="flex gap-6">
+                      <div className="w-8 h-8 rounded-full bg-emerald-300" />
+                      <div className="w-8 h-8 rounded-full bg-emerald-300" />
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-emerald-400" />
+                    <div className="flex gap-6">
+                      <div className="w-8 h-8 rounded-full bg-emerald-300" />
+                      <div className="w-8 h-8 rounded-full bg-emerald-300" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div ref={graphRef} className="absolute w-[360px] h-[260px]">
+                <div className="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-indigo-500" />
+                <div className="absolute bottom-6 left-6 w-10 h-10 rounded-full bg-indigo-400" />
+                <div className="absolute bottom-6 right-6 w-10 h-10 rounded-full bg-indigo-400" />
+                <div className="absolute top-12 left-1/2 -translate-x-1/2 w-[2px] h-24 bg-slate-300" />
+                <div className="absolute top-28 left-1/2 w-[120px] h-[2px] bg-slate-300" />
+                <div className="absolute top-28 left-1/2 -translate-x-[120px] w-[120px] h-[2px] bg-slate-300" />
+              </div>
+            </div>
           </div>
         </div>
 

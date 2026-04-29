@@ -14,8 +14,7 @@ import { useGSAP } from "@gsap/react";
 import gsap from "../../gsapSetup";
 import algorithms from "./graphConfig";
 import { runBFS, runDFS, runDijstras, buildAdjList } from "./graphAlgorithms";
-
-
+const EDGE_BASE_COLOR = "#64748b"; // slate-500: visible on light and dark backgrounds
 
 
 const GraphPage = () => {
@@ -79,7 +78,7 @@ const GraphPage = () => {
 
     // 1. Reset everything to default colors
     tl.to("circle", { fill: "#3b82f6", duration: 0.2 });
-    tl.to("line", { stroke: "purple", strokeWidth: 2, duration: 0.2 }, "<");
+    tl.to("line", { stroke: EDGE_BASE_COLOR, strokeWidth: 2, duration: 0.2 }, "<");
 
     // 2. Highlight Start Node
     tl.to(`#node-${animateNodes[0]}`, { fill: "#eab308", duration: 0.2 });
@@ -91,7 +90,7 @@ const GraphPage = () => {
       const nextNode = animateNodes[i + 1];
 
       tl.to(`#edge-${edge.source}-${edge.target}, #edge-${edge.target}-${edge.source}`, {
-        stroke: "#94a3b8", // Slate gray for exploration edges
+        stroke: EDGE_BASE_COLOR,
         strokeWidth: 3,
         duration: 0.15 // Faster!
       });
@@ -152,7 +151,7 @@ const GraphPage = () => {
       duration:0.2
     })
     tl.to("line",{
-      stroke:"purple",
+      stroke: EDGE_BASE_COLOR,
       strokeWidth:2,
       duration:0.2
     },"<")
@@ -230,7 +229,7 @@ const GraphPage = () => {
         .attr("xoverflow", "visible")
         .append("svg:path")
         .attr("d", "M 0,-5 L 10 ,0 L 0,5")
-        .attr("fill", "#999")
+        .attr("fill", EDGE_BASE_COLOR)
         .style("stroke", "none");
     }
 
@@ -250,7 +249,7 @@ const GraphPage = () => {
       .enter()
       .append("line")
       .attr("id",(d:any) => `edge-${d.source.id ?? d.source}-${d.target.id ?? d.target}`)
-      .attr("stroke", "purple")
+      .attr("stroke", EDGE_BASE_COLOR)
       .attr("stroke-width", (d: any) => Math.sqrt(d.weight || 1) * 1.5)
       .attr("marker-end", isDirected ? "url(#arrowhead)" : ""); // Apply arrows
 

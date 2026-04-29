@@ -14,7 +14,7 @@ import * as d3 from "d3";
 import { useGSAP } from "@gsap/react";
 import gsap from "../../gsapSetup";
 import { pushToHeap, popFromHeap, buildTreeFromArray } from "./heapAlgorithms";
-import { type HeapNode, type RenderNode,type RenderEdge } from "./heapTypes";
+import { type HeapNode, type RenderNode, type RenderEdge } from "./heapTypes";
 
 // ─── REACT COMPONENT ──────────────────────────────────────────────────────
 
@@ -76,7 +76,7 @@ const HeapPage = () => {
     }));
 
     const calculatedEdges: RenderEdge[] = hierarchyRoot.links().map((link) => ({
-      id: `${link.source.data.id}-${link.target.data.id}`,
+      id: `${link.source.data.index}-${link.target.data.index}`,
       d: pathGenerator(link) as string,
     }));
 
@@ -84,6 +84,11 @@ const HeapPage = () => {
   }, [heapRoot]);
 
   // ─── GSAP SETUP ─────────────────────────────────────────────────────────
+
+  const pendingAnimationRef = useRef<
+    | { type: "push" | "pop"; animateNodes: { childIdx: number; parentIdx: number }[]; newIndex?: number }
+    | null
+  >(null);
 
   const { contextSafe } = useGSAP(
     () => {
@@ -104,32 +109,96 @@ const HeapPage = () => {
     { scope: containerRef, dependencies: [nodes, edges] }
   );
 
+  useGSAP(
+    () => {
+      const pending = pendingAnimationRef.current;
+      if (!pending) return;
+
+      const heapTimeline = gsap.timeline();
+      heapTimeline.addLabel("reset");
+      // Fade in nodes/edges quickly
+      heapTimeline.to(".node circle", { fill: "#4A90E2", duration: 0.5 });
+      heapTimeline.to(".edge", { stroke: "#555", strokeWidth: 2, duration: 0.5 }, "<");
+
+      if (pending.type === "push" && pending.animateNodes.length === 0 && pending.newIndex !== undefined) {
+          heapTimeline.addLabel("inserted");
+        // Highlight the newly inserted node with a brief pulse (breathe)
+        heapTimeline.to(
+          `#node-${pending.newIndex}`,
+          { fill: "#22c55e", scale: 1.12, duration: 0.4, yoyo: true, repeat: 1 },
+          "<"
+        );
+        // Add a subtle breathing after insertion to let the user see it
+        heapTimeline.to(
+          `#node-${pending.newIndex}`,
+          { scale: 1.05, duration: 0.3, yoyo: true, repeat: 1 },
+          ">"
+        );
+      } else {
+        pending.animateNodes.forEach(({ childIdx, parentIdx }, i) => {
+            heapTimeline.addLabel(`swap-${i}`);
+            // First highlight the parent node that will be swapped
+            heapTimeline.to(
+              `#node-${parentIdx}`,
+              { fill: "#ffae42", scale: 1.1, duration: 0.3, yoyo: true, repeat: 1 },
+              i === 0 ? "<" : ">"
+            );
+            // Then highlight the edge
+            heapTimeline.to(
+              `#edge-${parentIdx}-${childIdx}`,
+              { stroke: "#22c55e", strokeWidth: 4, duration: 0.4 },
+              "+=0.1"
+            );
+            // Finally change the child node color with a brief pulse
+            heapTimeline.to(
+              `#node-${childIdx}`,
+              { fill: "#22c55e", scale: 1.08, duration: 0.3, yoyo: true, repeat: 1 },
+              "<"
+            );
+            // Small pause before next swap to avoid rushing
+            heapTimeline.to({}, { duration: 0.2 });
+        });
+      }
+
+      heapTimeline.addLabel("cleanup");
+      heapTimeline.to(
+        ".edge",
+        { stroke: "#555", strokeWidth: 2, duration: 0.8 },
+        ">"
+      );
+      heapTimeline.to(".node circle", { fill: "#4A90E2", duration: 0.2 }, "<");
+
+      pendingAnimationRef.current = null;
+    },
+    { scope: containerRef, dependencies: [heap] }
+  );
+
   // ─── HANDLERS ───────────────────────────────────────────────────────────
 
-  const onInsert = (val: string) => {
+  const onInsert = contextSafe((val: string) => {
     const num = Number(val);
     if (val.trim() === "" || isNaN(num)) {
       alert("Please enter a valid number.");
       return;
     }
-    setHeap((prevHeap) => pushToHeap(prevHeap, num, algo === "Max-Heap"));
+    const { newHeap, animateNodes } = pushToHeap(heap, num, algo === "Max-Heap");
+    pendingAnimationRef.current = {
+      type: "push",
+      animateNodes,
+      newIndex: newHeap.length - 1,
+    };
+    setHeap(newHeap);
     setInputValue("");
-  };
+  });
 
   const onDelete = contextSafe(() => {
     if (heap.length === 0) return;
-    
-    // Animate the root node leaving before updating state
-    gsap.to(".node circle", {
-      scale: 1.2,
-      fill: "#e53e3e",
-      duration: 0.2,
-      yoyo: true,
-      repeat: 1,
-      onComplete: () => {
-        setHeap((prevHeap) => popFromHeap(prevHeap, algo === "Max-Heap"));
-      }
-    });
+    const { newHeap, animateNodes } = popFromHeap(heap, algo === "Max-Heap");
+    pendingAnimationRef.current = {
+      type: "pop",
+      animateNodes,
+    };
+    setHeap(newHeap);
   });
 
   const onRandom = () => {
@@ -140,10 +209,10 @@ const HeapPage = () => {
       randomValues.add(Math.floor(Math.random() * 100));
     }
     
-    randomValues.forEach((val) => {
-      currentHeap = pushToHeap(currentHeap, val, algo === "Max-Heap");
-    });
-    
+    for (const val of randomValues) {
+      currentHeap = pushToHeap(currentHeap, val, algo === "Max-Heap").newHeap;
+    }
+
     setHeap(currentHeap);
   };
 
@@ -169,10 +238,10 @@ const HeapPage = () => {
                 Heappush
               </Button>
               <Button
-                className="bg-blue-600 hover:bg-blue-700 text-white rounded-sm border-0"
+                className="bg-purple-500 hover:bg-purple-600 text-white rounded-sm border-0"
                 onClick={onRandom}
               >
-                Random
+                Generate Random
               </Button>
               <Button
                 className="bg-red-600 hover:bg-red-700 text-white rounded-sm border-0"
@@ -243,7 +312,7 @@ const HeapPage = () => {
               ))}
 
               {nodes.map((node: RenderNode) => (
-                <g key={node.id} className="node" transform={`translate(${node.x}, ${node.y})`}>
+                <g key={`grp-${node.id}`} className="node" transform={`translate(${node.x}, ${node.y})`}>
                   <circle
                     id={node.id}
                     r={20}

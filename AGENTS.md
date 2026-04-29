@@ -77,6 +77,16 @@ After modifying visualizer logic:
 - Prefer descriptive names over abbreviations for algorithm/frame functions.
 - Add brief comments only for non-obvious logic.
 
+
+
+## Animation Rules 
+- Animation should be explict its should be subtle 
+- Animation should have time to breath its should'nt rush to finish line
+- Animations should be detailed and highlight the process
+- Animations should be creative and intutive to understand
+- Algorithm is always the same but animation and way we present helps its to understand user so animation is a key part 
+
+
 ## Pull Request Checklist
 - [ ] No duplicated algorithm pages for same feature.
 - [ ] Algorithms are added via registry files.

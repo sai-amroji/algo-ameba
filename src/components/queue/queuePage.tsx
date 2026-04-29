@@ -190,6 +190,12 @@ const QueuePage = () => {
           >
             Enqueue
           </button>
+          <button
+            className="algo-btn-neutral bg-purple-500 hover:bg-purple-600 text-white border-0"
+            onClick={generateRandomArray}
+          >
+            Generate Random
+          </button>
           <div className="w-px h-6 bg-algo-border" />
           <div className="flex gap-2 flex-wrap">
             {options.filter((o) => o !== "enqueue" && o !== "enqueueFirst" && o !== "enqueueLast").map((op) => (

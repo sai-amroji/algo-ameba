@@ -42,35 +42,12 @@ const getBarColor = (state: SortBarState | undefined) => {
   }
 };
 
-const getRouteMode = (pathname: string): SortAlgorithmKey => {
-  if (pathname === ROUTES.selectionSort) {
-    return "selection";
-  }
-  if (pathname === ROUTES.mergeSort) {
-    return "merge";
-  }
-  if (
-    pathname === ROUTES.insertionSort ||
-    pathname === ROUTES.insertionSortLegacy
-  ) {
-    return "insertion";
-  }
-  return "bubble";
-};
 
 const SortPage = () => {
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
-  const routeMode = getRouteMode(location.pathname);
   const queryMode = searchParams.get("mode");
-  const initialMode: SortAlgorithmKey =
-    queryMode === "bubble" ||
-    queryMode === "selection" ||
-    queryMode === "insertion" ||
-    queryMode === "merge"
-      ? queryMode
-      : routeMode;
-
+  const initialMode: SortAlgorithmKey = "bubble" 
   const [mode, setMode] = useState<SortAlgorithmKey>(initialMode);
   const [bars, setBars] = useState<SortBar[]>([]);
   const [barStates, setBarStates] = useState<Record<string, SortBarState>>({});

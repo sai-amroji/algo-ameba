@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Input } from "../ui/input.tsx";
+import { Button } from "../ui/button";
 import {
   Select, SelectContent, SelectGroup,
   SelectItem, SelectLabel, SelectTrigger, SelectValue,
@@ -66,26 +67,6 @@ const LinkedListPage = () => {
 
   /* ── GSAP context ───────────────────────────────────────────────────── */
   const { contextSafe } = useGSAP({ scope: screenRef });
-
-  /* node entrance */
-  const animNodeIn = contextSafe((el: HTMLDivElement) => {
-    gsap.fromTo(el,
-      { opacity: 0, y: -48, scale: 0.75 },
-      { opacity: 1, y: 0,   scale: 1, duration: 0.75, ease: "back.out(1.6)" }
-    );
-  });
-
-  /* arrow draw-in via DrawSVGPlugin */
-  const animArrowIn = contextSafe((line: SVGLineElement) => {
-    // Initialize stroke-dasharray so DrawSVG can animate it
-    const length = line.getTotalLength?.() || 50;
-    line.setAttribute('stroke-dasharray', String(length));
-    line.setAttribute('stroke-dashoffset', String(length));
-    gsap.fromTo(line,
-      { drawSVG: "0% 0%" },
-      { drawSVG: "0% 100%", duration: 0.7, ease: "power2.out" }
-    );
-  });
 
   /* run entrance anims after React commits new nodes */
   // useEffect(() => {
@@ -374,6 +355,12 @@ const LinkedListPage = () => {
               {op === "insertAtHead" ? "Insert Head" : op === "insertAtTail" ? "Insert Tail" : "Insert At"}
             </button>
           ))}
+          <Button
+            onClick={generateRandom}
+            className="algo-btn-neutral bg-purple-500 hover:bg-purple-600 text-white border-0 h-9 px-4 rounded-lg font-mono text-sm whitespace-nowrap"
+          >
+            Generate Random
+          </Button>
           <div className="w-px h-6 bg-slate-800 mx-1" />
           {(["deleteAtHead","deleteAtTail","deleteAtIndex","reverse","clear"] as const).map((op) => (
             <button key={op} onClick={() => handleOp(op)}

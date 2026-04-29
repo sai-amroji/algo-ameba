@@ -1,6 +1,7 @@
 
 export interface HeapNode {
   id: string;
+  index: number;
   val: number;
   right: HeapNode | null;
   left: HeapNode | null;
