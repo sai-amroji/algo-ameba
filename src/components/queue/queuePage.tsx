@@ -173,35 +173,35 @@ const QueuePage = () => {
   const activeLen = queue.filter((i) => !removingIds.has(i.id)).length;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-algo-shell-fg flex flex-col font-audiowide">
+    <div className="min-h-screen bg-background shell-fg flex flex-col font-audiowide">
       {/* Navbar */}
-      <div className="flex flex-row justify-between items-center h-16 px-6 border-b border-algo-border bg-algo-panel-bg">
+      <div className="flex flex-row justify-between items-center h-16 px-6 border-0 panel">
         <div className="flex items-center gap-3">
           <Input
-            className="h-9 w-32 bg-algo-input-bg border-algo-input-border text-algo-input-fg placeholder:text-algo-muted-text focus-visible:ring-0 focus-visible:border-brand font-mono text-sm"
+            className="input w-32"
             placeholder="value"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyUp={(e) => { if (e.key === "Enter") handleOperation("enqueue"); }}
           />
           <button
-            className="algo-btn-primary bg-green-500 hover:bg-green-600 text-white border-0"
+            className="btn-primary "
             onClick={() => handleOperation("enqueue")}
           >
             Enqueue
           </button>
           <button
-            className="algo-btn-neutral bg-purple-500 hover:bg-purple-600 text-white border-0"
+            className="btn-neutral "
             onClick={generateRandomArray}
           >
             Generate Random
           </button>
-          <div className="w-px h-6 bg-algo-border" />
+          <div className="w-px h-6 " />
           <div className="flex gap-2 flex-wrap">
             {options.filter((o) => o !== "enqueue" && o !== "enqueueFirst" && o !== "enqueueLast").map((op) => (
               <button
                 key={op}
-                className={op.includes("dequeue") || op === "clear" ? "algo-btn-danger bg-red-500 hover:bg-red-600 text-white border-0" : "algo-btn-neutral bg-purple-500 hover:bg-purple-600 text-white border-0"}
+                className={op.includes("dequeue") || op === "clear" ? "btn-danger" : "btn-neutral"}
                 onClick={() => handleOperation(op)}
               >
                 {op}
@@ -210,13 +210,13 @@ const QueuePage = () => {
             {(options.includes("enqueueFirst") || options.includes("enqueueLast")) && (
               <>
                 <button
-                  className="algo-btn-primary bg-green-500 hover:bg-green-600 text-white border-0"
+                  className="btn-primary"
                   onClick={() => handleOperation("enqueueFirst")}
                 >
                   Enqueue Front
                 </button>
                 <button
-                  className="algo-btn-primary bg-green-500 hover:bg-green-600 text-white border-0"
+                  className="btn-primary "
                   onClick={() => handleOperation("enqueueLast")}
                 >
                   Enqueue Back
@@ -227,14 +227,14 @@ const QueuePage = () => {
         </div>
 
         <Select value={selectedAlgo} onValueChange={handleAlgoChange}>
-          <SelectTrigger className="w-44 bg-algo-select-bg border-algo-select-border text-algo-select-fg h-9 hover:border-algo-border transition-colors font-mono text-sm">
+          <SelectTrigger className="w-44 transition-colors font-mono text-sm">
             <SelectValue placeholder="Select type" />
           </SelectTrigger>
-          <SelectContent className="bg-algo-select-bg border-algo-select-border text-algo-select-fg">
+          <SelectContent className="">
             <SelectGroup>
-              <SelectLabel className="text-algo-muted-text font-mono text-xs">Queue Type</SelectLabel>
+              <SelectLabel className="muted-text font-mono text-xs">Queue Type</SelectLabel>
               {algos.map((a) => (
-                <SelectItem key={a} value={a} className="capitalize font-mono text-sm focus:bg-algo-panel-soft focus:text-algo-shell-fg">
+                <SelectItem key={a} value={a} className="capitalize font-mono text-sm">
                   {a}
                 </SelectItem>
               ))}
@@ -247,7 +247,7 @@ const QueuePage = () => {
       <div className="flex-1 flex flex-col justify-center items-center px-8 py-6 gap-4">
 
         {/* Direction label */}
-        <div className="flex w-full max-w-5xl justify-between text-[11px] font-mono text-algo-muted-text px-1">
+        <div className="flex w-full max-w-5xl justify-between text-[11px] font-mono muted-text px-1">
           <span>FRONT</span>
           <span>BACK</span>
         </div>
@@ -256,10 +256,10 @@ const QueuePage = () => {
         <div
           ref={queueContainerRef}
           className="w-full max-w-5xl min-h-[120px] flex items-center gap-3 flex-nowrap overflow-x-auto
-            border-2 rounded-2xl border-algo-border bg-algo-canvas-bg px-6 py-5"
+            border-2 rounded-2xl canvas px-6 py-5"
         >
           {queue.length === 0 && (
-            <p className="text-algo-muted-text font-mono text-sm tracking-widest mx-auto">— empty —</p>
+            <p className="muted-text font-mono text-sm tracking-widest mx-auto">— empty —</p>
           )}
 
           {queue.map((item, idx) => (
@@ -271,13 +271,13 @@ const QueuePage = () => {
             >
               {/* Card */}
               <div
-                className="w-20 h-16 rounded-xl bg-blue-500 flex flex-col items-center justify-center gap-0.5 border-2 border-transparent font-bold text-algo-text shadow-sm"
+                className="w-20 h-16 rounded-xl bg-blue-500 flex flex-col items-center justify-center gap-0.5 border-2 border-transparent font-bold  shadow-sm"
                 style={{ transition: "background-color 0.15s, box-shadow 0.15s" }}
               >
                 <span className="text-xl leading-none">{item.value}</span>
               </div>
               {/* Index label */}
-              <span className="text-[10px] font-mono mt-1 text-algo-muted-text">
+              <span className="text-[10px] font-mono mt-1 muted-text">
                 [{idx}]
               </span>
             </div>
@@ -286,15 +286,15 @@ const QueuePage = () => {
 
         {/* Arrows label row */}
         {queue.length > 0 && (
-          <div className="text-[10px] font-mono text-algo-muted-text tracking-widest">
+          <div className="text-[10px] font-mono muted-text tracking-widest">
             ← dequeue from front &nbsp;&nbsp;|&nbsp;&nbsp; enqueue to back →
           </div>
         )}
       </div>
 
       {/* Footer */}
-      <footer className="px-8 py-4 border-t border-algo-border flex justify-between items-center bg-algo-panel-bg">
-        <span className="text-xs font-mono text-algo-muted-text">{selectedAlgo.toUpperCase()}</span>
+      <footer className="px-8 py-4 border-t flex justify-between items-center panel-bg">
+        <span className="text-xs font-mono muted-text">{selectedAlgo.toUpperCase()}</span>
         <span className="text-xs font-mono text-brand">
           {activeLen} / 10 items
         </span>

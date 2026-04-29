@@ -85,8 +85,8 @@ body {
 
 :root {
     --radius: 0.625rem;
-    /* Slightly off‑white for a softer background */
-    --background: oklch(0.98 0 0);
+    /* Softer off‑white background for light mode */
+    --background: #f5f7fa;
     --foreground: oklch(0.25 0.005 285); /* softer black */
     --card: oklch(0.99 0 0);
     --card-foreground: oklch(0.25 0.005 285);
@@ -101,7 +101,7 @@ body {
     --accent: oklch(0.93 0.001 286);
     --accent-foreground: oklch(0.18 0.006 285);
     --destructive: oklch(0.55 0.24 27);
-    --border: oklch(0.85 0.004 286);
+    --border-light: oklch(0.85 0.004 286);
     --input: oklch(0.85 0.004 286);
     --ring: oklch(0.65 0.015 286);
     --chart-1: oklch(0.62 0.22 41);
@@ -121,74 +121,66 @@ body {
     --brand: #00ff11;
     --color-brand: var(--brand);
 
-    /* algorithm theme tokens (aligned to linked-list dark style across themes) */
-    --algo-shell-bg: #020617;
-    --algo-shell-fg: #f8fafc;
-    --algo-nav-bg: #020617;
-    --algo-border: #1e293b;
-    --algo-panel-bg: rgba(15, 23, 42, 0.4);
-    --algo-panel-soft: #0f172a;
-    --algo-canvas-bg: rgba(15, 23, 42, 0.4);
-    --algo-canvas-border: #1e293b;
+    /* Unified theme tokens (light mode) - all sections use --background */
+    --shell-bg: var(--background);
+    --shell-fg: #0f172a;
+    --nav-bg: var(--background);
+    --border: transparent;
+    --panel-bg: rgba(0, 0, 0, 0.02);
+    --panel-soft: rgba(0, 0, 0, 0.04);
+    --canvas-bg: var(--background);
+    --canvas-border: transparent;
 
     /* Algorithm Visualization Colors */
-    --algo-node: #06b6d4;
-    --algo-node-stroke: #0891b2;
-    --algo-node-glow: rgba(6, 182, 212, 0.4);
-    --algo-node-visited: #00ff11;
-    --algo-node-visited-stroke: #00cc0e;
-    --algo-node-visited-glow: rgba(0, 255, 17, 0.4);
-    --algo-node-active: #ef4444;
-    --algo-node-active-glow: rgba(239, 68, 68, 0.4);
-    --algo-edge: #a78bfa;
-    --algo-compare: #f97316;
-    --algo-text: #000000;
+    --node: #3b82f6;
+    --node-stroke: #2563eb;
+    --node-glow: rgba(59, 130, 246, 0.4);
+    --node-visited: #22c55e;
+    --node-visited-stroke: #16a34a;
+    --node-visited-glow: rgba(34, 197, 94, 0.4);
+    --node-active: #ef4444;
+    --node-active-glow: rgba(239, 68, 68, 0.4);
+    --edge: #94a3b8;
+    --compare: #f97316;
+    --text: #0f172a;
 
-    --algo-input-bg: #1e293b;
-    --algo-input-border: #334155;
-    --algo-input-fg: #f8fafc;
-    --algo-input-placeholder: #64748b;
+    --input-bg: #f1f5f9;
+    --input-border: #cbd5e1;
+    --input-fg: #0f172a;
+    --input-placeholder: #64748b;
 
-    --algo-select-bg: #1e293b;
-    --algo-select-border: #334155;
-    --algo-select-fg: #f8fafc;
-    --algo-select-hover-border: #475569;
+    --select-bg: #f1f5f9;
+    --select-border: #cbd5e1;
+    --select-fg: #0f172a;
+    --select-hover-border: #94a3b8;
 
-    --algo-button-neutral-bg: #1e293b;
-    --algo-button-neutral-border: #334155;
-    --algo-button-neutral-fg: #cbd5e1;
-    --algo-button-neutral-hover-bg: rgba(6, 182, 212, 0.15);
-    --algo-button-neutral-hover-border: #06b6d4;
-    --algo-button-neutral-hover-fg: #22d3ee;
+    /* Generate / Neutral: Purple */
+     --btn-neutral-bg: #a855f7;
+     --btn-neutral-fg: #ffffff;
+    --btn-neutral-hover-bg: #9333ea;
 
-    --algo-button-primary-bg: #1e293b;
-    --algo-button-primary-border: rgba(0, 255, 17, 0.5);
-    --algo-button-primary-fg: #00ff11;
-    --algo-button-primary-hover-bg: rgba(0, 255, 17, 0.15);
-    --algo-button-primary-hover-border: #00ff11;
-    --algo-button-primary-hover-fg: #00ff11;
+    /* Insert / Primary: Green */
+    --btn-primary-bg: #22c55e;
+    --btn-primary-fg: #ffffff;
+    --btn-primary-hover-bg: #16a34a;
 
-    --algo-button-success-bg: #1e293b;
-    --algo-button-success-border: rgba(16, 185, 129, 0.5);
-    --algo-button-success-fg: #10b981;
-    --algo-button-success-hover-bg: rgba(16, 185, 129, 0.15);
-    --algo-button-success-hover-border: #10b981;
-    --algo-button-success-hover-fg: #10b981;
+    /* Search/Sort / Success: Blue */
+    --btn-success-bg: #3b82f6;
+    --btn-success-fg: #ffffff;
+    --btn-success-hover-bg: #2563eb;
 
-    --algo-button-danger-bg: #1e293b;
-    --algo-button-danger-border: rgba(244, 63, 94, 0.5);
-    --algo-button-danger-fg: #f43f5e;
-    --algo-button-danger-hover-bg: rgba(244, 63, 94, 0.15);
-    --algo-button-danger-hover-border: #f43f5e;
-    --algo-button-danger-hover-fg: #f43f5e;
+    /* Delete / Danger: Red */
+    --btn-danger-bg: #ef4444;
+    --btn-danger-fg: #ffffff;
+    --btn-danger-hover-bg: #dc2626;
 
-    --algo-muted-text: #64748b;
-    --algo-empty-text: #475569;
-    --algo-accent-text: #22d3ee;
+    --muted-text: #64748b;
+    --empty-text: #475569;
+    --accent-text: #2563eb;
 }
 
 .dark {
-    --background:#010513;
+    --background: #010513;
     --foreground: oklch(0.985 0 0);
     --card: oklch(0.21 0.006 285.885);
     --card-foreground: oklch(0.985 0 0);
@@ -203,7 +195,7 @@ body {
     --accent: oklch(0.274 0.006 286.033);
     --accent-foreground: oklch(0.985 0 0);
     --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
+    --border-light: oklch(1 0 0 / 10%);
     --input: oklch(1 0 0 / 15%);
     --ring: oklch(0.552 0.016 285.938);
     --chart-1: oklch(0.488 0.243 264.376);
@@ -221,70 +213,62 @@ body {
     --sidebar-ring: oklch(0.552 0.016 285.938);
     --brand: #00ff11;
 
-    /* algorithm theme tokens (dark = linked-list-like surfaces, neutral controls) */
-    --algo-shell-bg: #020617;
-    --algo-shell-fg: #f8fafc;
-    --algo-nav-bg: #020617;
-    --algo-border: #1e293b;
-    --algo-panel-bg: rgba(15, 23, 42, 0.4);
-    --algo-panel-soft: #0f172a;
-    --algo-canvas-bg: rgba(15, 23, 42, 0.4);
-    --algo-canvas-border: #1e293b;
+    /* Unified theme tokens (dark mode) - all sections use --background */
+    --shell-bg: var(--background);
+    --shell-fg: #f8fafc;
+    --nav-bg: var(--background);
+    --border: transparent;
+    --panel-bg: rgba(255, 255, 255, 0.03);
+    --panel-soft: rgba(255, 255, 255, 0.05);
+    --canvas-bg: var(--background);
+    --canvas-border: transparent;
 
     /* Algorithm Visualization Colors */
-    --algo-node: #5506d4;
-    --algo-node-stroke: #0891b2;
-    --algo-node-glow: rgba(6, 182, 212, 0.4);
-    --algo-node-visited: #00ff11;
-    --algo-node-visited-stroke: #00cc0e;
-    --algo-node-visited-glow: rgba(0, 255, 17, 0.4);
-    --algo-node-active: #ef4444;
-    --algo-node-active-glow: rgba(239, 68, 68, 0.4);
-    --algo-edge: #a78bfa;
-    --algo-compare: #f97316;
-    --algo-text: #000000;
+    --node: #5506d4;
+    --node-stroke: #0891b2;
+    --node-glow: rgba(6, 182, 212, 0.4);
+    --node-visited: #00ff11;
+    --node-visited-stroke: #00cc0e;
+    --node-visited-glow: rgba(0, 255, 17, 0.4);
+    --node-active: #ef4444;
+    --node-active-glow: rgba(239, 68, 68, 0.4);
+    --edge: #a78bfa;
+    --compare: #f97316;
+    --text: #f8fafc;
 
-    --algo-input-bg: #1e293b;
-    --algo-input-border: #334155;
-    --algo-input-fg: #f8fafc;
-    --algo-input-placeholder: #64748b;
+    --input-bg: #1e293b;
+    --input-border: #334155;
+    --input-fg: #f8fafc;
+    --input-placeholder: #64748b;
 
-    --algo-select-bg: #1e293b;
-    --algo-select-border: #334155;
-    --algo-select-fg: #f8fafc;
-    --algo-select-hover-border: #475569;
+    --select-bg: #1e293b;
+    --select-border: #334155;
+    --select-fg: #f8fafc;
+    --select-hover-border: #475569;
 
-    --algo-button-neutral-bg: #1e293b;
-    --algo-button-neutral-border: #334155;
-    --algo-button-neutral-fg: #cbd5e1;
-    --algo-button-neutral-hover-bg: rgba(6, 182, 212, 0.15);
-    --algo-button-neutral-hover-border: #06b6d4;
-    --algo-button-neutral-hover-fg: #22d3ee;
+    /* Generate / Neutral: Purple */
+    --btn-neutral-bg: #a855f7;
+    --btn-neutral-fg: #ffffff;
+    --btn-neutral-hover-bg: #9333ea;
 
-    --algo-button-primary-bg: #1e293b;
-    --algo-button-primary-border: rgba(0, 255, 17, 0.5);
-    --algo-button-primary-fg: #00ff11;
-    --algo-button-primary-hover-bg: rgba(0, 255, 17, 0.15);
-    --algo-button-primary-hover-border: #00ff11;
-    --algo-button-primary-hover-fg: #00ff11;
+    /* Insert / Primary: Green */
+    --btn-primary-bg: #22c55e;
+    --btn-primary-fg: #ffffff;
+    --btn-primary-hover-bg: #16a34a;
 
-    --algo-button-success-bg: #1e293b;
-    --algo-button-success-border: rgba(16, 185, 129, 0.5);
-    --algo-button-success-fg: #10b981;
-    --algo-button-success-hover-bg: rgba(16, 185, 129, 0.15);
-    --algo-button-success-hover-border: #10b981;
-    --algo-button-success-hover-fg: #10b981;
+    /* Search/Sort / Success: Blue */
+    --btn-success-bg: #3b82f6;
+    --btn-success-fg: #ffffff;
+    --btn-success-hover-bg: #2563eb;
 
-    --algo-button-danger-bg: #1e293b;
-    --algo-button-danger-border: rgba(244, 63, 94, 0.5);
-    --algo-button-danger-fg: #f43f5e;
-    --algo-button-danger-hover-bg: rgba(244, 63, 94, 0.15);
-    --algo-button-danger-hover-border: #f43f5e;
-    --algo-button-danger-hover-fg: #f43f5e;
+    /* Delete / Danger: Red */
+    --btn-danger-bg: #ef4444;
+    --btn-danger-fg: #ffffff;
+    --btn-danger-hover-bg: #dc2626;
 
-    --algo-muted-text: #64748b;
-    --algo-empty-text: #475569;
-    --algo-accent-text: #22d3ee;
+    --muted-text: #64748b;
+    --empty-text: #475569;
+    --accent-text: #22d3ee;
 }
 
 
@@ -317,32 +301,11 @@ body {
 /* ── Reusable component classes (defined here so @apply has full Tailwind context) ── */
 @layer components {
 
-    .page-shell {
-        @apply min-h-screen bg-background text-foreground transition-colors duration-300;
-        /* Gradient removed for a cleaner look in algorithm pages */
-    }
-
-    .action-btn {
-        @apply inline-flex items-center justify-center px-4 py-2 rounded-lg font-medium text-white
-                     bg-[#007f04] transition-all duration-300 cursor-pointer active:translate-y-0;
-    }
-
-    .action-btn:hover {
-        @apply bg-[#005f03];
-    }
-
-    .page-enter {
-        animation: page-fade-up 550ms cubic-bezier(0.2, 0.65, 0.3, 1) both;
-    }
-    .action-btn--search {
-        @apply bg-sky-600 hover:bg-sky-500;
-    }
-
-    .action-btn--random {
-        @apply bg-violet-600 hover:bg-violet-500;
-    }
-
   /* Nav items — green bottom-border underline on hover */
+  .page-enter {
+        animation: page-fade-up 550ms cubic-bezier(0.2, 0.65, 0.3, 1) both;
+  }
+
   .nav-link {
         @apply relative cursor-pointer pb-0.5 text-foreground/85 hover:text-foreground
            border-b-2 border-transparent
@@ -358,170 +321,147 @@ body {
                      transition-all duration-300;
   }
 
-  /* Feature cards */
-  .feature-card {
-    @apply w-80 md:w-[520px] rounded-3xl p-8
-                     border border-border
-           shadow-[0_8px_32px_0_rgba(0,0,0,0.3)]
-           backdrop-blur-md
-           hover:border-[#00ff08]
-           hover:shadow-[0_8px_40px_0_rgba(0,255,8,0.2)]
-           hover:scale-[1.02]
-           transition-all duration-400 cursor-pointer
-           bg-card/80;
-  }
-
-  /* AlgoCard - for homepage algorithm cards */
-  .algo-card {
-    @apply bg-card rounded-2xl px-6 pt-6 w-full max-w-[440px] h-[360px]
-                border-2 border-border/70
-           hover:border-[#00ff08]
-           hover:shadow-[0_0_35px_rgba(0,255,8,0.15)]
-           hover:-translate-y-2
-           transition-all duration-400 cursor-pointer overflow-hidden;
-  }
-
-  /* Card h2 headings — green underline on hover, width = text only */
-  .card-heading {
-        @apply w-fit whitespace-pre-line leading-tight
-           underline-offset-4 decoration-[#00ff08] decoration-2
-           hover:underline
-           transition-all duration-150;
-  }
-
-
-
-   .a
-    .algo-shell {
+    .shell {
         @apply min-h-screen flex flex-col transition-colors duration-300;
-        background-color: var(--algo-shell-bg);
-        color: var(--algo-shell-fg);
+        background-color: var(--shell-bg);
+        color: var(--shell-fg);
     }
 
-    .algo-nav {
-        @apply border-b;
-        border-color: var(--algo-border);
-        background-color: var(--algo-nav-bg);
+    .nav {
+        background-color: var(--nav-bg);
     }
 
-    .algo-footer {
-        @apply border-t;
-        border-color: var(--algo-border);
+    .footer {
     }
 
-    .algo-panel {
+    .panel {
         @apply rounded-xl border;
-        border-color: var(--algo-border);
-        background-color: var(--algo-panel-bg);
+        border-color: var(--border);
+        background-color: var(--panel-bg);
     }
 
-    .algo-canvas {
-        @apply border-y-2;
-        border-color: var(--algo-canvas-border);
-        background-color: var(--algo-canvas-bg);
+    .canvas {
+        
+        border-color: var(--canvas-border);
+        background-color: var(--canvas-bg);
     }
 
-    .algo-input {
-        background-color: var(--algo-input-bg);
-        border-color: var(--algo-input-border);
-        color: var(--algo-input-fg);
+    /* ── Unified Input Styling ── */
+    .input {
+        @apply h-9 px-3 py-2 rounded-lg border font-mono text-sm transition-all duration-200;
+        background-color: var(--input-bg);
+        border-color: var(--input-border);
+        color: var(--input-fg);
     }
 
-    .algo-input::placeholder {
-        color: var(--algo-input-placeholder);
+    .input::placeholder {
+        color: var(--input-placeholder);
     }
 
-    .algo-select-trigger {
-        background-color: var(--algo-select-bg);
-        border-color: var(--algo-select-border);
-        color: var(--algo-select-fg);
+    .input:focus {
+        outline: none;
+        border-color: var(--color-brand);
+        box-shadow: 0 0 0 2px rgba(0, 255, 8, 0.1);
     }
 
-    .algo-select-trigger:hover {
-        border-color: var(--algo-select-hover-border);
+    /* ── Unified Select Styling ── */
+    .select-trigger {
+        @apply h-9 px-3 py-2 rounded-lg border font-mono text-sm transition-all duration-200;
+        background-color: var(--select-bg);
+        border-color: var(--select-border);
+        color: var(--select-fg);
     }
 
-    .algo-select-content {
-        background-color: var(--algo-select-bg);
-        border-color: var(--algo-select-border);
-        color: var(--algo-select-fg);
+    .select-trigger:hover {
+        border-color: var(--select-hover-border);
     }
 
-    .algo-divider {
+    .select-trigger:focus {
+        outline: none;
+        border-color: var(--color-brand);
+        box-shadow: 0 0 0 2px rgba(0, 255, 8, 0.1);
+    }
+
+    .select-content {
+        background-color: var(--select-bg);
+        border-color: var(--select-border);
+        color: var(--select-fg);
+    }
+
+    .divider {
         @apply w-px h-6;
-        background-color: var(--algo-border);
+        background-color: var(--border);
     }
 
-    .algo-btn-base {
-        @apply h-9 px-4 rounded-lg border-0 font-bold font-sans text-3xl transition-all whitespace-nowrap;
+    .btn-base {
+        @apply h-9 px-4 rounded-lg font-bold font-sans text-3xl transition-all whitespace-nowrap;
+        border: none;
     }
 
-    .algo-btn-neutral {
-        @apply inline-flex items-center justify-center h-9 px-4 rounded-lg border font-mono text-sm transition-all whitespace-nowrap;
-        background-color: var(--algo-button-neutral-bg);
-        border-color: var(--algo-button-neutral-border);
-        color: var(--algo-button-neutral-fg);
+    .btn-neutral {
+        @apply inline-flex items-center justify-center h-9 px-4 rounded-lg font-mono text-sm transition-all whitespace-nowrap;
+        background-color: var(--btn-neutral-bg);
+        color: var(--btn-neutral-fg);
+        border: none;
     }
 
-    /* .algo-btn-neutral:hover {
-        background-color: var(--algo-button-neutral-hover-bg);
-        border-color: var(--algo-button-neutral-hover-border);
-        color: var(--algo-button-neutral-hover-fg);
-        box-shadow: 0 0 12px var(--algo-button-neutral-hover-border);
-    }
- */
-    .algo-btn-primary {
-        @apply inline-flex items-center justify-center h-9 px-4 rounded-lg border font-mono text-sm transition-all whitespace-nowrap;
-        background-color: var(--algo-button-primary-bg);
-        border-color: var(--algo-button-primary-border);
-        color: var(--algo-button-primary-fg);
+    .btn-neutral:hover {
+        background-color: var(--btn-neutral-hover-bg);
     }
 
-    .algo-btn-primary:hover {
-        background-color: var(--algo-button-primary-hover-bg);
-        border-color: var(--algo-button-primary-hover-border);
-        color: var(--algo-button-primary-hover-fg);
-        box-shadow: 0 0 15px var(--algo-button-primary-hover-border);
+    .btn-primary {
+        @apply inline-flex items-center justify-center h-9 px-4 rounded-lg font-mono text-sm transition-all whitespace-nowrap;
+        background-color: var(--btn-primary-bg);
+        color: var(--btn-primary-fg);
+        border: none;
     }
 
-    .algo-btn-success {
-        @apply inline-flex items-center justify-center h-9 px-4 rounded-lg border font-mono text-sm transition-all whitespace-nowrap;
-        background-color: var(--algo-button-success-bg);
-        border-color: var(--algo-button-success-border);
-        color: var(--algo-button-success-fg);
+    .btn-primary:hover {
+        background-color: var(--btn-primary-hover-bg);
     }
 
-    .algo-btn-success:hover {
-        background-color: var(--algo-button-success-hover-bg);
-        border-color: var(--algo-button-success-hover-border);
-        color: var(--algo-button-success-hover-fg);
-        box-shadow: 0 0 15px var(--algo-button-success-hover-border);
+    .btn-success {
+        @apply inline-flex items-center justify-center h-9 px-4 rounded-lg font-mono text-sm transition-all whitespace-nowrap;
+        background-color: var(--btn-success-bg);
+        color: var(--btn-success-fg);
+        border: none;
     }
 
-    .algo-btn-danger {
-        @apply inline-flex items-center justify-center h-9 px-4 rounded-lg border font-mono text-sm transition-all whitespace-nowrap;
-        background-color: var(--algo-button-danger-bg);
-        border-color: var(--algo-button-danger-border);
-        color: var(--algo-button-danger-fg);
+    .btn-success:hover {
+        background-color: var(--btn-success-hover-bg);
     }
 
-    .algo-btn-danger:hover {
-        background-color: var(--algo-button-danger-hover-bg);
-        border-color: var(--algo-button-danger-hover-border);
-        color: var(--algo-button-danger-hover-fg);
-        box-shadow: 0 0 15px var(--algo-button-danger-hover-border);
+    .btn-danger {
+        @apply inline-flex items-center justify-center h-9 px-4 rounded-lg font-mono text-sm transition-all whitespace-nowrap;
+        background-color: var(--btn-danger-bg);
+        color: var(--btn-danger-fg);
+        border: none;
     }
 
-    .algo-muted-text {
-        color: var(--algo-muted-text);
+    .btn-danger:hover {
+        background-color: var(--btn-danger-hover-bg);
     }
 
-    .algo-empty-text {
-        color: var(--algo-empty-text);
+    .muted-text {
+        color: var(--muted-text);
     }
 
-    .algo-accent-text {
-        color: var(--algo-accent-text);
+    .empty-text {
+        color: var(--empty-text);
+    }
+
+    .accent-text {
+        color: var(--accent-text);
+    }
+
+
+    .page {
+      @apply flex flex-col justify-center items-center h-full w-full mt-5;
+      background-color: var(--bg-background);  
+    }
+
+    .container {
+       @apply flex flex-col w-full h-full justify-center items-center 
     }
 }
 
@@ -543,17 +483,15 @@ body {
         animation: none;
     }
 
-    .action-btn,
     .feature-card,
-    .algo-card,
+    .card,
     .green-icon-btn,
     .nav-link {
         transition: none;
     }
 
-    .action-btn:hover,
     .feature-card:hover,
-    .algo-card:hover {
+    .card:hover {
         transform: none;
         box-shadow: none;
     }

@@ -6,7 +6,7 @@ const AboutPage = () => {
   const navigate = useNavigate();
 
   return (
-    <main className="page-shell page-enter px-6 py-8">
+    <main className="algo-shell page-enter px-6 py-8">
       <nav className="page-nav mb-10 flex flex-wrap items-center justify-end gap-6 px-6 py-4 text-xl font-[audiowide]">
         <p className="nav-link" onClick={() => navigate(ROUTES.landing)}>Landing</p>
         <p className="nav-link" onClick={() => navigate(ROUTES.home)}>Home</p>
@@ -28,7 +28,7 @@ const AboutPage = () => {
         </p>
         <button
           onClick={() => navigate(ROUTES.home)}
-          className="action-btn action-btn--primary"
+          className="algo-btn-primary"
         >
           Back To Algorithms
         </button>

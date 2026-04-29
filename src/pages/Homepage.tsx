@@ -658,7 +658,7 @@ const Homepage = () => {
   };
 
   return (
-    <div className="page-shell bg-slate-950 page-enter  ">
+    <div className="algo-shell page-enter  ">
       {/* Navbar */}
       <div className="page-nav fixed top-0 w-full h-16 flex justify-between items-center px-6 py-2 z-50">
         <div className="flex items-center gap-6" >
@@ -670,7 +670,7 @@ const Homepage = () => {
           />
           <Input
             name="search"
-            className="app-input h-10 w-[min(60vw,900px)]"
+            className="app-input h-10 w-[min(60vw,900px)] md:w-[400px]"
           />
         </div>
         <div className="flex items-center gap-6 font-[audiowide] text-lg">
@@ -723,7 +723,7 @@ const Homepage = () => {
 
 
         {/* Stack & Sorting Container */}
-        <div className="flex flex-row w-full gap-10 items-stretch">
+        <div className="flex flex-row w-full gap-10 items-stretch md:flex-col md:justify-center ">
           <div
             ref={stackCardRef}
             onMouseEnter={playStackHover}
@@ -786,7 +786,7 @@ const Homepage = () => {
         </div>
 
         {/* Tree & Heap Container */}
-        <div className="flex w-full h-full flex-1 gap-10">
+        <div className="flex w-full h-full flex-1 gap-10 md:flex-col md:justify-center ">
           <div className="flex-1 flex flex-col w-full justify-between items-center p-5 bg-slate-900 rounded-lg min-h-[400px] hover:border-green-500  hover:border-2 transition-easeIn">
             <div ref={containerRef} className="h-full w-full flex justify-center items-center">
               <svg ref={svgRef} width="600" height="350"></svg>
@@ -878,10 +878,10 @@ const Homepage = () => {
           >
             Head
           </div>
-          <div className="h-full w-full flex justify-center items-center gap-2">
+          <div className="h-full w-full flex justify-center items-center gap-2 ">
             {["L", "I", "N", "K", "E", "D"].map((char, index) => (
               <div key={index} className="flex flex-row items-center justify-center gap-2">
-                <div className="linked-node h-[70px] w-[130px] bg-blue-700 rounded-sm p-2 border-2 border-black flex justify-center items-center text-white text-3xl font-bold">
+                <div className="linked-node h-[60px] w-[100px] bg-blue-700 rounded-sm p-2 border-2 border-black flex justify-center items-center text-white text-3xl font-bold">
                   {char}
                 </div>
                 {index !== 5 && <RightArrow />}

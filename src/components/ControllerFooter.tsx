@@ -41,7 +41,7 @@ const ControllerFooter = ({
   };
 
   return (
-      <footer className=" flex justify-between items-center p-4 w-full">
+      <footer className="footer flex justify-between items-center p-4 w-full">
         {/* Speed Controls */}
         <div className="flex items-center gap-4">
           <Button
@@ -70,14 +70,14 @@ const ControllerFooter = ({
             
             variant="secondary"
             size="icon"
-            className="size-8 bg-slate-900 hover:bg-slate-850 text-white border-0"
+            className="size-8"
             onClick={onSpeedDecrease}
             disabled={!onSpeedDecrease}
           >
             <MinusIcon />
           </Button>
 
-          <span className="text-sm text-muted-foreground min-w-14 text-right">
+          <span className="text-sm muted-text min-w-14 text-right">
             {speed.toFixed(2)}x
           </span>
         </div>

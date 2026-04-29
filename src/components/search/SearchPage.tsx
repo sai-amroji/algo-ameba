@@ -258,7 +258,7 @@ const SearchPage = () => {
     >
       <div
         ref={barsContainerRef}
-        className="relative flex gap-2 justify-center items-end p-4 min-h-[200px] bar-container"
+        className="relative flex gap-2 justify-center items-end p-4 min-h-full bar-container flex-1"
       >
         {bars.map((bar) => (
           <div

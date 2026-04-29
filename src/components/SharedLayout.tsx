@@ -73,20 +73,20 @@ const SharedLayout = ({
 }: SharedLayoutProps) => {
   const navigate = useNavigate();
   return (
-    <div className="page-shell page-enter bg-slate-950 flex flex-col w-full">
-      <div className="page-nav flex flex-wrap justify-between items-center gap-4 px-6 py-4">
+    <div className="flex flex-col h-full w-full">
+      <div className="nav flex flex-wrap justify-between items-center gap-4 px-6 py-4">
         {/* Input Insert */}
         <div className={"flex items-center gap-2"}>
           <div className="flex items-center gap-2">
             <Input
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              className="h-9 w-32 bg-algo-input-bg border-algo-input-border text-algo-input-fg placeholder:text-algo-muted-text focus-visible:ring-0 focus-visible:border-brand font-mono text-sm"
+              className="input w-32"
               placeholder="Insert number"
             />
             <button
               onClick={handleInsert}
-              className="algo-btn-primary bg-green-500 hover:bg-green-600 text-white border-0"
+              className="btn-primary"
             >
               Insert
             </button>
@@ -97,12 +97,12 @@ const SharedLayout = ({
               <Input
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
-                className="h-9 w-32 bg-algo-input-bg border-algo-input-border text-algo-input-fg placeholder:text-algo-muted-text focus-visible:ring-0 focus-visible:border-brand font-mono text-sm"
+                className="input w-32"
                 placeholder="Search value"
               />
               <button
                 onClick={handleSearch}
-                className="algo-btn-primary bg-blue-500 hover:bg-blue-600 text-white border-0"
+                className="btn-success"
               >
                 {actionLabel ?? "Search"}
               </button>
@@ -112,7 +112,7 @@ const SharedLayout = ({
           {handleSearch && !(typeof searchValue === "string" && setSearchValue) && (
             <button
               onClick={handleSearch}
-              className="algo-btn-primary bg-purple-500 hover:bg-purple-600 text-white border-0"
+              className="btn-success"
             >
               {actionLabel ?? "Sort"}
             </button>
@@ -123,7 +123,7 @@ const SharedLayout = ({
           {/* Random Button */}
           <button
             onClick={() => generateRandomArray()}
-            className="algo-btn-neutral bg-purple-500 hover:bg-purple-600 text-white border-0"
+            className="btn-neutral"
           >
             Generate Random
           </button>
@@ -147,10 +147,10 @@ const SharedLayout = ({
           }}
   
         >
-          <SelectTrigger className="w-44 bg-slate-500 border-algo-select-border text-algo-select-fg h-9 hover:border-algo-border transition-colors font-mono text-sm">
+          <SelectTrigger className="w-44 select-trigger h-9 font-mono text-sm">
             <SelectValue placeholder={algoMap[0].name} />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="select-content">
             <SelectGroup>
               <SelectLabel>Algorithms</SelectLabel>
               {algoMap.map((algo) => (

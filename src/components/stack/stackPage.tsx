@@ -142,35 +142,35 @@ const StackPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-algo-shell-fg flex flex-col font-audiowide">
+    <div className="min-h-screen flex flex-col bg-background font-audiowide">
       {/* Navbar */}
-      <div className="flex flex-row justify-between items-center h-16 px-6 border-0 border-algo-border bg-algo-panel-bg">
+      <div className="flex flex-row justify-between items-center h-16 px-6 border-0  b">
         <div className="flex items-center gap-3">
           <Input
-            className="h-9 w-32 bg-algo-input-bg border-algo-input-border text-algo-input-fg placeholder:text-algo-muted-text focus-visible:ring-0 focus-visible:border-brand font-mono text-sm"
+            className="input w-32"
             placeholder="value"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyUp={(e) => { if (e.key === "Enter") handleOperation("push"); }}
           />
           <button
-            className="algo-btn-primary bg-green-500 hover:bg-green-600 text-white border-0"
+            className="btn-primary"
             onClick={() => handleOperation("push")}
           >
             Push
           </button>
           <button
-            className="algo-btn-neutral bg-purple-500 hover:bg-purple-600 text-white border-0"
+            className="btn-neutral"
             onClick={generateRandom}
           >
             Generate Random
           </button>
-          <div className="w-px h-6 bg-algo-border" />
+          <div className="w-px h-6 bg-border" />
           <div className="flex gap-2">
             {options.filter((o) => o !== "push").map((op) => (
               <button
                 key={op}
-                className={op === "pop" || op === "clear" ? "algo-btn-danger bg-red-500 hover:bg-red-600 text-white border-0" : "algo-btn-neutral bg-purple-500 hover:bg-purple-600 text-white border-0"}
+                className={op === "pop" || op === "clear" ? "btn-danger" : "btn-neutral"}
                 onClick={() => handleOperation(op)}
               >
                 {op}
@@ -180,14 +180,14 @@ const StackPage = () => {
         </div>
 
         <Select value={algo} onValueChange={handleAlgoChange}>
-          <SelectTrigger className="w-44 bg-algo-select-bg border-algo-select-border text-algo-select-fg h-9 hover:border-algo-border transition-colors font-mono text-sm">
+          <SelectTrigger className="w-44 select-bg select-border select-fg h-9 hover:border transition-colors font-mono text-sm">
             <SelectValue placeholder="Select type" />
           </SelectTrigger>
-          <SelectContent className="bg-algo-select-bg border-algo-select-border text-algo-select-fg">
+          <SelectContent className="select-bg select-border select-fg">
             <SelectGroup>
-              <SelectLabel className="text-algo-muted-text font-mono text-xs">Stack Type</SelectLabel>
+              <SelectLabel className="muted-text font-mono text-xs">Stack Type</SelectLabel>
               {Object.keys(ALGO_OPTIONS).map((a) => (
-                <SelectItem key={a} value={a} className="capitalize font-mono text-sm focus:bg-algo-panel-soft focus:text-algo-shell-fg">
+                <SelectItem key={a} value={a} className="capitalize font-mono text-sm focus:panel-soft focus:shell-fg">
                   {a}
                 </SelectItem>
               ))}
@@ -197,17 +197,17 @@ const StackPage = () => {
       </div>
 
       {/* Main canvas */}
-      <div className="flex-1 flex justify-center items-start pt-10 px-8">
+      <div className="flex-1 flex canvas border-0 justify-center items-start pt-10 px-8">
         <div className="flex flex-col items-center gap-2">
 
           {/* TOP label */}
-          <span className="text-[11px] font-mono mb-1 text-algo-muted-text">TOP ↓</span>
+          <span className="text-[11px] font-mono mb-1 muted-text">TOP ↓</span>
 
           {/* Stack column */}
           <div
             ref={containerRef}
             className="w-72 flex flex-col items-center gap-2 min-h-[480px] max-h-[620px] overflow-y-auto
-              border-2 rounded-2xl border-algo-border bg-algo-canvas-bg px-4 py-5"
+              border-2 rounded-2xl canvas-bg px-4 py-5"
           >
             {stack.length === 0 && (
               <p className="text-black font-mono text-sm tracking-widest mt-auto mb-auto">— empty —</p>
@@ -217,7 +217,7 @@ const StackPage = () => {
               <div
                 key={item.id}
                 ref={(el) => { if (el) itemRefs.current.set(item.id, el); }}
-                className="w-full flex items-center justify-between rounded-xl bg-blue-500 px-4 py-0 flex-shrink-0 border-2 border-transparent text-algo-text shadow-sm"
+                className="w-full flex items-center justify-between rounded-xl bg-blue-500 px-4 py-0 flex-shrink-0 border-2 border-transparent  shadow-sm"
                 style={{
                   height: 52,
                   opacity: 0,
@@ -240,13 +240,13 @@ const StackPage = () => {
           </div>
 
           {/* BOTTOM label */}
-          <span className="text-[11px] font-mono mt-1 text-algo-muted-text">BOTTOM</span>
+          <span className="text-[11px] font-mono mt-1 muted-text">BOTTOM</span>
         </div>
       </div>
 
       {/* Footer */}
-      <footer className="px-8 py-4 border-0 border-algo-border flex justify-between items-center bg-algo-panel-bg">
-        <span className="text-xs font-mono text-algo-muted-text">{algo.toUpperCase()}</span>
+      <footer className="px-8 py-4 border-0  flex justify-between items-center panel-bg">
+        <span className="text-xs font-mono muted-text">{algo.toUpperCase()}</span>
         <span className="text-xs font-mono text-brand">
           {activeS.length} / 10 items
         </span>

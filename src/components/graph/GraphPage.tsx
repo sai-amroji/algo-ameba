@@ -366,14 +366,14 @@ const GraphPage = () => {
   const currentConfig = algorithms[algo];
 
   return (
-    <div className="flex flex-col h-screen w-full bg-white dark:bg-slate-950">
+    <div className="flex flex-col h-screen w-full shell">
       <div className="nav w-full flex justify-between items-center mt-4 px-10">
         
         {/* Dynamic Inputs */}
         <div className="left-section flex flex-wrap justify-start items-center gap-2">
           {currentConfig.startNode && (
             <input
-              className="border flex w-[120px] justify-center items-center border-gray-400 p-2 rounded-lg text-sm text-white font-bold bg-gray-800"
+              className="input w-[120px]"
               placeholder="Start Node"
               value={startNode}
               onChange={(e) => setStartNode(e.target.value)}
@@ -382,7 +382,7 @@ const GraphPage = () => {
           
           {currentConfig.endNode && (
             <input
-              className="border flex w-[120px] justify-center items-center border-gray-400 p-2 rounded-lg text-sm text-white font-bold bg-gray-800"
+              className="input w-[120px]"
               placeholder="End Node"
               value={endNode}
               onChange={(e) => setEndNode(e.target.value)}
@@ -390,19 +390,19 @@ const GraphPage = () => {
           )}
           
           {(currentConfig.startNode || currentConfig.endNode) && (
-             <Button className="text-white bg-green-500 hover:bg-green-600">Enter</Button>
+             <button className="btn-primary">Enter</button>
           )}
 
           <div className="flex gap-2 ml-4">
             <input
-              className="border flex w-[150px] justify-center items-center border-gray-400 p-2 rounded-lg text-sm text-white font-bold bg-gray-800"
+              className="input w-[150px]"
               placeholder="Number of Nodes"
               value={numNodes}
               onChange={(e) => setNumNodes(e.target.value)}
             />
-            <Button onClick={onRandom} className="text-white bg-purple-500 hover:bg-purple-600">
+            <button onClick={onRandom} className="btn-neutral">
               Generate Random
-            </Button>
+            </button>
           </div>
 
           {/* Dynamic Property Toggles */}
@@ -452,7 +452,7 @@ const GraphPage = () => {
             </SelectContent>
           </Select>
         {/* <div className="flex w-full h-full"> */}
-        <button className="text-white bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-lg" onClick={onRun}>
+        <button className="btn-success" onClick={onRun}>
           Run
         </button>
         {/* </div> */}

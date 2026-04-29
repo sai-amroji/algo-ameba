@@ -7,8 +7,7 @@ import {
 } from "@/components/ui/select.tsx";
 import { useGSAP } from "@gsap/react";
 import gsap from "../../gsapSetup.ts";
-import { toast } from "sonner";
-import { Toaster } from "sonner";
+// Toast notifications removed as per request
 
 /* ── TYPE DEFINITIONS ────────────────────────────────────────── */
 type ListType = "singly" | "doubly" | "singly-circular" | "doubly-circular";
@@ -139,7 +138,7 @@ const LinkedListPage = () => {
             gsap.set(listContainerRef.current, { x: 0 });
             commit();
             setList((p) => [newNode, ...p]);
-            toast.success(`Inserted ${value} at head`);
+            // toast.success(`Inserted ${value} at head`);
           },
         }, "drop");
 
@@ -152,7 +151,7 @@ const LinkedListPage = () => {
         .addLabel("drop", ">")
         .to(newNodeRef.current, {
           y: 0, duration: 1.7, ease: "back.out(1.5)",
-          onComplete: () => { commit(); setList((p) => [...p, newNode]); toast.success(`Inserted ${value} at tail`); },
+          onComplete: () => { commit(); setList((p) => [...p, newNode]); /* toast.success(`Inserted ${value} at tail`); */ },
         }, "drop");
 
     } else {
@@ -175,7 +174,7 @@ const LinkedListPage = () => {
             }
             commit();
             setList((p) => { const n = [...p]; n.splice(position, 0, newNode); return n; });
-            toast.success(`Inserted ${value} at index ${position}`);
+            // toast.success(`Inserted ${value} at index ${position}`);
           },
         }, "drop");
     }
@@ -183,7 +182,7 @@ const LinkedListPage = () => {
 
   /* ── DELETE ─────────────────────────────────────────────────────────── */
   const del = contextSafe((position: number) => {
-    if (!list.length) { toast.error("List is empty"); return; }
+    if (!list.length) { /* toast.error("List is empty"); */ return; }
     const target = list[position];
     const el     = itemRefs.current.get(target.id);
     if (!el) return;
@@ -209,7 +208,7 @@ const LinkedListPage = () => {
         .addLabel("exit", ">+=0.08")
         .to(el, {
           y: -80, opacity: 0, scale: 0.65, duration: 0.65, ease: "power3.in",
-          onComplete: () => { removeFromState(); toast.success(`Deleted ${target.value} from head`); },
+          onComplete: () => { removeFromState(); /* toast.success(`Deleted ${target.value} from head`); */ },
         }, "exit");
 
     } else if (position === list.length - 1) {
@@ -225,7 +224,7 @@ const LinkedListPage = () => {
         .addLabel("exit", ">+=0.08")
         .to(el, {
           y: 80, opacity: 0, scale: 0.65, duration: 0.65, ease: "power3.in",
-          onComplete: () => { removeFromState(); toast.success(`Deleted ${target.value} from tail`); },
+          onComplete: () => { removeFromState(); /* toast.success(`Deleted ${target.value} from tail`); */ },
         }, "exit");
 
     } else {
@@ -244,7 +243,7 @@ const LinkedListPage = () => {
         .addLabel("exit", ">+=0.08")
         .to(el, {
           y: -80, opacity: 0, scale: 0.65, duration: 0.65, ease: "power3.in",
-          onComplete: () => { removeFromState(); toast.success(`Deleted ${target.value} from index ${position}`); },
+          onComplete: () => { removeFromState(); /* toast.success(`Deleted ${target.value} from index ${position}`); */ },
         }, "exit");
     }
   });
@@ -252,7 +251,7 @@ const LinkedListPage = () => {
   /* ── CLEAR ──────────────────────────────────────────────────────────── */
   const clear = contextSafe(() => {
     const active = list.filter((n) => !removingIds.has(n.id));
-    if (!active.length) { toast("Already empty"); return; }
+    if (!active.length) { /* toast("Already empty"); */ return; }
     setRemovingIds(new Set(active.map((n) => n.id)));
     active.forEach((item, i) => {
       const el = itemRefs.current.get(item.id);
@@ -263,7 +262,7 @@ const LinkedListPage = () => {
         onComplete: () => {
           itemRefs.current.delete(item.id);
           if (i === active.length - 1) {
-            setList([]); setRemovingIds(new Set()); toast.success("Cleared");
+            setList([]); setRemovingIds(new Set()); /* toast.success("Cleared"); */
           }
         },
       });
@@ -276,23 +275,27 @@ const LinkedListPage = () => {
     const idx = parseInt(pos);
     switch (op) {
       case "insertAtHead":
-        if (isNaN(num)) return void toast.error("Enter a value");
+        if (isNaN(num)) { /* toast.error("Enter a value") */ return; }
         insert(num, 0); setInput(""); break;
       case "insertAtTail":
-        if (isNaN(num)) return void toast.error("Enter a value");
+        if (isNaN(num)) { /* toast.error("Enter a value") */ return; }
         insert(num, list.length); setInput(""); break;
       case "insertAtIndex":
-        if (isNaN(num)) return void toast.error("Enter a value");
-        if (isNaN(idx) || idx < 0 || idx > list.length)
-          return void toast.error(`Index must be 0–${list.length}`);
+        if (isNaN(num)) { /* toast.error("Enter a value") */ return; }
+        if (isNaN(idx) || idx < 0 || idx > list.length) {
+          /* toast.error(`Index must be 0–${list.length}`) */
+          return;
+        }
         insert(num, idx); setInput(""); setPos(""); break;
       case "deleteAtHead":  del(0); break;
       case "deleteAtTail":  del(list.length - 1); break;
       case "deleteAtIndex":
-        if (isNaN(idx) || idx < 0 || idx >= list.length)
-          return void toast.error(`Index must be 0–${list.length - 1}`);
+        if (isNaN(idx) || idx < 0 || idx >= list.length) {
+          /* toast.error(`Index must be 0–${list.length - 1}`); */
+          return;
+        }
         del(idx); setPos(""); break;
-      case "reverse": setList((p) => [...p].reverse()); toast.success("Reversed"); break;
+      case "reverse": setList((p) => [...p].reverse()); /* toast.success("Reversed") */; break;
       case "clear":   clear(); break;
     }
   };
@@ -304,15 +307,15 @@ const LinkedListPage = () => {
     itemRefs.current.clear(); 
     nextArrowRefs.current.clear();
     prevArrowRefs.current.clear();
-    toast(`Switched to ${getConfig(type).label}`);
+    /* toast(`Switched to ${getConfig(type).label}`); */
   };
 
   const activeLen = list.filter((n) => !removingIds.has(n.id)).length;
 
   /* ── JSX ─────────────────────────────────────────────────────────────── */
   return (
-    <div ref={screenRef} className="flex flex-col min-h-screen bg-slate-950 text-white select-none">
-      <Toaster position="top-center" richColors />
+    <div ref={screenRef} className="flex flex-col min-h-screen shell-fg bg-background select-none">
+      {/* Toaster removed as per request */}
 
       {/* shared SVG defs — arrow markers */}
       <svg width="0" height="0" style={{ position: "absolute" }}>
@@ -331,40 +334,38 @@ const LinkedListPage = () => {
 
       {/* ── Navbar ───────────────────────────────────────────────── */}
       <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-3
-        bg-slate-950 border-0 border-slate-800">
+        bg-background border-0">
 
         <div className="flex flex-wrap items-center gap-2">
           <Input
-            className="h-9 w-28 bg-slate-900 border-slate-700 text-white placeholder:text-slate-500
-              focus-visible:ring-0 focus-visible:border-[#00ff11] font-mono text-sm rounded-lg"
+            className="input w-28"
             placeholder="Value"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleOp("insertAtTail")}
           />
           <Input
-            className="h-9 w-24 bg-slate-900 border-slate-700 text-white placeholder:text-slate-500
-              focus-visible:ring-0 focus-visible:border-[#00ff11] font-mono text-sm rounded-lg"
+            className="input w-24"
             placeholder="Index"
             value={pos}
             onChange={(e) => setPos(e.target.value)}
           />
           {(["insertAtHead","insertAtTail","insertAtIndex"] as const).map((op) => (
             <button key={op} onClick={() => handleOp(op)}
-              className="h-9 px-4 rounded-lg bg-green-600 border border-0 text-white font-mono text-sm hover:bg-green-500 hover:border-[#00ff11] transition-all whitespace-nowrap">
+              className="btn-primary ">
               {op === "insertAtHead" ? "Insert Head" : op === "insertAtTail" ? "Insert Tail" : "Insert At"}
             </button>
           ))}
           <Button
             onClick={generateRandom}
-            className="algo-btn-neutral bg-purple-500 hover:bg-purple-600 text-white border-0 h-9 px-4 rounded-lg font-mono text-sm whitespace-nowrap"
+            className="btn-neutral "
           >
             Generate Random
           </Button>
           <div className="w-px h-6 bg-slate-800 mx-1" />
           {(["deleteAtHead","deleteAtTail","deleteAtIndex","reverse","clear"] as const).map((op) => (
             <button key={op} onClick={() => handleOp(op)}
-              className="h-9 px-4 rounded-lg bg-red-800 border border-red-500 text-white border-0 font-mono text-sm hover:bg-red-500 hover:text-white transition-all whitespace-nowrap">
+              className="btn-danger">
               {op === "deleteAtHead" ? "Del Head" : op === "deleteAtTail" ? "Del Tail"
                 : op === "deleteAtIndex" ? "Del At" : op.charAt(0).toUpperCase() + op.slice(1)}
             </button>
@@ -414,14 +415,14 @@ const LinkedListPage = () => {
               items-center justify-around" style={{ boxShadow: "0 0 15px rgba(0,255,17,0.6)" }}>
               <span ref={newNodePrevPtrRef} className="text-xs font-mono px-1">NULL</span>
               <div className="w-px h-8 bg-black/30" />
-              <span className="text-xl">?</span>
+              <span className="text-xl">-</span>
               <div className="w-px h-8 bg-black/30" />
               <span ref={newNodeNextPtrRef} className="text-xs font-mono px-1">NULL</span>
             </div>
           ) : (
             <div className="flex w-36 h-16 border-2 border-transparent rounded-xl bg-[#00ff11] text-black font-bold
               items-center justify-around" style={{ boxShadow: "0 0 15px rgba(0,255,17,0.6)" }}>
-              <span className="text-xl">?</span>
+              <span className="text-xl">-</span>
               <div className="w-px h-8 bg-black/30" />
               <span ref={newNodeNextPtrRef} className="text-xs font-mono px-1">NULL</span>
             </div>

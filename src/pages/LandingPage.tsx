@@ -149,7 +149,7 @@ const LandingPage = () => {
   });
 
   return (
-    <div ref={containerRef} className="page-shell bg-slate-950 page-enter w-full flex flex-col overflow-hidden">
+    <div ref={containerRef} className="algo-shell page-enter w-full flex flex-col overflow-hidden">
 
       {/* ─── HERO SECTION ─────────────────────────────────────────────── */}
       <section className="min-h-screen flex flex-col section-fade">
@@ -185,7 +185,7 @@ const LandingPage = () => {
 
           <div
             ref={buttonRef}
-            className="action-btn action-btn--primary relative flex justify-center items-center font-[arima] text-xl w-52 h-14 overflow-hidden"
+            className="algo-btn-primary relative flex justify-center items-center font-[arima] text-xl w-52 h-14 overflow-hidden"
             onClick={() => navigate(ROUTES.home)}
             aria-label="Get Started"
             style={{ zIndex: 2 }}

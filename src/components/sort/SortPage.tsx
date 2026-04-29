@@ -377,7 +377,7 @@ const SortPage = () => {
       onSpeedIncrease={() => setSpeed((prev) => clampSpeed(prev + 0.25))}
       onSpeedDecrease={() => setSpeed((prev) => clampSpeed(prev - 0.25))}
     >
-      <div className="w-full max-w-[1600px] px-6 md:px-12 py-4 overflow-visible">
+      <div className="w-full h-[900px] flex justify-center items-center max-w-[1600px] px-6 md:px-12 py-4 overflow-visible">
 
         <div
           ref={barsContainerRef}

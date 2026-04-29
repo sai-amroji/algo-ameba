@@ -1,5 +1,4 @@
 import { Select } from "@radix-ui/react-select";
-import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import {
   SelectContent,
@@ -301,42 +300,42 @@ const TreePage = () => {
   });
 
   return (
-    <div className="flex flex-col overflow-hidden bg-slate-950">
-      <div className="sticky top-0 z-30  border-0 border-slate-800/70 bg-slate-950/95 backdrop-blur">
+    <div className="flex flex-col overflow-hidden bg-background">
+      <div className="sticky top-0 z-30  border-0 bg-background backdrop-blur">
         <div className="flex justify-between items-center">
           <div className="flex justify-start items-center gap-2 px-3 py-2 mx-2">
             <Input
-              className="border-2 w-[400px]"
+              className="input w-[400px]"
               placeholder="Enter Number"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && onInsert(inputValue)}
             />
             <div className="flex justify-center items-center gap-2 text-white">
-              <Button
-                className="bg-green-600 hover:bg-green-700 text-white rounded-sm border-0"
+              <button
+                className="btn-primary"
                 onClick={() => onInsert(inputValue)}
               >
                 Enter
-              </Button>
-              <Button
-                className="bg-purple-500 hover:bg-purple-600 text-white rounded-sm border-0"
+              </button>
+              <button
+                className="btn-neutral bg-purple"
                 onClick={onRandom}
               >
                 Generate Random
-              </Button>
-              <Button
-                className="bg-red-600 hover:bg-red-700 text-white rounded-sm border-0"
+              </button>
+              <button
+                className="btn-danger"
                 onClick={() => onDelete(inputValue)}
               >
                 Delete
-              </Button>
-              <Button
-                className="bg-yellow-600 hover:bg-yellow-700 text-white rounded-sm border-0"
+              </button>
+              <button
+                className="btn-neutral"
                 onClick={() => onSearch(inputValue)}
               >
                 Search
-              </Button>
+              </button>
             </div>
           </div>
 
@@ -409,7 +408,7 @@ const TreePage = () => {
         <div className="flex flex-row tree-container justify-center items-center w-full min-h-full">
           <svg
             ref={containerRef}
-            className="tree bg-slate-950 flex-grow"
+            className="tree canvas border-0 flex-grow"
             width="100%"
             height="100%"
             viewBox="0 0 800 800"

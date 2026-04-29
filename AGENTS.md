@@ -45,7 +45,7 @@ This file defines how coding agents should work in this repository.
 - Use @gsap/react useGSAP() for React lifecycle-safe animations.
 - Use contextSafe for event-driven animation callbacks.
 - Store reusable GSAP timeline instances in refs.
-- Clear or revert GSAP side effects when starting a new run.
+- Clear or revert GSAP side effects when starting a new run.np
 - Avoid direct global selectors when a scoped container ref is available.
 
 ## State and Rendering Rules
