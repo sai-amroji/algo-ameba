@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+src/examples
+src/components/examples/*
+src/components/ShapesOverlays.tsx

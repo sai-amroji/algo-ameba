@@ -116,8 +116,14 @@ const HeapPage = () => {
       const heapTimeline = gsap.timeline();
       heapTimeline.addLabel("reset");
       // Fade in nodes/edges quickly
-      heapTimeline.to(".node circle", { fill: "var(node)", duration: 0.5 });
-      heapTimeline.to(".edge", { stroke: "var(edge)", strokeWidth: 2, duration: 0.5 }, "<");
+      heapTimeline.to(".node circle", {
+        fill: "var(--node)",
+        stroke: "var(--node-stroke)",
+        filter: "none",
+        scale: 1,
+        duration: 0.5
+      });
+      heapTimeline.to(".edge", { stroke: "var(--edge)", strokeWidth: 2, duration: 0.5 }, "<");
 
       if (pending.type === "push" && pending.animateNodes.length === 0 && pending.newIndex !== undefined) {
           heapTimeline.addLabel("inserted");
@@ -162,10 +168,18 @@ const HeapPage = () => {
       heapTimeline.addLabel("cleanup");
       heapTimeline.to(
         ".edge",
-        { stroke: "var(edge)", strokeWidth: 2, duration: 0.8 },
+        { stroke: "var(--edge)", strokeWidth: 2, duration: 0.8 },
         ">"
       );
-      heapTimeline.to(".node circle", { fill: "var(node)", duration: 0.2 }, "<");
+      heapTimeline.to(".node circle", {
+        fill: "var(--node)",
+        stroke: "var(--node-stroke)",
+        strokeWidth: 2,
+        filter: "none",
+        scale: 1,
+        duration: 0.5,
+        ease: "power1.out"
+      }, "<");
 
       pendingAnimationRef.current = null;
     },
@@ -181,23 +195,71 @@ const HeapPage = () => {
       return;
     }
     const { newHeap, animateNodes } = pushToHeap(heap, num, algo === "Max-Heap");
+    
+    console.log(`🔺 ${algo} Heappush: Inserting [${num}]`);
+    console.log(`  Before: [${heap.join(", ")}]`);
+    
+    // Log the bubble-up path
+    if (animateNodes.length > 0) {
+      const path = animateNodes.map(({ childIdx }) => newHeap[childIdx]).join(" ← ");
+      console.log(`  Bubble path: ${num} ← ${path}`);
+    } else {
+      console.log(`  Inserted at end (no bubbling needed)`);
+    }
+
+    // Set pending animation first
     pendingAnimationRef.current = {
       type: "push",
       animateNodes,
       newIndex: newHeap.length - 1,
     };
-    setHeap(newHeap);
+    
+    // DELAY heap update so animation plays on current DOM structure first
+    gsap.delayedCall(0.1, () => {
+      setHeap(newHeap);
+    });
+    
     setInputValue("");
+
+    gsap.delayedCall(0.5 + animateNodes.length * 0.6, () => {
+      console.log(`  After:  [${newHeap.join(", ")}]`);
+    });
   });
 
   const onDelete = contextSafe(() => {
     if (heap.length === 0) return;
+
+    const rootValue = heap[0];
     const { newHeap, animateNodes } = popFromHeap(heap, algo === "Max-Heap");
+    
+    console.log(
+      `🔻 ${algo} Heappop: Removing root [${rootValue}]`
+    );
+    console.log(`  Before: [${heap.join(", ")}]`);
+
+    // Set pending animation BEFORE updating heap
     pendingAnimationRef.current = {
       type: "pop",
       animateNodes,
     };
-    setHeap(newHeap);
+
+    // Pre-highlight the root node
+    gsap.to("#node-0", {
+      fill: "#ef4444",
+      stroke: "#dc2626",
+      strokeWidth: 4,
+      filter: "drop-shadow(0 0 12px rgba(239, 68, 68, 0.9))",
+      scale: 1.15,
+      duration: 0.5,
+      ease: "power2.out",
+    });
+
+    // DELAY heap update until animation is about to complete
+    // Allow animations to play first, then update heap
+    gsap.delayedCall(0.8 + animateNodes.length * 0.6, () => {
+      setHeap(newHeap);
+      console.log(`  After:  [${newHeap.join(", ")}]`);
+    });
   });
 
   const onRandom = () => {
@@ -218,8 +280,8 @@ const HeapPage = () => {
 
 
   return (
-    <div className="algo-shell w-full h-full flex flex-col overflow-hidden">
-      <div className="algo-nav sticky w-full backdrop-blur z-10">
+    <div className="w-full h-full flex flex-col overflow-hidden">
+      <div className="sticky w-full backdrop-blur z-10">
         <div className="flex justify-between items-center">
           <div className="flex justify-start items-center gap-2 px-3 py-2 mx-2">
             <Input

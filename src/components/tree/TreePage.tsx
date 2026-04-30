@@ -274,7 +274,119 @@ const TreePage = () => {
     const traversalFn = traversalOptions[traversal];
     if (!treeRoot || !traversalFn) return;
 
-    console.log(`${traversal}:`, traversalFn(treeRoot));
+    // Reset all nodes to default state first
+    gsap.killTweensOf(".node circle, [id*='node-']");
+    gsap.set(".node circle", {
+      fill: "var(--node)",
+      stroke: "var(--node-stroke)",
+      strokeWidth: 2,
+      filter: "none",
+      r: 20,
+    });
+
+    const sequence = traversalFn(treeRoot);
+    const pathStr = sequence.join(" → ");
+    console.log(`🌳 ${traversal} Traversal Started: [${pathStr}]`);
+
+    // Build GSAP timeline for detailed, breathing traversal animation
+    const timeline = gsap.timeline();
+    
+    // Map values to node IDs
+    const nodeMap = new Map<number, string>();
+    nodes.forEach((node) => {
+      nodeMap.set(node.val, node.id);
+    });
+
+    let stepIndex = 0;
+    sequence.forEach((val) => {
+      const nodeId = nodeMap.get(val);
+      if (!nodeId) return;
+
+      // ─── STEP 1: Approach animation (0.5s breathing room) ───
+      const startTime = stepIndex * 1.2;
+      timeline.to(
+        `#node-${nodeId}`,
+        {
+          fill: "#fbbf24",
+          stroke: "#f59e0b",
+          strokeWidth: 3,
+          duration: 0.4,
+          ease: "power2.out",
+          onStart: () => {
+            console.log(`  ✓ Visiting: ${val}`);
+          },
+        },
+        startTime
+      );
+
+      // ─── STEP 2: Active glow (0.4s - shows deliberate pause) ───
+      timeline.to(
+        `#node-${nodeId}`,
+        {
+          filter: "drop-shadow(0 0 8px rgba(251, 191, 36, 0.8))",
+          duration: 0.3,
+          ease: "sine.inOut",
+        },
+        startTime + 0.1
+      );
+
+      // ─── STEP 3: Scale pulse during visit (emphasizes process) ───
+      timeline.to(
+        `#node-${nodeId}`,
+        {
+          r: 26,
+          duration: 0.25,
+          ease: "back.out",
+          yoyo: true,
+          repeat: 1,
+        },
+        startTime + 0.15
+      );
+
+      // ─── STEP 4: Mark as visited (0.3s transition) ───
+      timeline.to(
+        `#node-${nodeId}`,
+        {
+          fill: "#10b981",
+          stroke: "#16a34a",
+          strokeWidth: 2,
+          filter: "drop-shadow(0 0 4px rgba(16, 185, 129, 0.5))",
+          duration: 0.3,
+          ease: "power1.inOut",
+        },
+        startTime + 0.65
+      );
+
+      // ─── STEP 5: Breathing pause before next node ───
+      timeline.to({}, { duration: 0.15 }, startTime + 0.95);
+
+      stepIndex++;
+    });
+
+    // Final cleanup - return all to default state
+    timeline.to(
+      ".node circle",
+      {
+        fill: "var(--node)",
+        stroke: "var(--node-stroke)",
+        strokeWidth: 2,
+        filter: "none",
+        r: 20,
+        duration: 0.5,
+        ease: "power1.out",
+      },
+      ">-0.5"
+    );
+
+    timeline.to(
+      {},
+      {
+        onComplete: () => {
+          console.log(`🌳 Complete: [${pathStr}]`);
+        },
+      },
+      ">"
+    );
   });
 
   // FIX 3: Wrapped with contextSafe (was already intended but the original code
@@ -300,7 +412,7 @@ const TreePage = () => {
   });
 
   return (
-    <div className="flex flex-col overflow-hidden bg-background">
+    <div className="flex flex-col overflow-hidden bg-background h-full w-full">
       <div className="sticky top-0 z-30  border-0 bg-background backdrop-blur">
         <div className="flex justify-between items-center">
           <div className="flex justify-start items-center gap-2 px-3 py-2 mx-2">

@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { useLocation, useSearchParams } from "react-router-dom";
-import gsap from "@/gsapSetup"; // centralized GSAP with plugins (including DrawSVG)
+import { useSearchParams } from "react-router-dom";
+import gsap from "@/gsapSetup";
 import Flip from "gsap/Flip";
 import { useGSAP } from "@gsap/react";
 import SharedLayout from "@/components/SharedLayout";
-import { ROUTES } from "@/constants/routes";
 import {
   sortAlgorithmBuilders,
   type SortFrame,
@@ -19,27 +18,29 @@ const createBarId = () =>
   `bar-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
 const algoMap = [
-  { name: "Bubble Sort", value: "bubble" },
-  { name: "Selection Sort", value: "selection" },
-  { name: "Insertion Sort", value: "insertion" },
-  { name: "Merge Sort", value: "merge" },
+  { name: "Bubble Sort",     value: "bubble"    },
+  { name: "Selection Sort",  value: "selection" },
+  { name: "Insertion Sort",  value: "insertion" },
+  { name: "Merge Sort",      value: "merge"     },
+  { name: "Quick Sort",      value: "quick"     },
 ] as const;
 
 const getBarColor = (state: SortBarState | undefined) => {
   switch (state) {
+    case "pivot":
+      // gold — the chosen pivot, visually distinct from everything else
+      return "viz-bar-pivot border-2 border-transparent font-bold";
     case "checking":
       return "viz-bar-checking shadow-sm border-2 border-transparent font-bold";
     case "comparing":
       return "viz-bar-comparing shadow-sm border-2 border-transparent font-bold";
     case "swapping":
-      // rose ring — two bars are physically exchanging positions
       return "viz-bar-swapping border-2 border-transparent font-bold";
     case "placed":
-      // cyan ring — element was chosen in merge and written to output
       return "viz-bar-placed border-2 border-transparent font-bold";
-    case "consumed":
-      // hollow ghost — value was taken from this slot, now empty
-      return "viz-bar-consumed";
+    case "active":
+      // active range background (dimmed) in quick sort
+      return "viz-bar-active border-2 border-transparent";
     case "splitting":
       return "viz-bar-splitting shadow-sm border-2 border-transparent font-bold";
     case "merging":
@@ -51,105 +52,71 @@ const getBarColor = (state: SortBarState | undefined) => {
   }
 };
 
-
 const SortPage = () => {
-  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
-  const queryMode = searchParams.get("mode");
-  const initialMode: SortAlgorithmKey = "bubble" 
+  const initialMode: SortAlgorithmKey = "bubble";
   const [mode, setMode] = useState<SortAlgorithmKey>(initialMode);
   const [bars, setBars] = useState<SortBar[]>([]);
   const [barStates, setBarStates] = useState<Record<string, SortBarState>>({});
-  const [inputValue, setInputValue] = useState("");
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState(0.75);
+  const [inputValue, setInputValue] = useState("");
+  const [phaseLabel, setPhaseLabel] = useState("");
 
   const barsContainerRef = useRef<HTMLDivElement>(null);
   const barRefs = useRef<Record<string, HTMLDivElement | null>>({});
-  // SVG path for the active dotted line that highlights the current merge/split range
-  const activeLineRef = useRef<SVGSVGElement>(null);
-
   const timelineRef = useRef<gsap.core.Timeline | null>(null);
   const [labels, setLabels] = useState<string[]>([]);
 
   const getExistingBarElements = (ids: string[]) =>
     ids
       .map((id) => barRefs.current[id])
-      .filter((element): element is HTMLDivElement => Boolean(element));
+      .filter((el): el is HTMLDivElement => Boolean(el));
 
   const getAllBarElements = () =>
     Object.values(barRefs.current).filter(
-      (element): element is HTMLDivElement => Boolean(element),
+      (el): el is HTMLDivElement => Boolean(el)
     );
 
-  const animateMergeTreeFrame = (frame: SortFrame) => {
-    const barIds = frame.bars.map((bar) => bar.id);
-    const elements = getExistingBarElements(barIds);
-    if (elements.length === 0) {
-      return;
-    }
+  // ── Merge sort frame animator ───────────────────────────────────────────────
+  // Translates frame.offsets {xFraction, yLevel} into real pixel GSAP tweens.
+  //
+  // SPREAD_PX: how far bars spread at xFraction=±1. Scales with container width
+  //            so it looks the same on any screen. Caps so bars don't fly off-screen.
+  // LIFT_PX:   how far a bar rises when selected during a merge step.
+  const animateMergeFrame = (frame: SortFrame) => {
+    if (!barsContainerRef.current) return;
 
-    gsap.killTweensOf(elements);
+    const container    = barsContainerRef.current;
+    const containerW   = container.getBoundingClientRect().width;
+    const barCount     = frame.bars.length;
+    // Spread factor: at barCount=15, SPREAD_PX ≈ 160px. Scales with bar count.
+    const SPREAD_PX    = Math.min(containerW * 0.45, (containerW / barCount) * 3.2);
+    const LIFT_PX      = 52; // how high a selected bar rises
 
-    const duration = Math.max(0.35, frame.duration * 0.85);
-    // First, clear any previous dotted line
-    if (activeLineRef.current) {
-      gsap.set(activeLineRef.current, { attr: { d: "" } });
-    }
+    const { offsets, bars: frameBars } = frame;
 
-    elements.forEach((element) => {
-      const barId = frame.bars.find(
-        (bar) => bar.id === element.dataset.barid,
-      )?.id;
-      if (!barId) {
-        gsap.to(element, {
-          x: 0,
-          y: 0,
-          duration,
-          ease: "power2.inOut",
-          overwrite: "auto",
-        });
-        return;
-      }
-      const targetOffset = frame.offsets?.[barId] ?? { x: 0, y: 0 };
-      gsap.to(element, {
-        x: targetOffset.x,
-        y: targetOffset.y,
-        duration,
-        ease: "power2.inOut",
+    frameBars.forEach((bar) => {
+      const el = barRefs.current[bar.id];
+      if (!el) return;
+
+      const off = offsets?.[bar.id];
+      const targetX = off ? off.xFraction * SPREAD_PX : 0;
+      const targetY = off ? -(off.yLevel * LIFT_PX)   : 0;
+
+      gsap.to(el, {
+        x:         targetX,
+        y:         targetY,
+        duration:  Math.max(0.35, frame.duration * 0.7),
+        ease:      "power3.inOut",
         overwrite: "auto",
       });
     });
-
-    // After positioning, draw a dotted line over the current merge range
-    if (activeLineRef.current && elements.length > 0) {
-      const container = barsContainerRef.current;
-      if (!container) return;
-      const containerRect = container.getBoundingClientRect();
-      const firstRect = elements[0].getBoundingClientRect();
-      const lastRect = elements[elements.length - 1].getBoundingClientRect();
-      const startX = firstRect.left - containerRect.left;
-      const endX = lastRect.right - containerRect.left;
-      const y = firstRect.top - containerRect.top - 12; // slightly above the bars
-      const d = `M${startX},${y} L${endX},${y}`;
-      const line = activeLineRef.current;
-      gsap.set(line, {
-        attr: { d },
-        strokeDasharray: "4 4",
-        stroke: "var(--brand)",
-        strokeWidth: 2,
-      });
-      gsap.fromTo(
-        line,
-        { drawSVG: "0%" },
-        { drawSVG: "100%", duration: 0.3, ease: "power2.out" },
-      );
-    }
   };
 
+  // ── Timeline ────────────────────────────────────────────────────────────────
   useGSAP(() => {
     timelineRef.current = gsap.timeline({ paused: true });
-
     return () => {
       timelineRef.current?.kill();
       timelineRef.current = null;
@@ -161,69 +128,50 @@ const SortPage = () => {
   }, [speed]);
 
   useEffect(() => {
-    setMode(initialMode);
-  }, [initialMode]);
-
-  useEffect(() => {
-    if (bars.length > 0) {
-      return;
-    }
-
-    const randomBars = Array.from({ length: 15 }, () => ({
-      id: createBarId(),
+    if (bars.length > 0) return;
+    const randomBars = Array.from({ length: 12 }, () => ({
+      id:    createBarId(),
       value: Math.floor(Math.random() * 50) + 1,
     }));
     setBars(randomBars);
   }, [bars.length]);
 
-  const clampSpeed = (value: number) => Math.min(3, Math.max(0.25, value));
+  const clampSpeed = (v: number) => Math.min(3, Math.max(0.25, v));
 
-  const updateMode = (nextMode: string) => {
-    const normalizedMode: SortAlgorithmKey =
-      nextMode === "selection"
-        ? "selection"
-        : nextMode === "insertion"
-          ? "insertion"
-          : nextMode === "merge"
-            ? "merge"
-            : "bubble";
-
-    setMode(normalizedMode);
-    setSearchParams({ mode: normalizedMode }, { replace: true });
+  const validModes = new Set<SortAlgorithmKey>(["bubble", "selection", "insertion", "merge", "quick"]);
+  const updateMode = (next: string) => {
+    const normalised: SortAlgorithmKey = validModes.has(next as SortAlgorithmKey)
+      ? (next as SortAlgorithmKey)
+      : "bubble";
+    setMode(normalised);
+    setSearchParams({ mode: normalised }, { replace: true });
+    resetTimeline();
   };
 
   const resetTimeline = () => {
-    const timeline = timelineRef.current;
-    if (!timeline) {
-      return;
-    }
-
-    timeline.clear().pause(0);
-    const allElements = getAllBarElements();
-    if (allElements.length > 0) {
-      gsap.killTweensOf(allElements);
-      gsap.set(allElements, { x: 0, y: 0 });
+    timelineRef.current?.clear().pause(0);
+    const all = getAllBarElements();
+    if (all.length > 0) {
+      gsap.killTweensOf(all);
+      gsap.set(all, { x: 0, y: 0 });
     }
     setLabels([]);
     setIsPlaying(false);
     setBarStates({});
-
+    setPhaseLabel("");
   };
 
   const handleInsert = () => {
     const parsed = Number.parseInt(inputValue.trim(), 10);
-    if (Number.isNaN(parsed) || parsed < -50 || parsed > 50) {
-      return;
-    }
-
+    if (Number.isNaN(parsed) || parsed < -50 || parsed > 50) return;
     setBars((prev) => [...prev, { id: createBarId(), value: parsed }]);
     setInputValue("");
     resetTimeline();
   };
 
   const generateRandomArray = () => {
-    const randomBars = Array.from({ length: 15 }, () => ({
-      id: createBarId(),
+    const randomBars = Array.from({ length: 12 }, () => ({
+      id:    createBarId(),
       value: Math.floor(Math.random() * 50) + 1,
     }));
     setBars(randomBars);
@@ -232,28 +180,20 @@ const SortPage = () => {
 
   const buildSortTimeline = () => {
     const timeline = timelineRef.current;
-    if (!timeline) {
-      return;
-    }
-
-    if (bars.length === 0) {
-      return;
-    }
+    if (!timeline || bars.length === 0) return;
 
     const frames = sortAlgorithmBuilders[mode](bars);
-    if (frames.length === 0) {
-
-      return;
-    }
-
-
+    if (frames.length === 0) return;
 
     timeline.clear().pause(0);
     timeline.eventCallback("onComplete", () => {
       setIsPlaying(false);
-
+      setPhaseLabel("");
     });
-    timeline.eventCallback("onInterrupt", () => setIsPlaying(false));
+    timeline.eventCallback("onInterrupt", () => {
+      setIsPlaying(false);
+      setPhaseLabel("");
+    });
 
     const nextLabels: string[] = [];
 
@@ -261,35 +201,34 @@ const SortPage = () => {
       const label = `step-${index}`;
       nextLabels.push(label);
       timeline.addLabel(label);
+
       timeline.call(
         () => {
           setBars(frame.bars);
           setBarStates(frame.states);
-
-
+          if (frame.phaseLabel !== undefined) setPhaseLabel(frame.phaseLabel);
 
           requestAnimationFrame(() => {
             if (mode === "merge") {
-              animateMergeTreeFrame(frame);
+              animateMergeFrame(frame);
               return;
             }
 
-            const flipTargets = getAllBarElements();
-            if (flipTargets.length > 0) {
-              gsap.killTweensOf(flipTargets);
-            }
-            const flipState = Flip.getState(flipTargets);
+            // Other algorithms: use Flip for position-swap animation
+            const targets = getAllBarElements();
+            if (targets.length > 0) gsap.killTweensOf(targets);
+            const flipState = Flip.getState(targets);
             Flip.from(flipState, {
-              targets: getExistingBarElements(frame.bars.map((bar) => bar.id)),
-              duration: Math.max(0.18, frame.duration * 0.42),
-              ease: "power1.inOut",
+              targets: getExistingBarElements(frame.bars.map((b) => b.id)),
+              duration: Math.max(0.2, frame.duration * 0.45),
+              ease:     "power2.inOut",
               absolute: false,
               overwrite: true,
             });
           });
         },
         undefined,
-        label,
+        label
       );
 
       timeline.to({}, { duration: frame.duration }, label);
@@ -300,123 +239,79 @@ const SortPage = () => {
     timeline.play(0);
   };
 
-  const handleSort = () => {
-    buildSortTimeline();
-  };
-
-  const playSteps = () => {
-    const timeline = timelineRef.current;
-    if (!timeline) {
-      return;
-    }
-
-    if (isPlaying) {
-      return;
-    }
-
-    timeline.play();
-    setIsPlaying(true);
-  };
-
-  const pauseSteps = () => {
-    const timeline = timelineRef.current;
-    if (!timeline) {
-      return;
-    }
-
-    if (!isPlaying) {
-      return;
-    }
-
-    timeline.pause();
-    setIsPlaying(false);
-  };
+  const playSteps  = () => { if (!isPlaying) { timelineRef.current?.play(); setIsPlaying(true); } };
+  const pauseSteps = () => { if (isPlaying)  { timelineRef.current?.pause(); setIsPlaying(false); } };
 
   const nextStep = () => {
-    const timeline = timelineRef.current;
-    if (!timeline) {
-      return;
-    }
-
-    if (isPlaying || labels.length === 0) {
-      return;
-    }
-
-    const currentLabel = timeline.currentLabel();
-    const currentIndex = labels.indexOf(currentLabel);
-    const nextIndex =
-      currentIndex < 0 ? 0 : Math.min(currentIndex + 1, labels.length - 1);
-    timeline.seek(labels[nextIndex]);
+    const tl = timelineRef.current;
+    if (!tl || isPlaying || labels.length === 0) return;
+    const ci = labels.indexOf(tl.currentLabel());
+    tl.seek(labels[Math.min(ci < 0 ? 0 : ci + 1, labels.length - 1)]);
   };
 
   const prevStep = () => {
-    const timeline = timelineRef.current;
-    if (!timeline) {
-      return;
-    }
-
-    if (isPlaying || labels.length === 0) {
-      return;
-    }
-
-    const currentLabel = timeline.currentLabel();
-    const currentIndex = labels.indexOf(currentLabel);
-    const prevIndex = currentIndex <= 0 ? 0 : currentIndex - 1;
-    timeline.seek(labels[prevIndex]);
+    const tl = timelineRef.current;
+    if (!tl || isPlaying || labels.length === 0) return;
+    const ci = labels.indexOf(tl.currentLabel());
+    tl.seek(labels[Math.max(ci <= 0 ? 0 : ci - 1, 0)]);
   };
 
+  // ── Render ───────────────────────────────────────────────────────────────────
   return (
-    <SharedLayout
-      inputValue={inputValue}
-      setInputValue={setInputValue}
-      handleInsert={handleInsert}
-      handleSearch={handleSort}
-      actionLabel="Sort"
-      generateRandomArray={generateRandomArray}
-      algoMap={algoMap.map((algo) => ({ name: algo.name, value: algo.value }))}
-      isPlaying={isPlaying}
-      onPlay={playSteps}
-      onPause={pauseSteps}
-      onNext={nextStep}
-      onPrev={prevStep}
-      selectedAlgorithm={mode}
-      onAlgorithmChange={updateMode}
-      speed={speed}
-      onSpeedChange={(value) => setSpeed(clampSpeed(value))}
-      onSpeedIncrease={() => setSpeed((prev) => clampSpeed(prev + 0.25))}
-      onSpeedDecrease={() => setSpeed((prev) => clampSpeed(prev - 0.25))}
-    >
-      <div className="w-full h-[900px] flex justify-center items-center max-w-[1600px] px-6 md:px-12 py-4 overflow-visible">
+    <div className="h-screen flex flex-col">
+      <SharedLayout
+        inputValue={inputValue}
+        setInputValue={setInputValue}
+        handleInsert={handleInsert}
+        handleSearch={buildSortTimeline}
+        actionLabel="Sort"
+        generateRandomArray={generateRandomArray}
+        algoMap={algoMap.map((a) => ({ name: a.name, value: a.value }))}
+        isPlaying={isPlaying}
+        onPlay={playSteps}
+        onPause={pauseSteps}
+        onNext={nextStep}
+        onPrev={prevStep}
+        selectedAlgorithm={mode}
+        onAlgorithmChange={updateMode}
+        speed={speed}
+        onSpeedChange={(v) => setSpeed(clampSpeed(v))}
+        onSpeedIncrease={() => setSpeed((p) => clampSpeed(p + 0.25))}
+        onSpeedDecrease={() => setSpeed((p) => clampSpeed(p - 0.25))}
+      >
+        <div className="w-full flex flex-col justify-center items-center max-w-[1600px] px-6 md:px-12 py-4 overflow-visible"
+             style={{ minHeight: (mode === "merge" || mode === "quick") ? "600px" : "400px" }}>
 
-        <div
-          ref={barsContainerRef}
-          className={`relative bar-container flex gap-2 justify-center items-end p-4 overflow-visible ${
-            mode === "merge" ? "min-h-[720px]" : "min-h-[260px]"
-          }`}
-        >
-          {bars.map((bar) => (
+          {/* Phase label — merge sort split/merge context + quick sort pivot announcement */}
+          {(mode === "merge" || mode === "quick") && (
             <div
-              key={bar.id}
-              data-barid={bar.id}
-              ref={(node) => {
-                barRefs.current[bar.id] = node;
-              }}
-              className={`bar w-10 rounded-lg flex items-center justify-center font-mono text-sm transition-all duration-300 ${getBarColor(
-                barStates[bar.id],
-              )}`}
-              style={{ height: `${Math.max(Math.abs(bar.value) * 4, 30)}px` }}
+              className="mb-6 text-sm font-mono tracking-wide transition-all duration-500 min-h-[1.5rem]"
+              style={{ color: "var(--brand)", opacity: phaseLabel ? 1 : 0 }}
             >
-              {bar.value}
+              {phaseLabel}
             </div>
-          ))}
-          {/* SVG overlay for the active dotted line during merge/split */}
-          <svg
-            className="absolute inset-0 pointer-events-none"
-            ref={activeLineRef}
-          />
+          )}
+
+          <div
+            ref={barsContainerRef}
+            className="relative bar-container flex gap-2 justify-center items-end p-4 overflow-visible"
+            style={{ minHeight: (mode === "merge" || mode === "quick") ? "360px" : "260px" }}
+          >
+            {bars.map((bar) => (
+              <div
+                key={bar.id}
+                data-barid={bar.id}
+                ref={(node) => { barRefs.current[bar.id] = node; }}
+                className={`bar w-10 rounded-lg flex items-center justify-center font-mono text-sm ${getBarColor(barStates[bar.id])}`}
+                style={{ height: `${Math.max(Math.abs(bar.value) * 4, 30)}px` }}
+              >
+                {bar.value}
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
-    </SharedLayout>
+      </SharedLayout>
+    </div>
   );
 };
 

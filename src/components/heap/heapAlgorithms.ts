@@ -1,5 +1,5 @@
 import { type HeapNode } from "./heapTypes";
-// ─── PURE ALGORITHM FUNCTIONS (ARRAY BASED) ───────────────────────────────
+
 
 
 function shouldSwap(a: number, b: number,maxHeap: boolean): boolean {
@@ -59,9 +59,9 @@ function popFromHeap(heap: number[], maxHeap: boolean): { newHeap: number[]; ani
   return { newHeap, animateNodes };
 }
 
-// ─── HELPER: ARRAY TO D3 TREE ─────────────────────────────────────────────
 
-// Converts the flat array [1, 2, 3] into the {val: 1, left: {val:2}, right: {val:3}} format D3 needs
+
+
 function buildTreeFromArray(arr: number[], index: number = 0): HeapNode | null {
   if (index >= arr.length) return null;
 

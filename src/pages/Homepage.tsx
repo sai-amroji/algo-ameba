@@ -8,7 +8,7 @@ import * as d3 from "d3";
 import gsap from "@/gsapSetup";
 import { useGSAP } from "@gsap/react";
 
-const RightArrow = ({ className = "w-6 h-6 text-white" }) => (
+const RightArrow = ({ className = "w-5 h-5" }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     fill="none"
@@ -46,7 +46,7 @@ const Homepage = () => {
 
 
 
-  
+
 
   const treeData = {
     num: "T",
@@ -706,21 +706,21 @@ const Homepage = () => {
           ref={searchCardRef}
           onMouseEnter={playSearchHover}
           onMouseLeave={resetSearchLetters}
-          className="flex flex-col w-full justify-center items-center m-5 p-5 bg-slate-900 rounded-lg hover:border-green-500 hover:border-2 transition-easeIn"
+          className="flex flex-col w-full justify-center items-center m-5 p-5 card rounded-lg"
         >
           <div className="flex p-1 m-2 flex-row align-center content-center justify-center gap-2 items-stretch border-2 rounded-sm border-wh w-full min-h-[90px]">
-            {["S","E","A","R","C","H"].map((char) => (
+            {["S", "E", "A", "R", "C", "H"].map((char) => (
               <div
                 key={char}
                 data-char={char}
-                className="search-letter flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center flex-1 py-5 text-white font-bold text-lg"
+                className="search-letter search-node"
               >
                 {char}
               </div>
             ))}
           </div>
-          <div className="self-start mt-2 w-full p-2">
-            <h1 className="flex justify-start text-white font-bold text-2xl p-2 rounded cursor-pointer hover:underline" onClick={() => navigate('/search')}>Search</h1>
+          <div className="card-name">
+            <h1 className="card-text" onClick={() => navigate('/search')}>Search</h1>
           </div>
         </div>
 
@@ -732,21 +732,21 @@ const Homepage = () => {
             ref={stackCardRef}
             onMouseEnter={playStackHover}
             onMouseLeave={resetStackHover}
-            className="flex-1 flex flex-col justify-between items-center p-5 bg-slate-900 rounded-lg min-h-[340px] hover:border-green-500 hover:border-2 transition-easeIn"
+            className="flex-1 flex flex-col justify-between items-center p-5 card rounded-lg min-h-[340px]"
           >
             {/* Stack items: fixed width + explicit height so they never squash */}
             <div className="flex flex-col gap-2 justify-center items-center w-full flex-1 py-2">
-              {["S","T","A","C","K"].map((char) => (
+              {["S", "T", "A", "C", "K"].map((char) => (
                 <div
                   key={char}
-                  className="stack-item w-full max-w-[240px] h-14 rounded-sm bg-blue-700 border-2 border-black flex justify-center items-center text-white font-bold text-xl"
+                  className="stack-item stack-node"
                 >
                   {char}
                 </div>
               ))}
             </div>
             <div className="self-start w-full p-2">
-              <h1 className="flex justify-start text-white font-bold text-2xl p-2 rounded cursor-pointer hover:underline" onClick={() => navigate("/stack")}>Stack</h1>
+              <h1 className="card-text" onClick={() => navigate("/stack")}>Stack</h1>
             </div>
           </div>
 
@@ -754,14 +754,14 @@ const Homepage = () => {
             ref={sortCardRef}
             onMouseEnter={playSortingHover}
             onMouseLeave={resetSortingBars}
-            className="flex-1 flex flex-col justify-between items-center p-5 bg-slate-900 rounded-lg min-h-[340px] hover:border-green-500 hover:border-2 transition-easeIn"
+            className="flex-1 flex flex-col justify-between items-center p-5 card rounded-lg min-h-[340px]"
           >
             <div className="flex flex-row rounded-lg items-end justify-center gap-2 w-full flex-1 py-2">
               {sortingBars.map((bar) => (
                 <div
                   key={bar.char}
                   data-base-height={bar.height}
-                  className="sorting-bar flex rounded-sm bg-blue-700 border-2 border-black justify-center items-end pb-1 w-[35px] text-white font-bold text-xs"
+                  className="sorting-bar sort-node"
                   style={{ height: `${bar.height}px` }}
                 >
                   {bar.char}
@@ -769,7 +769,7 @@ const Homepage = () => {
               ))}
             </div>
             <div className="self-start w-full p-2">
-              <h1 className="flex justify-start text-white font-bold text-2xl p-2 rounded cursor-pointer hover:underline" onClick={() => navigate("/sort")}>Sorting</h1>
+              <h1 className="card-text" onClick={() => navigate("/sort")}>Sorting</h1>
             </div>
           </div>
         </div>
@@ -779,50 +779,55 @@ const Homepage = () => {
           ref={queueCardRef}
           onMouseEnter={playQueueHover}
           onMouseLeave={resetQueueHover}
-          className="flex flex-col w-full justify-center items-center m-5 p-5 bg-slate-900 rounded-lg hover:border-green-500 hover:border-2 transition-easeIn"
+          className="flex flex-col w-full justify-center items-center m-5 p-5 card rounded-lg"
         >
-          <div className="flex p-1 m-2 flex-row align-center content-center justify-center gap-2 items-center border-2 border-x-0 border-b-2 border-black w-full h-[75px] rounded-sm ">
-            <div data-char="Q" className="queue-item flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center h-full w-full px-10 text-white font-bold">Q</div>
-            <div data-char="U" className="queue-item flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center h-full w-full px-10 text-white font-bold">U</div>
-            <div data-char="E" className="queue-item flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center h-full w-full px-10 text-white font-bold">E</div>
-            <div data-char="U" className="queue-item flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center h-full w-full px-10 text-white font-bold">U</div>
-            <div data-char="E" className="queue-item flex rounded-sm bg-blue-700 border-2 border-black justify-center items-center h-full w-full px-10 text-white font-bold">E</div>
+          <div className="flex p-1 m-2 flex-row align-center content-center justify-center gap-2 items-center box-track w-full h-[75px] rounded-sm">
+            {
+              "QUEUE".split("").map((ch) => (
+                <div data-char={ch} className="queue-item queue-node">{ch}</div>
+
+              ))
+            }
           </div>
-          <div className="self-start mt-2 w-full p-2">
-            <h1 className="flex justify-start text-white font-bold text-2xl p-2 rounded cursor-pointer hover:underline" onClick={() => navigate("/queue")}>Queue</h1>
+          <div className="card-name">
+            <h1 className="card-text" onClick={() => navigate("/queue")}>Queue</h1>
           </div>
         </div>
 
         {/* Tree & Heap Container */}
-        <div className="flex w-full h-full flex-1 gap-10 md:flex-col md:justify-center ">
-          <div className="flex-1 flex flex-col w-full justify-between items-center p-5 bg-slate-900 rounded-lg min-h-[400px] hover:border-green-500  hover:border-2 transition-easeIn">
+        <div className="flex flex-row w-full gap-6 items-stretch">
+          <div className="flex-1 flex flex-col w-full justify-between items-center p-5 card rounded-lg min-h-[400px] ">
             <div ref={containerRef} className="h-full w-full flex justify-center items-center">
               <svg ref={svgRef} width="600" height="350"></svg>
             </div>
-            <div className="self-start mt-2 w-full p-2">
-              <h1 className="flex justify-start text-white font-bold text-2xl p-2 rounded cursor-pointer hover:underline" onClick={() => navigate("/tree")}>Tree</h1>
+            <div className="card-name">
+              <h1 className="card-text" onClick={() => navigate("/tree")}>Tree</h1>
             </div>
           </div>
 
-          <div className="flex-1 flex flex-col w-full justify-between items-center p-5 bg-slate-900 rounded-lg min-h-[400px] hover:border-green-500  hover:border-2 transition-easeIn">
+          <div className="flex-1 flex flex-col w-full justify-between items-center p-5 card rounded-lg min-h-[400px] ">
             <div className="h-full w-full flex flex-col justify-center items-center">
               <svg ref={svgHeapRef} width="600" height="350"></svg>
-            <div className="flex p-1 m-2 flex-row align-center content-center justify-center gap-2 items-center border-2 border-x-0 border-b-2 border-white w-full h-[60px] rounded-sm ">
-            <div data-char="Q" className="queue-item flex rounded-sm bg-blue-700 border-2 border-white justify-center items-center h-full w-full px-10 text-white w-[60px] font-bold">H</div>
-            <div data-char="U" className="queue-item flex rounded-sm bg-blue-700 border-2 border-white justify-center items-center h-full w-full px-10 text-white w-[60px] font-bold">E</div>
-            <div data-char="E" className="queue-item flex rounded-sm bg-blue-700 border-2 border-white justify-center items-center h-full w-full px-10 text-white w-[60px] font-bold">A</div>
-            <div data-char="U" className="queue-item flex rounded-sm bg-blue-700 border-2 border-white justify-center items-center h-full w-full px-10 text-white w-[60px] font-bold">P</div>          </div>
+              <div className="flex p-1 m-2 flex-row align-center content-center justify-center gap-2 items-center box-track w-fit h-[60px] rounded-sm">
+                {
 
-              
+                  "HEAP".split("").map((ch) => (
+                    <div data-char={ch} className="heap-node">{ch}</div>
+
+                  ))
+                }
+              </div>
+
+
             </div>
-            <div className="self-start mt-2 w-full p-2">
-              <h1 className="flex justify-start text-white font-bold text-2xl p-2 rounded cursor-pointer hover:underline" onClick={() => navigate("/heap")}>Heap</h1>
+            <div className="card-name">
+              <h1 className="card-text" onClick={() => navigate("/heap")}>Heap</h1>
             </div>
           </div>
         </div>
 
         {/* Graph Container */}
-        <div className='flex flex-col justify-center items-center w-full h-[500px] rounded-sm ddrag-container bg-slate-900 relative hover:border-green-500  hover:border-2 transition-easeIn'>
+        <div className='flex flex-col justify-center items-center w-full h-[500px] rounded-sm ddrag-container card relative'>
           {/* FIXED: using viewBox to lock coordinates so the center is perfectly framed */}
           <svg viewBox="0 0 1000 400" preserveAspectRatio="xMidYMid meet" style={{ display: 'block', width: '100%', height: '100%' }}>
             {links.map((link: any, index: number) => {
@@ -842,7 +847,7 @@ const Homepage = () => {
                 />
               );
             })}
-            
+
             {nodes.map((node) => (
               <g key={node.id} className='ddrag'>
                 <circle
@@ -868,8 +873,8 @@ const Homepage = () => {
             ))}
           </svg>
 
-          <div className="self-start mt-2 w-full p-2 absolute bottom-2 left-2">
-            <h1 className="flex justify-start text-white font-bold text-2xl p-2 rounded cursor-pointer hover:underline w-fit" onClick={() => navigate("/graph")}>Graph</h1>
+          <div className="card-name absolute bottom-2 left-2">
+            <h1 className="card-text w-fit" onClick={() => navigate("/graph")}>Graph</h1>
           </div>
         </div>
 
@@ -878,7 +883,7 @@ const Homepage = () => {
           ref={linkedListCardRef}
           onMouseEnter={playLinkedListHover}
           onMouseLeave={resetLinkedListHover}
-          className="relative flex flex-col justify-between items-center h-[250px] w-full flex bg-slate-900 rounded-lg p-5 mt-6 hover:border-green-500 hover:border-2 transition-easeIn"
+          className="relative flex flex-col justify-between items-center h-[250px] w-full flex card rounded-lg p-5 mt-6"
         >
           <div
             ref={linkedListPointerRef}
@@ -886,19 +891,19 @@ const Homepage = () => {
           >
             Head
           </div>
-          <div className="h-full w-full flex justify-center items-center gap-2 ">
+          <div className="h-full w-full flex justify-center items-center gap-1 py-4">
             {["L", "I", "N", "K", "E", "D"].map((char, index) => (
               <div key={index} className="flex flex-row items-center justify-center gap-2">
-                <div className="linked-node h-[60px] w-[100px] bg-blue-700 rounded-sm p-2 border-2 border-black flex justify-center items-center text-white text-3xl font-bold">
+                <div className="linked-node ll-node">
                   {char}
                 </div>
-                {index !== 5 && <RightArrow />}
+                {index !== 5 && <RightArrow className="w-4 h-4 ll-arrow"/>}
               </div>
             ))}
           </div>
 
-          <div className="self-start mt-2 w-full p-2">
-            <h1 className="flex justify-start text-white font-bold text-2xl p-2 rounded cursor-pointer hover:underline" onClick={() => navigate("/linkedlist")}>Linked List</h1>
+          <div className="card-name">
+            <h1 className="card-text" onClick={() => navigate("/linkedlist")}>Linked List</h1>
           </div>
         </div>
 
