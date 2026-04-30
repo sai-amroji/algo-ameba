@@ -14,8 +14,6 @@ elemets
 -- Graph has hardcoded graph on start we should generate new one entirly like rest 
 
 
-## 3.Sanity checky
--- User can enter graph of nodes 10000 nodes and we would generate we cant do that and tell that explicitly and circle queue is not possible as we have no limit so we should have limit stack queue linked list tree all dont have any limit set and can be extended infinetly
 
 ## 4. Themeing 
 -- Theming is an after thought theming isnt proper and excuted well there are inconsistences throughout like input in some cases on foucs gives brand border color in some cases dont and we are using same shade of brand color even in case of light might which causes poor visiblity we should use dark shades of existing color and invert color so its consistent even in light mode

@@ -27,11 +27,8 @@ export const useSearchVizulizer = () => {
 
 
 
-    // Use a ref for the timeline
     const timelineRef = useRef(gsap.timeline({ paused: true }));
-    // We'll use this ref to store the timeline's labels for step-by-step navigation
     const labelsRef = useRef<string[]>([]);
-    // Cleanup toast and timeline on unmount
     useEffect(() => {
         return () => {
             timelineRef.current.kill();
@@ -121,7 +118,7 @@ export const useSearchVizulizer = () => {
         const currentLabel = timelineRef.current.currentLabel();
         const currentIndex = labelsRef.current.indexOf(currentLabel);
         if (currentIndex < labelsRef.current.length - 1) {
-             queue: "/queue",
+            
  timelineRef.current.seek(labelsRef.current[currentIndex + 1]);
         }
     };

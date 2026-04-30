@@ -15,8 +15,6 @@ import gsap from "../../gsapSetup";
 import { pushToHeap, popFromHeap, buildTreeFromArray } from "./heapAlgorithms";
 import { type HeapNode, type RenderNode, type RenderEdge } from "./heapTypes";
 
-// ─── REACT COMPONENT ──────────────────────────────────────────────────────
-
 const HeapPage = () => {
   const [algo, setAlgo] = useState("Min-Heap");
   const [inputValue, setInputValue] = useState("");
@@ -26,10 +24,6 @@ const HeapPage = () => {
   const [heap, setHeap] = useState<number[]>([]);
   
   const containerRef = useRef<SVGSVGElement>(null);
-
-  // useEffect(() => {
-  //   window.scrollTo(0, 0);
-  // }, []);
 
   const algorithms: Record<string, string[]> = {
     "Min-Heap": ["Preorder", "Inorder", "Postorder"],
@@ -108,90 +102,91 @@ const HeapPage = () => {
     { scope: containerRef, dependencies: [nodes, edges] }
   );
 
-  useGSAP(
-    () => {
-      const pending = pendingAnimationRef.current;
-      if (!pending) return;
+  // Play a pending heap animation immediately (so it runs on the current DOM state)
+  const playPendingAnimation = (pending: typeof pendingAnimationRef.current, onComplete?: () => void) => {
+    if (!pending) {
+      onComplete?.();
+      return;
+    }
 
-      const heapTimeline = gsap.timeline();
-      heapTimeline.addLabel("reset");
-      // Fade in nodes/edges quickly
-      heapTimeline.to(".node circle", {
-        fill: "var(--node)",
-        stroke: "var(--node-stroke)",
-        filter: "none",
-        scale: 1,
-        duration: 0.5
-      });
-      heapTimeline.to(".edge", { stroke: "var(--edge)", strokeWidth: 2, duration: 0.5 }, "<");
+    const heapTimeline = gsap.timeline({ onComplete: () => {
+      pendingAnimationRef.current = null;
+      onComplete?.();
+    }});
 
-      if (pending.type === "push" && pending.animateNodes.length === 0 && pending.newIndex !== undefined) {
-          heapTimeline.addLabel("inserted");
-        // Highlight the newly inserted node with a brief pulse (breathe)
-        heapTimeline.to(
-          `#node-${pending.newIndex}`,
-          { fill: "var(--node-visited)", scale: 1.12, duration: 0.4, yoyo: true, repeat: 1 },
-          "<"
-        );
-        // Add a subtle breathing after insertion to let the user see it
-        heapTimeline.to(
-          `#node-${pending.newIndex}`,
-          { scale: 1.05, duration: 0.3, yoyo: true, repeat: 1 },
-          ">"
-        );
-      } else {
-        pending.animateNodes.forEach(({ childIdx, parentIdx }, i) => {
-            heapTimeline.addLabel(`swap-${i}`);
-            // First highlight the parent node that will be swapped
-            heapTimeline.to(
-              `#node-${parentIdx}`,
-              { fill: "var(compare)", scale: 1.1, duration: 0.3, yoyo: true, repeat: 1 },
-              i === 0 ? "<" : ">"
-            );
-            // Then highlight the edge
-            heapTimeline.to(
-              `#edge-${parentIdx}-${childIdx}`,
-              { stroke: "var(--node-visited)", strokeWidth: 4, duration: 0.4 },
-              "+=0.1"
-            );
-            // Finally change the child node color with a brief pulse
-            heapTimeline.to(
-              `#node-${childIdx}`,
-              { fill: "var(--node-visited)", scale: 1.08, duration: 0.3, yoyo: true, repeat: 1 },
-              "<"
-            );
-            // Small pause before next swap to avoid rushing
-            heapTimeline.to({}, { duration: 0.2 });
-        });
-      }
+    heapTimeline.addLabel("reset");
+    heapTimeline.to(".node circle", {
+      fill: "var(--node)",
+      stroke: "var(--node-stroke)",
+      filter: "none",
+      scale: 1,
+      duration: 0.5
+    });
+    heapTimeline.to(".edge", { stroke: "var(--edge)", strokeWidth: 2, duration: 0.5 }, "<");
 
-      heapTimeline.addLabel("cleanup");
+    if (pending.type === "push" && pending.animateNodes.length === 0 && pending.newIndex !== undefined) {
+      heapTimeline.addLabel("inserted");
       heapTimeline.to(
-        ".edge",
-        { stroke: "var(--edge)", strokeWidth: 2, duration: 0.8 },
+        `#node-${pending.newIndex}`,
+        { fill: "var(--node-visited)", scale: 1.12, duration: 0.4, yoyo: true, repeat: 1 },
+        "<"
+      );
+      heapTimeline.to(
+        `#node-${pending.newIndex}`,
+        { scale: 1.05, duration: 0.3, yoyo: true, repeat: 1 },
         ">"
       );
-      heapTimeline.to(".node circle", {
-        fill: "var(--node)",
-        stroke: "var(--node-stroke)",
-        strokeWidth: 2,
-        filter: "none",
-        scale: 1,
-        duration: 0.5,
-        ease: "power1.out"
-      }, "<");
+    } else {
+      pending.animateNodes.forEach(({ childIdx, parentIdx }, i) => {
+        heapTimeline.addLabel(`swap-${i}`);
+        heapTimeline.to(
+          `#node-${parentIdx}`,
+          { fill: "var(--compare)", scale: 1.1, duration: 0.3, yoyo: true, repeat: 1 },
+          i === 0 ? "<" : ">"
+        );
+        heapTimeline.to(
+          `#edge-${parentIdx}-${childIdx}`,
+          { stroke: "var(--node-visited)", strokeWidth: 4, duration: 0.4 },
+          "+=0.1"
+        );
+        heapTimeline.to(
+          `#node-${childIdx}`,
+          { fill: "var(--node-visited)", scale: 1.08, duration: 0.3, yoyo: true, repeat: 1 },
+          "<"
+        );
+        heapTimeline.to({}, { duration: 0.2 });
+      });
+    }
 
-      pendingAnimationRef.current = null;
-    },
-    { scope: containerRef, dependencies: [heap] }
-  );
+    heapTimeline.addLabel("cleanup");
+    heapTimeline.to(
+      ".edge",
+      { stroke: "var(--edge)", strokeWidth: 2, duration: 0.8 },
+      ">"
+    );
+    heapTimeline.to(".node circle", {
+      fill: "var(--node)",
+      stroke: "var(--node-stroke)",
+      strokeWidth: 2,
+      filter: "none",
+      scale: 1,
+      duration: 0.5,
+      ease: "power1.out"
+    }, "<");
+  };
 
   // ─── HANDLERS ───────────────────────────────────────────────────────────
+
+  const MAX_HEAP_SIZE = 15;
 
   const onInsert = contextSafe((val: string) => {
     const num = Number(val);
     if (val.trim() === "" || isNaN(num)) {
       alert("Please enter a valid number.");
+      return;
+    }
+    if (heap.length >= MAX_HEAP_SIZE) {
+      alert(`Heap is full! (max ${MAX_HEAP_SIZE} nodes)`);
       return;
     }
     const { newHeap, animateNodes } = pushToHeap(heap, num, algo === "Max-Heap");
@@ -243,22 +238,38 @@ const HeapPage = () => {
       animateNodes,
     };
 
-    // Pre-highlight the root node
+    // Pre-highlight the root node being removed so user notices selection
     gsap.to("#node-0", {
       fill: "#ef4444",
       stroke: "#dc2626",
       strokeWidth: 4,
       filter: "drop-shadow(0 0 12px rgba(239, 68, 68, 0.9))",
       scale: 1.15,
-      duration: 0.5,
+      duration: 0.45,
       ease: "power2.out",
     });
 
-    // DELAY heap update until animation is about to complete
-    // Allow animations to play first, then update heap
-    gsap.delayedCall(0.8 + animateNodes.length * 0.6, () => {
-      setHeap(newHeap);
-      console.log(`  After:  [${newHeap.join(", ")}]`);
+    // Highlight replacement candidate (last leaf) briefly, then run the full pending animation
+    const replacementIdx = Math.max(0, heap.length - 1);
+    gsap.delayedCall(0.35, () => {
+      gsap.to(`#node-${replacementIdx}`, {
+        fill: "var(--node-visited)",
+        scale: 1.12,
+        duration: 0.35,
+        yoyo: true,
+        repeat: 1,
+        ease: "power2.out",
+      });
+
+      // Give the user a short moment to see highlights, then play the swap/path animation
+      gsap.delayedCall(0.45, () => {
+        const pending = pendingAnimationRef.current;
+        playPendingAnimation(pending, () => {
+          // update heap state after animations complete
+          setHeap(newHeap);
+          console.log(`  After:  [${newHeap.join(", ")}]`);
+        });
+      });
     });
   });
 
@@ -280,7 +291,7 @@ const HeapPage = () => {
 
 
   return (
-    <div className="w-full h-full flex flex-col overflow-hidden">
+    <div className="min-h-screen flex flex-col bg-background font-audiowide">
       <div className="sticky w-full backdrop-blur z-10">
         <div className="flex justify-between items-center">
           <div className="flex justify-start items-center gap-2 px-3 py-2 mx-2">
@@ -348,10 +359,10 @@ const HeapPage = () => {
       </div>
 
       <div className="flex flex-1 min-h-0 flex-row justify-center items-center viz-canvas overflow-auto">
-        <div className="flex flex-row tree-container justify-center items-center w-full min-h-full">
+        <div className="flex flex-row tree-container justify-center items-center w-full h-full">
           <svg
             ref={containerRef}
-            className="tree canvas border-0 flex-grow"
+            className="tree canvas border-0"
             width="100%"
             height="100%"
             viewBox="0 0 800 800"

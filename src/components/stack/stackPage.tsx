@@ -37,7 +37,8 @@ const StackPage = () => {
 
   const options = ALGO_OPTIONS[algo];
   const activeS = stack.filter((i) => i.status === "pushing");
-  const isFull = activeS.length >= 10;
+  const MAX_STACK_SIZE = 15;
+  const isFull = activeS.length >= MAX_STACK_SIZE;
   const isEmpty = activeS.length === 0;
 
   const getRef = (id: number) => itemRefs.current.get(id);
@@ -53,16 +54,17 @@ const StackPage = () => {
   },[stack])
 
   const generateRandom = () => {
-     let size = Math.floor(Math.random() * 10);
-
-
-     while (size > 0) {
-        const num = Math.floor(Math.random() * 100);
-        push(num);
-        size--;
-      }
-
-
+    // Clear stack first
+    setStack([]);
+    itemRefs.current.clear();
+    uid = 0;
+    
+    let size = Math.floor(Math.random() * 8) + 2; // Generate 2-9 items
+    while (size > 0) {
+      const num = Math.floor(Math.random() * 100);
+      push(num);
+      size--;
+    }
   }
   const push = (value: number) => {
     if (isFull) return toast("Stack is full!");

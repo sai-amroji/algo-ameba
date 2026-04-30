@@ -24,7 +24,7 @@ const SearchPage = () => {
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const routeMode: SearchMode =
-    location.pathname === ROUTES.binarySearch ? "binary" : "linear";
+    location.pathname === ROUTES.search ? "binary" : "linear";
   const queryMode = searchParams.get("mode");
   const initialMode: SearchMode =
     queryMode === "binary" || queryMode === "linear" ? queryMode : routeMode;
@@ -133,7 +133,7 @@ const SearchPage = () => {
   });
 
   // ── Not-found ending: everything sinks and desaturates together ──
-  const animateNotFound = contextSafe((frame: SearchFrame) => {
+  const animateNotFound = contextSafe((_frame: SearchFrame) => {
     const allEls = getExistingBarElements(bars.map((b) => b.id));
     clearActiveLine();
     gsap.to(allEls, {

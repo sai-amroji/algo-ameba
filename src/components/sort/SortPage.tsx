@@ -53,7 +53,7 @@ const getBarColor = (state: SortBarState | undefined) => {
 };
 
 const SortPage = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [, setSearchParams] = useSearchParams();
   const initialMode: SortAlgorithmKey = "bubble";
   const [mode, setMode] = useState<SortAlgorithmKey>(initialMode);
   const [bars, setBars] = useState<SortBar[]>([]);

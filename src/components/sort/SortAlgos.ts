@@ -289,7 +289,7 @@ export const buildMergeSortFrames = (initialBars: SortBar[]): SortFrame[] => {
 
 	// ── Recursive split/merge ──────────────────────────────────────────────────
 
-	const mergeRange = (low: number, mid: number, high: number, depth: number) => {
+	const mergeRange = (low: number, mid: number, high: number, _depth: number) => {
 		const left  = bars.slice(low, mid + 1).map((b) => ({ ...b }));
 		const right = bars.slice(mid + 1, high + 1).map((b) => ({ ...b }));
 		let li = 0, ri = 0, wi = low;

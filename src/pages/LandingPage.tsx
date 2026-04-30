@@ -3,11 +3,10 @@ import { useRef } from "react";
 import { ModeToggle } from "@/components/mode-toggle.tsx";
 import { ROUTES } from "@/constants/routes";
 import gsap from "@/gsapSetup";
-import { SplitText } from "gsap/SplitText";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-gsap.registerPlugin(SplitText, ScrollTrigger, useGSAP);
+gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -37,25 +36,24 @@ const LandingPage = () => {
   useGSAP(() => {
     if (!heroRef.current) return;
 
-    // Hero entrance animation - staggered reveal
     const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
-    
+
     tl.from(".hero-bg", { opacity: 0, scale: 1.1, duration: 1.2 })
-      .from(titleRef.current, { 
-        opacity: 0, 
-        y: 60, 
-        duration: 0.9 
+      .from(titleRef.current, {
+        opacity: 0,
+        y: 60,
+        duration: 0.9,
       }, "-=0.6")
-      .from(subtitleRef.current, { 
-        opacity: 0, 
-        y: 40, 
-        duration: 0.7 
+      .from(subtitleRef.current, {
+        opacity: 0,
+        y: 40,
+        duration: 0.7,
       }, "-=0.5")
-      .from(ctaRef.current, { 
-        opacity: 0, 
-        y: 30, 
+      .from(ctaRef.current, {
+        opacity: 0,
+        y: 30,
         scale: 0.95,
-        duration: 0.6 
+        duration: 0.6,
       }, "-=0.4");
 
   }, { scope: containerRef });
@@ -112,20 +110,31 @@ const LandingPage = () => {
   useGSAP(() => {
     if (!featuresRef.current) return;
 
-    gsap.from(".feature-card", {
-      scrollTrigger: {
-        trigger: featuresRef.current,
-        start: "top 80%",
-        end: "bottom 20%",
-        toggleActions: "play none none reverse"
+    const featureCards = featuresRef.current.querySelectorAll(".feature-card");
+
+    gsap.fromTo(
+      featureCards,
+      {
+        opacity: 0,
+        y: 24,
+        scale: 0.98,
       },
-      opacity: 0,
-      y: 60,
-      scale: 0.92,
-      duration: 0.7,
-      stagger: 0.15,
-      ease: "back.out(1.4)"
-    });
+      {
+        scrollTrigger: {
+          trigger: featuresRef.current,
+          start: "top 85%",
+          end: "bottom 20%",
+          toggleActions: "play none none reverse",
+        },
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        duration: 0.7,
+        stagger: 0.12,
+        ease: "back.out(1.4)",
+        immediateRender: false,
+      }
+    );
 
   }, { scope: containerRef });
 

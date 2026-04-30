@@ -37,6 +37,8 @@ const QueuePage = () => {
 
   const options = algosOptionMap[selectedAlgo];
   const algos = Object.keys(algosOptionMap);
+  const MAX_QUEUE_SIZE = 15;
+  const active = queue.filter((i) => !removingIds.has(i.id));
 
   const { contextSafe } = useGSAP({ scope: queueContainerRef });
 
@@ -52,16 +54,17 @@ const QueuePage = () => {
 
   
   const generateRandomArray = () => {
-  
-
-    let num = Math.floor(Math.random() * 10) ; // Generate between 3 and 7 items
-
-    while(num > 0){
-      enqueue(Math.floor(Math.random()*10))
-      num -=1
+    // Clear queue first
+    setQueue([]);
+    setRemovingIds(new Set());
+    itemRefs.current.clear();
+    nextId.current = 0;
+    
+    let num = Math.floor(Math.random() * 8) + 2; // Generate 2-9 items
+    while(num > 0) {
+      enqueue(Math.floor(Math.random() * 100));
+      num -= 1;
     }
-
-  
   };
   const animateIn = contextSafe((el: HTMLDivElement) => {
     gsap.fromTo(
@@ -91,7 +94,10 @@ const QueuePage = () => {
   };
 
   const enqueue = (value: number, toFront = false) => {
-    if (queue.length >= 10) { toast("Queue is full!"); return; }
+    if (active.length >= MAX_QUEUE_SIZE) { 
+      toast.error(`Queue is full! (max ${MAX_QUEUE_SIZE} items)`); 
+      return; 
+    }
     const id = nextId.current++;
     setQueue((prev) => toFront ? [{ id, value }, ...prev] : [...prev, { id, value }]);
     setTimeout(() => {
@@ -101,7 +107,6 @@ const QueuePage = () => {
   };
 
   const dequeue = (fromBack = false) => {
-    const active = queue.filter((i) => !removingIds.has(i.id));
     if (active.length === 0) { toast("Queue is empty!"); return; }
     const target = fromBack ? active[active.length - 1] : active[0];
     const el = itemRefs.current.get(target.id);
@@ -116,7 +121,6 @@ const QueuePage = () => {
   };
 
   const peek = () => {
-    const active = queue.filter((i) => !removingIds.has(i.id));
     if (active.length === 0) { toast("Queue is empty!"); return; }
     const el = itemRefs.current.get(active[0].id);
     if (el) {
@@ -130,7 +134,6 @@ const QueuePage = () => {
   };
 
   const clear = () => {
-    const active = queue.filter((i) => !removingIds.has(i.id));
     if (active.length === 0) { toast("Queue is already empty!"); return; }
     const allIds = new Set(active.map((i) => i.id));
     setRemovingIds((prev) => new Set([...prev, ...allIds]));
@@ -173,9 +176,9 @@ const QueuePage = () => {
   const activeLen = queue.filter((i) => !removingIds.has(i.id)).length;
 
   return (
-    <div className="min-h-screen bg-background shell-fg flex flex-col font-audiowide">
+    <div className="min-h-screen bg-background flex flex-col font-audiowide">
       {/* Navbar */}
-      <div className="flex flex-row justify-between items-center h-16 px-6 border-0 panel">
+      <div className="flex flex-row justify-between items-center h-16 px-6 border-0">
         <div className="flex items-center gap-3">
           <Input
             className="input w-32"

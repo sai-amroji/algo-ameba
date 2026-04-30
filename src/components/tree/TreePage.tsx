@@ -223,10 +223,21 @@ const TreePage = () => {
 
   // ─── HANDLERS ────────────────────────────────────────────────────────────
 
+  const MAX_TREE_SIZE = 20;
+
   const onInsert = (val: string) => {
     const num = Number(val);
     if (val.trim() === "" || isNaN(num)) {
       alert("Please enter a valid number.");
+      return;
+    }
+    // Count current nodes in tree
+    const countNodes = (node: TreeNode | null): number => {
+      if (!node) return 0;
+      return 1 + countNodes(node.left) + countNodes(node.right);
+    };
+    if (countNodes(treeRoot) >= MAX_TREE_SIZE) {
+      alert(`Tree is full! (max ${MAX_TREE_SIZE} nodes)`);
       return;
     }
     setTreeRoot((prev) => insertBST(prev, num));
@@ -389,8 +400,6 @@ const TreePage = () => {
     );
   });
 
-  // FIX 3: Wrapped with contextSafe (was already intended but the original code
-  // had contextSafe declared after this function, causing a runtime error).
   const onSearch = contextSafe((val: string) => {
     if (val.trim() === "") return;
     setInputValue("");
@@ -412,7 +421,7 @@ const TreePage = () => {
   });
 
   return (
-    <div className="flex flex-col overflow-hidden bg-background h-full w-full">
+    <div className="min-h-screen flex flex-col bg-background font-audiowide">
       <div className="sticky top-0 z-30  border-0 bg-background backdrop-blur">
         <div className="flex justify-between items-center">
           <div className="flex justify-start items-center gap-2 px-3 py-2 mx-2">
@@ -511,10 +520,10 @@ const TreePage = () => {
       </div>
 
       <div className="flex flex-1 min-h-0 flex-row justify-center items-center viz-canvas overflow-auto">
-        <div className="flex flex-row tree-container justify-center items-center w-full min-h-full">
+        <div className="flex flex-row tree-container justify-center items-center w-full h-full">
           <svg
             ref={containerRef}
-            className="tree canvas border-0 flex-grow"
+            className="tree canvas border-0"
             width="100%"
             height="100%"
             viewBox="0 0 800 800"

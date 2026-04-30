@@ -12,6 +12,7 @@ import { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 import { useGSAP } from "@gsap/react";
 import gsap from "../../gsapSetup";
+import { toast } from "sonner";
 import algorithms from "./graphConfig";
 import { runBFS, runDFS, runDijstras, buildAdjList } from "./graphAlgorithms";
 const EDGE_BASE_COLOR = "#64748b"; // slate-500: visible on light and dark backgrounds
@@ -35,6 +36,38 @@ const GraphPage = () => {
   const [isWeighted, setIsWeighted] = useState(true);
 
   const graphRef = useRef<SVGSVGElement>(null);
+
+  // Generate random graph
+  const generateRandomGraph = () => {
+    const nodeCount = Math.floor(Math.random() * 5) + 3; // 3-7 nodes
+    const nodes = Array.from({ length: nodeCount }, (_, i) => ({
+      id: i + 1,
+      label: String(i + 1),
+    }));
+
+    const links: { source: number; target: number; weight: number }[] = [];
+    const edgeSet = new Set<string>();
+    const maxEdges = Math.floor(nodeCount * (nodeCount - 1) / 2);
+    const edgeCount = Math.floor(Math.random() * (maxEdges - nodeCount + 1)) + nodeCount;
+
+    for (let i = 0; i < edgeCount; i++) {
+      const source = Math.floor(Math.random() * nodeCount) + 1;
+      let target = Math.floor(Math.random() * nodeCount) + 1;
+      while (target === source) {
+        target = Math.floor(Math.random() * nodeCount) + 1;
+      }
+      const key = [Math.min(source, target), Math.max(source, target)].join("-");
+      if (!edgeSet.has(key)) {
+        edgeSet.add(key);
+        links.push({
+          source,
+          target,
+          weight: Math.floor(Math.random() * 10) + 1,
+        });
+      }
+    }
+    return { nodes, links };
+  };
 
 
 
@@ -179,24 +212,7 @@ const GraphPage = () => {
 
 
 
-  const [graphData, setGraphData] = useState({
-    nodes: [
-      { id: 1, label: "1" }, { id: 2, label: "2" }, { id: 3, label: "3" },
-      { id: 4, label: "4" }, { id: 5, label: "5" },
-    ],
-    links: [
-      { source: 1, target: 2, weight: 4 }, { source: 1, target: 3, weight: 2 },
-      { source: 2, target: 4, weight: 5 }, { source: 3, target: 5, weight: 10 },
-      { source: 4, target: 5, weight: 3 },
-    ],
-  });
-
-
-  const [isRunning, setIsRunning] = useState(false); // Track if an algorithm is currently running
-  const [error, setError] = useState(""); // For displaying input validation errors
-
-
-
+  const [graphData, setGraphData] = useState(generateRandomGraph());
 
   // Keep D3 effects in sync with isDirected toggle
   useEffect(() => {
@@ -306,14 +322,22 @@ const GraphPage = () => {
         .attr("y", (d: any) => (d.source.y + d.target.y) / 2 - 5);
     });
 
-    return () => simulation.stop();
+    return () => { simulation.stop(); };
   }, [graphData, isDirected, isWeighted]); // Re-render when config toggles change
 
   const onRandom = () => {
     const parsedInput = parseInt(numNodes);
+    const MAX_GRAPH_NODES = 10;
+    
+    if (!isNaN(parsedInput) && parsedInput > MAX_GRAPH_NODES) {
+      toast.error(`Max ${MAX_GRAPH_NODES} nodes for Graph. Using ${MAX_GRAPH_NODES} instead.`);
+      setGraphData(generateRandomGraph());
+      return;
+    }
+    
     const nodeCount = !isNaN(parsedInput) && parsedInput > 1 
       ? parsedInput 
-      : Math.floor(Math.random() * 11) + 5; 
+      : Math.floor(Math.random() * 5) + 3; 
 
     const newNodes = Array.from({ length: nodeCount }, (_, i) => ({
       id: i + 1, label: `${i + 1}`,

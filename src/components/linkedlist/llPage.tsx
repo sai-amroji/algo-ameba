@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/select.tsx";
 import { useGSAP } from "@gsap/react";
 import gsap from "../../gsapSetup.ts";
-// Toast notifications removed as per request
+import { toast } from "sonner";
 
 /* ── TYPE DEFINITIONS ────────────────────────────────────────── */
 type ListType = "singly" | "doubly" | "singly-circular" | "doubly-circular";
@@ -63,6 +63,7 @@ const LinkedListPage = () => {
   const prevArrowRefs = useRef<Map<number | string, SVGLineElement>>(new Map());
   const nextId    = useRef(3);
   const pending   = useRef<Set<number>>(new Set());
+  const MAX_LL_SIZE = 20;
 
   /* ── GSAP context ───────────────────────────────────────────────────── */
   const { contextSafe } = useGSAP({ scope: screenRef });
@@ -85,25 +86,46 @@ const LinkedListPage = () => {
 
 
 
-  useEffect(() => {
-    if(list.length == 0){
-      generateRandom()
-    }
-  },[list])
+    useEffect(() => {
+      if (list.length == 0) {
+        generateRandom();
+      }
+    }, [list]);
 
 
- const generateRandom = () => {
+    const generateRandom = () => {
+      const size = Math.floor(Math.random() * 10);
+      const randomList: LLNode[] = [];
 
-   let size = Math.floor(Math.random()*10);
+      for (let index = 0; index < size; index++) {
+        const value = Math.floor(Math.random() * 10);
+        const node: LLNode = {
+          id: nextId.current++,
+          value,
+          addr: genAddr(),
+          prevAddr:
+            config.isDoubly
+              ? index > 0
+                ? randomList[index - 1].addr
+                : undefined
+              : undefined,
+        };
 
-   while(size > 0){
-     insert(Math.floor(Math.random()*10),0)
-     size--;
-   }
+        randomList.push(node);
+      }
 
- }
+      itemRefs.current.clear();
+      nextArrowRefs.current.clear();
+      prevArrowRefs.current.clear();
+      setRemovingIds(new Set());
+      setList(randomList);
+    };
   /* ── INSERT ─────────────────────────────────────────────────────────── */
   const insert = contextSafe((value: number, position: number) => {
+    if (list.length >= MAX_LL_SIZE) {
+      toast(`LinkedList is full! (max ${MAX_LL_SIZE} nodes)`);
+      return;
+    }
     const newNode: LLNode = { 
       id: nextId.current++, 
       value, 
@@ -485,8 +507,8 @@ const LinkedListPage = () => {
                 {/* arrows (next for singly/circular, both prev+next for doubly) */}
                 {config.isDoubly ? (
                   <svg className="flex-shrink-0" width="52" height="56" viewBox="0 0 52 56">
-                    {/* prev arrow (top) — points left */}
-                    {index > 0 && (
+                    {/* prev arrow (top) — points left. Show on all doubly nodes except first (unless circular) */}
+                    {(index > 0 || (config.isCircular && list.length > 1)) && (
                       <line
                         ref={(el) => { if (el) prevArrowRefs.current.set(item.id, el); }}
                         x1="44" y1="8" x2="2" y2="8"
@@ -494,8 +516,8 @@ const LinkedListPage = () => {
                         markerEnd="url(#ll-arrow-purple)"
                       />
                     )}
-                    {/* next arrow (bottom) — points right. EXPLICITLY DON'T RENDER ON LAST NODE */}
-                    {index < list.length - 1 && (
+                    {/* next arrow (bottom) — points right. Show on all doubly nodes except last (unless circular) */}
+                    {(index < list.length - 1 || config.isCircular) && (
                       <line
                         ref={(el) => { if (el) nextArrowRefs.current.set(item.id, el); }}
                         x1="2" y1="48" x2="44" y2="48"

@@ -883,7 +883,7 @@ const Homepage = () => {
           ref={linkedListCardRef}
           onMouseEnter={playLinkedListHover}
           onMouseLeave={resetLinkedListHover}
-          className="relative flex flex-col justify-between items-center h-[250px] w-full flex card rounded-lg p-5 mt-6"
+          className="relative flex flex-col justify-between items-center h-[250px] w-full card rounded-lg p-5 mt-6"
         >
           <div
             ref={linkedListPointerRef}
