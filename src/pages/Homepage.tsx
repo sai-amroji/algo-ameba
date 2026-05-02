@@ -1,14 +1,14 @@
-import { Input } from "@/components/ui/input.tsx";
-import { ModeToggle } from "@/components/mode-toggle.tsx";
-import { useNavigate } from "react-router-dom";
-import logo from "../../public/Ameba.png";
-import { ROUTES } from "@/constants/routes";
-import { useEffect, useRef, useState } from "react";
-import * as d3 from "d3";
-import gsap from "@/gsapSetup";
-import { useGSAP } from "@gsap/react";
+import { Input } from '@/components/ui/input.tsx';
+import { ModeToggle } from '@/components/mode-toggle.tsx';
+import { useNavigate } from 'react-router-dom';
+import logo from '../../public/Ameba.png';
+import { ROUTES } from '@/constants/routes';
+import { useEffect, useRef, useState } from 'react';
+import * as d3 from 'd3';
+import gsap from '@/gsapSetup';
+import { useGSAP } from '@gsap/react';
 
-const RightArrow = ({ className = "w-5 h-5" }) => (
+const RightArrow = ({ className = 'w-5 h-5' }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     fill="none"
@@ -25,7 +25,7 @@ const RightArrow = ({ className = "w-5 h-5" }) => (
   </svg>
 );
 
-const graphLetters = ["G", "R", "A", "P", "H"];
+const graphLetters = ['G', 'R', 'A', 'P', 'H'];
 
 const Homepage = () => {
   const navigate = useNavigate();
@@ -44,59 +44,61 @@ const Homepage = () => {
   const linkedListPointerRef = useRef<HTMLDivElement>(null);
   const linkedListHoverTimelineRef = useRef<gsap.core.Timeline | null>(null);
 
-
-
-
-
   const treeData = {
-    num: "T",
+    num: 'T',
     children: [
       {
-        num: "R", children: [
-          { num: "E", children: [] },
-          { num: "E", children: [] }
-        ]
+        num: 'R',
+        children: [
+          { num: 'E', children: [] },
+          { num: 'E', children: [] },
+        ],
       },
       {
-        num: "A", children: [
-          { num: "L", children: [] },
-          { num: "G", children: [] }
-        ]
+        num: 'A',
+        children: [
+          { num: 'L', children: [] },
+          { num: 'G', children: [] },
+        ],
       },
-    ]
+    ],
   };
 
   // Valid Max-Heap Data structure
   const heapData = {
-    num: "H",
+    num: 'H',
     children: [
       {
-        num: "E", children: [
-          { num: "A", children: [] },
-          { num: "P", children: [] }
-        ]
+        num: 'E',
+        children: [
+          { num: 'A', children: [] },
+          { num: 'P', children: [] },
+        ],
       },
       {
-        num: "S", children: [
+        num: 'S',
+        children: [
           { num: 10, children: [] },
-          { num: 25, children: [] }
-        ]
+          { num: 25, children: [] },
+        ],
       },
-    ]
+    ],
   };
 
   const safeLength = 15;
   const sortingBars = [
-    { char: "S", height: 75 },
-    { char: "O", height: 175 },
-    { char: "R", height: 45 },
-    { char: "T", height: 75 },
-    { char: "I", height: 89 },
-    { char: "N", height: 99 },
-    { char: "G", height: 230 },
+    { char: 'S', height: 75 },
+    { char: 'O', height: 175 },
+    { char: 'R', height: 45 },
+    { char: 'T', height: 75 },
+    { char: 'I', height: 89 },
+    { char: 'N', height: 99 },
+    { char: 'G', height: 230 },
   ];
-  const [nodes, setNodes] = useState<{ id: number, label: string, x: number, y: number }[]>([]);
-  const [links, setLinks] = useState<{ source: number, target: number }[]>([]);
+  const [nodes, setNodes] = useState<
+    { id: number; label: string; x: number; y: number }[]
+  >([]);
+  const [links, setLinks] = useState<{ source: number; target: number }[]>([]);
 
   // GRAPH SIMULATION EFFECT
   useEffect(() => {
@@ -116,7 +118,7 @@ const Homepage = () => {
       vy: 0,
     }));
 
-    const initialLinks: { source: number, target: number }[] = [];
+    const initialLinks: { source: number; target: number }[] = [];
     for (let i = 0; i < safeLength; i++) {
       if (i < safeLength - 1) {
         initialLinks.push({ source: i, target: i + 1 });
@@ -127,13 +129,20 @@ const Homepage = () => {
       }
     }
 
-    const simulation = d3.forceSimulation(initialNodes)
-      .force("link", d3.forceLink(initialLinks).id((d: any) => d.id).distance(100))
-      .force("charge", d3.forceManyBody().strength(-150))
+    const simulation = d3
+      .forceSimulation(initialNodes)
+      .force(
+        'link',
+        d3
+          .forceLink(initialLinks)
+          .id((d: any) => d.id)
+          .distance(100)
+      )
+      .force('charge', d3.forceManyBody().strength(-150))
       // FIXED: Center exactly in the middle of our 1000x400 viewBox
-      .force("center", d3.forceCenter(simWidth / 2, simHeight / 2))
-      .force("collision", d3.forceCollide().radius(nodeRadius + 10))
-      .force("bounds", () => {
+      .force('center', d3.forceCenter(simWidth / 2, simHeight / 2))
+      .force('collision', d3.forceCollide().radius(nodeRadius + 10))
+      .force('bounds', () => {
         initialNodes.forEach((node: any) => {
           const margin = nodeRadius;
           if (node.x - margin < 0) node.x = margin;
@@ -142,7 +151,7 @@ const Homepage = () => {
           if (node.y + margin > simHeight) node.y = simHeight - margin;
         });
       })
-      .on("tick", () => {
+      .on('tick', () => {
         setNodes([...initialNodes]);
         setLinks([...initialLinks]);
       });
@@ -151,7 +160,6 @@ const Homepage = () => {
       simulation.stop();
     };
   }, [safeLength]);
-
 
   // TREE EFFECT
   useEffect(() => {
@@ -168,60 +176,66 @@ const Homepage = () => {
   const { contextSafe } = useGSAP({ scope: searchCardRef });
 
   const resetSearchLetters = contextSafe(() => {
-    const letters = gsap.utils.toArray<HTMLElement>(".search-letter");
+    const letters = gsap.utils.toArray<HTMLElement>('.search-letter');
     searchHoverTimelineRef.current?.kill();
     searchHoverTimelineRef.current = null;
 
     gsap.to(letters, {
-      backgroundColor: "#1d4ed8",
+      backgroundColor: '#1d4ed8',
       x: 0,
       scale: 1,
       duration: 0.2,
-      overwrite: "auto",
+      overwrite: 'auto',
     });
   });
 
   const playSearchHover = contextSafe(() => {
-    const letters = gsap.utils.toArray<HTMLElement>(".search-letter");
+    const letters = gsap.utils.toArray<HTMLElement>('.search-letter');
     if (!letters.length) return;
 
     const startIndex = Math.floor(gsap.utils.random(0, letters.length - 1, 1));
-    const stopIndex = Math.floor(gsap.utils.random(startIndex, letters.length - 1, 1));
+    const stopIndex = Math.floor(
+      gsap.utils.random(startIndex, letters.length - 1, 1)
+    );
 
     searchHoverTimelineRef.current?.kill();
 
     gsap.set(letters, {
-      backgroundColor: "#1d4ed8",
+      backgroundColor: '#1d4ed8',
       x: 0,
       scale: 1,
-      overwrite: "auto",
+      overwrite: 'auto',
     });
 
     const tl = gsap.timeline();
 
     for (let index = startIndex; index <= stopIndex; index += 1) {
       tl.to(letters[index], {
-        backgroundColor: "#facc15",
+        backgroundColor: '#facc15',
         x: 12,
         duration: 0.18,
-        ease: "power2.out",
+        ease: 'power2.out',
       });
 
       if (index > startIndex) {
-        tl.to(letters[index - 1], {
-          x: 0,
-          duration: 0.14,
-          ease: "power1.out",
-        }, "<");
+        tl.to(
+          letters[index - 1],
+          {
+            x: 0,
+            duration: 0.14,
+            ease: 'power1.out',
+          },
+          '<'
+        );
       }
     }
 
     tl.to(letters[stopIndex], {
-      backgroundColor: "#22c55e",
+      backgroundColor: '#22c55e',
       x: 0,
       scale: 1.08,
       duration: 0.24,
-      ease: "power2.out",
+      ease: 'power2.out',
     });
 
     searchHoverTimelineRef.current = tl;
@@ -230,14 +244,14 @@ const Homepage = () => {
   const { contextSafe: sortingContextSafe } = useGSAP({ scope: sortCardRef });
 
   const resetSortingBars = sortingContextSafe(() => {
-    const bars = gsap.utils.toArray<HTMLElement>(".sorting-bar");
+    const bars = gsap.utils.toArray<HTMLElement>('.sorting-bar');
     sortHoverTimelineRef.current?.kill();
     sortHoverTimelineRef.current = null;
 
     gsap.to(bars, {
-      backgroundColor: "#1d4ed8",
+      backgroundColor: '#1d4ed8',
       duration: 0.2,
-      overwrite: "auto",
+      overwrite: 'auto',
     });
 
     bars.forEach((bar) => {
@@ -245,14 +259,14 @@ const Homepage = () => {
       gsap.to(bar, {
         height: baseHeight,
         duration: 0.24,
-        ease: "power2.out",
-        overwrite: "auto",
+        ease: 'power2.out',
+        overwrite: 'auto',
       });
     });
   });
 
   const playSortingHover = sortingContextSafe(() => {
-    const bars = gsap.utils.toArray<HTMLElement>(".sorting-bar");
+    const bars = gsap.utils.toArray<HTMLElement>('.sorting-bar');
     if (bars.length < 2) return;
 
     sortHoverTimelineRef.current?.kill();
@@ -272,34 +286,38 @@ const Homepage = () => {
     const secondSwapHeight = Math.min(250, Math.round(firstBase * 1.2));
 
     gsap.set(bars, {
-      backgroundColor: "#1d4ed8",
-      overwrite: "auto",
+      backgroundColor: '#1d4ed8',
+      overwrite: 'auto',
     });
 
     const tl = gsap.timeline();
 
     tl.to([firstBar, secondBar], {
-      backgroundColor: "#facc15",
+      backgroundColor: '#facc15',
       duration: 0.15,
-      ease: "power1.out",
+      ease: 'power1.out',
     });
 
     tl.to(firstBar, {
       height: firstSwapHeight,
       duration: 0.3,
-      ease: "power2.inOut",
+      ease: 'power2.inOut',
     });
 
-    tl.to(secondBar, {
-      height: secondSwapHeight,
-      duration: 0.3,
-      ease: "power2.inOut",
-    }, "<");
+    tl.to(
+      secondBar,
+      {
+        height: secondSwapHeight,
+        duration: 0.3,
+        ease: 'power2.inOut',
+      },
+      '<'
+    );
 
     tl.to([firstBar, secondBar], {
-      backgroundColor: "#22c55e",
+      backgroundColor: '#22c55e',
       duration: 0.18,
-      ease: "power1.out",
+      ease: 'power1.out',
     });
 
     sortHoverTimelineRef.current = tl;
@@ -308,7 +326,7 @@ const Homepage = () => {
   const { contextSafe: stackContextSafe } = useGSAP({ scope: stackCardRef });
 
   const resetStackHover = stackContextSafe(() => {
-    const stackItems = gsap.utils.toArray<HTMLElement>(".stack-item");
+    const stackItems = gsap.utils.toArray<HTMLElement>('.stack-item');
     stackHoverTimelineRef.current?.kill();
     stackHoverTimelineRef.current = null;
 
@@ -316,15 +334,15 @@ const Homepage = () => {
       y: 0,
       rotation: 0,
       scale: 1,
-      backgroundColor: "#1d4ed8",
+      backgroundColor: '#1d4ed8',
       duration: 0.2,
-      ease: "power1.out",
-      overwrite: "auto",
+      ease: 'power1.out',
+      overwrite: 'auto',
     });
   });
 
   const playStackHover = stackContextSafe(() => {
-    const stackItems = gsap.utils.toArray<HTMLElement>(".stack-item");
+    const stackItems = gsap.utils.toArray<HTMLElement>('.stack-item');
     if (!stackItems.length) return;
 
     const topItem = stackItems[0];
@@ -334,31 +352,31 @@ const Homepage = () => {
       y: 0,
       rotation: 0,
       scale: 1,
-      backgroundColor: "#1d4ed8",
-      overwrite: "auto",
+      backgroundColor: '#1d4ed8',
+      overwrite: 'auto',
     });
 
     const tl = gsap.timeline();
 
     tl.to(topItem, {
-      backgroundColor: "#facc15",
+      backgroundColor: '#facc15',
       y: -28,
       duration: 0.26,
-      ease: "power2.out",
+      ease: 'power2.out',
     });
 
     tl.to(topItem, {
       rotation: -12,
       scale: 1.06,
-      transformOrigin: "50% 100%",
+      transformOrigin: '50% 100%',
       duration: 0.2,
-      ease: "power2.out",
+      ease: 'power2.out',
     });
 
     tl.to(topItem, {
-      backgroundColor: "#22c55e",
+      backgroundColor: '#22c55e',
       duration: 0.16,
-      ease: "power1.out",
+      ease: 'power1.out',
     });
 
     stackHoverTimelineRef.current = tl;
@@ -367,7 +385,7 @@ const Homepage = () => {
   const { contextSafe: queueContextSafe } = useGSAP({ scope: queueCardRef });
 
   const resetQueueHover = queueContextSafe(() => {
-    const queueItems = gsap.utils.toArray<HTMLElement>(".queue-item");
+    const queueItems = gsap.utils.toArray<HTMLElement>('.queue-item');
     queueHoverTimelineRef.current?.kill();
     queueHoverTimelineRef.current = null;
 
@@ -377,15 +395,15 @@ const Homepage = () => {
       rotation: 0,
       scale: 1,
       opacity: 1,
-      backgroundColor: "#1d4ed8",
+      backgroundColor: '#1d4ed8',
       duration: 0.22,
-      ease: "power1.out",
-      overwrite: "auto",
+      ease: 'power1.out',
+      overwrite: 'auto',
     });
   });
 
   const playQueueHover = queueContextSafe(() => {
-    const queueItems = gsap.utils.toArray<HTMLElement>(".queue-item");
+    const queueItems = gsap.utils.toArray<HTMLElement>('.queue-item');
     if (!queueItems.length) return;
 
     const dequeueItem = queueItems[queueItems.length - 1];
@@ -400,8 +418,8 @@ const Homepage = () => {
       rotation: 0,
       scale: 1,
       opacity: 1,
-      backgroundColor: "#1d4ed8",
-      overwrite: "auto",
+      backgroundColor: '#1d4ed8',
+      overwrite: 'auto',
     });
 
     const dequeueRect = dequeueItem.getBoundingClientRect();
@@ -414,9 +432,9 @@ const Homepage = () => {
     const tl = gsap.timeline();
 
     tl.to(dequeueItem, {
-      backgroundColor: "#facc15",
+      backgroundColor: '#facc15',
       duration: 0.14,
-      ease: "power1.out",
+      ease: 'power1.out',
     });
 
     tl.to(dequeueItem, {
@@ -424,21 +442,25 @@ const Homepage = () => {
       y: -36,
       rotation: 12,
       duration: 0.24,
-      ease: "power2.out",
+      ease: 'power2.out',
     });
 
     tl.to(dequeueItem, {
       opacity: 0,
       duration: 0.14,
-      ease: "power1.in",
+      ease: 'power1.in',
     });
 
-    tl.to(remainingItems, {
-      x: forwardShift,
-      duration: 0.28,
-      ease: "power2.out",
-      stagger: 0.03,
-    }, "<");
+    tl.to(
+      remainingItems,
+      {
+        x: forwardShift,
+        duration: 0.28,
+        ease: 'power2.out',
+        stagger: 0.03,
+      },
+      '<'
+    );
 
     tl.set(dequeueItem, {
       x: moveToFrontX - 28,
@@ -452,33 +474,46 @@ const Homepage = () => {
       y: 0,
       rotation: 0,
       duration: 0.42,
-      ease: "power2.inOut",
+      ease: 'power2.inOut',
     });
 
-    tl.to(remainingItems, {
-      x: 200,
-      duration: 0.24,
-      ease: "power2.inOut",
-      stagger: 0.02,
-    }, "<0.12");
+    tl.to(
+      remainingItems,
+      {
+        x: 200,
+        duration: 0.24,
+        ease: 'power2.inOut',
+        stagger: 0.02,
+      },
+      '<0.12'
+    );
 
     tl.to(dequeueItem, {
-      backgroundColor: "#22c55e",
+      backgroundColor: '#22c55e',
       duration: 0.18,
-      ease: "power1.out",
+      ease: 'power1.out',
     });
 
     queueHoverTimelineRef.current = tl;
   });
 
-  const { contextSafe: linkedListContextSafe } = useGSAP({ scope: linkedListCardRef });
+  const { contextSafe: linkedListContextSafe } = useGSAP({
+    scope: linkedListCardRef,
+  });
 
-  const getLinkedPointerPosition = (node: HTMLElement, container: HTMLElement) => {
+  const getLinkedPointerPosition = (
+    node: HTMLElement,
+    container: HTMLElement
+  ) => {
     const nodeRect = node.getBoundingClientRect();
     const containerRect = container.getBoundingClientRect();
     const pointerWidth = linkedListPointerRef.current?.offsetWidth ?? 88;
     const pointerHeight = linkedListPointerRef.current?.offsetHeight ?? 34;
-    const rawX = nodeRect.left - containerRect.left + nodeRect.width / 2 - pointerWidth / 2;
+    const rawX =
+      nodeRect.left -
+      containerRect.left +
+      nodeRect.width / 2 -
+      pointerWidth / 2;
     const rawY = nodeRect.top - containerRect.top - pointerHeight - 8;
 
     return {
@@ -488,7 +523,7 @@ const Homepage = () => {
   };
 
   const resetLinkedListHover = linkedListContextSafe(() => {
-    const nodes = gsap.utils.toArray<HTMLElement>(".linked-node");
+    const nodes = gsap.utils.toArray<HTMLElement>('.linked-node');
     const pointer = linkedListPointerRef.current;
     const container = linkedListCardRef.current;
 
@@ -496,10 +531,10 @@ const Homepage = () => {
     linkedListHoverTimelineRef.current = null;
 
     gsap.to(nodes, {
-      backgroundColor: "#1d4ed8",
+      backgroundColor: '#1d4ed8',
       scale: 1,
       duration: 0.18,
-      overwrite: "auto",
+      overwrite: 'auto',
     });
 
     if (pointer && container && nodes.length) {
@@ -509,14 +544,14 @@ const Homepage = () => {
         y: startPos.y,
         opacity: 1,
         duration: 0.2,
-        ease: "power2.out",
-        overwrite: "auto",
+        ease: 'power2.out',
+        overwrite: 'auto',
       });
     }
   });
 
   const playLinkedListHover = linkedListContextSafe(() => {
-    const nodes = gsap.utils.toArray<HTMLElement>(".linked-node");
+    const nodes = gsap.utils.toArray<HTMLElement>('.linked-node');
     const pointer = linkedListPointerRef.current;
     const container = linkedListCardRef.current;
 
@@ -528,16 +563,16 @@ const Homepage = () => {
     const startPos = getLinkedPointerPosition(nodes[0], container);
 
     gsap.set(nodes, {
-      backgroundColor: "#1d4ed8",
+      backgroundColor: '#1d4ed8',
       scale: 1,
-      overwrite: "auto",
+      overwrite: 'auto',
     });
 
     gsap.set(pointer, {
       x: startPos.x,
       y: startPos.y,
       opacity: 1,
-      overwrite: "auto",
+      overwrite: 'auto',
     });
 
     const tl = gsap.timeline();
@@ -549,29 +584,37 @@ const Homepage = () => {
         x: pos.x,
         y: pos.y,
         duration: 0.34,
-        ease: "power2.out",
+        ease: 'power2.out',
       });
 
-      tl.to(nodes[index], {
-        backgroundColor: "#facc15",
-        duration: 0.12,
-        ease: "power1.out",
-      }, "<");
+      tl.to(
+        nodes[index],
+        {
+          backgroundColor: '#facc15',
+          duration: 0.12,
+          ease: 'power1.out',
+        },
+        '<'
+      );
 
       if (index > 0) {
-        tl.to(nodes[index - 1], {
-          backgroundColor: "#1d4ed8",
-          duration: 0.1,
-          ease: "power1.out",
-        }, "<");
+        tl.to(
+          nodes[index - 1],
+          {
+            backgroundColor: '#1d4ed8',
+            duration: 0.1,
+            ease: 'power1.out',
+          },
+          '<'
+        );
       }
     }
 
     tl.to(nodes[stopIndex], {
-      backgroundColor: "#22c55e",
+      backgroundColor: '#22c55e',
       scale: 1.06,
       duration: 0.24,
-      ease: "power2.out",
+      ease: 'power2.out',
     });
 
     linkedListHoverTimelineRef.current = tl;
@@ -580,7 +623,9 @@ const Homepage = () => {
   useEffect(() => {
     if (!linkedListCardRef.current || !linkedListPointerRef.current) return;
 
-    const firstNode = linkedListCardRef.current.querySelector(".linked-node") as HTMLElement | null;
+    const firstNode = linkedListCardRef.current.querySelector(
+      '.linked-node'
+    ) as HTMLElement | null;
     if (!firstNode) return;
 
     const pos = getLinkedPointerPosition(firstNode, linkedListCardRef.current);
@@ -606,65 +651,79 @@ const Homepage = () => {
     };
   }, []);
 
-
   // Reusable function to draw both Tree and Heap cohesively
   const drawHierarchy = (svgElement: SVGSVGElement, data: any) => {
     const w = 600;
     const height = 300;
     const margins = { top: 40, right: 20, bottom: 40, left: 20 };
 
-    d3.select(svgElement).selectAll("*").remove();
+    d3.select(svgElement).selectAll('*').remove();
 
-    const svg = d3.select(svgElement)
-      .append("g")
-      .attr("transform", `translate(${margins.left},${margins.top})`);
+    const svg = d3
+      .select(svgElement)
+      .append('g')
+      .attr('transform', `translate(${margins.left},${margins.top})`);
 
     const root = d3.hierarchy(data);
-    const treeLayout = d3.tree<any>()
-      .size([w - margins.left - margins.right, height - margins.top - margins.bottom]);
+    const treeLayout = d3
+      .tree<any>()
+      .size([
+        w - margins.left - margins.right,
+        height - margins.top - margins.bottom,
+      ]);
 
     treeLayout(root);
 
-    svg.selectAll(".link")
+    svg
+      .selectAll('.link')
       .data(root.links())
       .enter()
-      .append("path")
-      .attr("class", "link")
-      .attr("d", d3.linkVertical<any, any>().x((d: any) => d.x).y((d: any) => d.y))
-      .attr("fill", "none")
-      .attr("stroke", "white") // Cohesive black lines
-      .attr("stroke-width", 2);
+      .append('path')
+      .attr('class', 'link')
+      .attr(
+        'd',
+        d3
+          .linkVertical<any, any>()
+          .x((d: any) => d.x)
+          .y((d: any) => d.y)
+      )
+      .attr('fill', 'none')
+      .attr('stroke', 'white') // Cohesive black lines
+      .attr('stroke-width', 2);
 
-    const nodes = svg.selectAll(".node")
+    const nodes = svg
+      .selectAll('.node')
       .data(root.descendants())
       .enter()
-      .append("g")
-      .attr("class", "node")
-      .attr("transform", d => `translate(${d.x},${d.y})`);
+      .append('g')
+      .attr('class', 'node')
+      .attr('transform', (d) => `translate(${d.x},${d.y})`);
 
-    nodes.append("circle")
-      .attr("r", 25) // Cohesive larger sizing
-      .attr("fill", "#1d4ed8") // Tailwind bg-blue-700 to match other cards
-      .attr("stroke", "white")
-      .attr("stroke-width", 2);
+    nodes
+      .append('circle')
+      .attr('r', 25) // Cohesive larger sizing
+      .attr('fill', '#1d4ed8') // Tailwind bg-blue-700 to match other cards
+      .attr('stroke', 'white')
+      .attr('stroke-width', 2);
 
-    nodes.append("text")
-      .attr("dy", "5px") // Vertically centers text inside the circle
-      .attr("text-anchor", "middle")
+    nodes
+      .append('text')
+      .attr('dy', '5px') // Vertically centers text inside the circle
+      .attr('text-anchor', 'middle')
       .text((d: any) => d.data.num)
-      .attr("font-size", "18px")
-      .attr("fill", "white") // White text inside blue node
-      .attr("font-weight", "bold");
+      .attr('font-size', '18px')
+      .attr('fill', 'white') // White text inside blue node
+      .attr('font-weight', 'bold');
   };
 
   return (
     <div className="algo-shell page-enter  ">
       {/* Navbar */}
       <div className="page-nav fixed top-0 w-full h-16 flex justify-between items-center px-6 py-2 z-50">
-        <div className="flex items-center gap-6" >
+        <div className="flex items-center gap-6">
           <img
             src={logo}
-            onClick={() => navigate("/landing")}
+            onClick={() => navigate('/landing')}
             className="h-25 w-25 mt-5 cursor-pointer transition-transform duration-300 hover:scale-105"
             alt="logo"
           />
@@ -674,9 +733,24 @@ const Homepage = () => {
           />
         </div>
         <div className="flex items-center gap-6 font-[audiowide] text-lg">
-          <p className="nav-link cursor-pointer" onClick={() => navigate(ROUTES.home)}>Home</p>
-          <p className="nav-link cursor-pointer" onClick={() => navigate(ROUTES.algorithms)}>Algorithms</p>
-          <p className="nav-link cursor-pointer" onClick={() => navigate(ROUTES.about)}>About</p>
+          <p
+            className="nav-link cursor-pointer"
+            onClick={() => navigate(ROUTES.home)}
+          >
+            Home
+          </p>
+          <p
+            className="nav-link cursor-pointer"
+            onClick={() => navigate(ROUTES.algorithms)}
+          >
+            Algorithms
+          </p>
+          <p
+            className="nav-link cursor-pointer"
+            onClick={() => navigate(ROUTES.about)}
+          >
+            About
+          </p>
           <div className="green-icon-btn">
             <ModeToggle />
           </div>
@@ -688,19 +762,22 @@ const Homepage = () => {
         {/* <img src="../../public/Ameba.png" width={10} height={10} className="z-100" /> */}
         <div className="flex items-center font-[audiowide] text-accent-foreground justify-start gap-12">
           <div className="flex flex-col items-start">
-            <h1 className="text-6xl md:text-8xl font-bold font-[audiowide]">Algo</h1>
-            <h1 className="text-6xl md:text-8xl font-bold font-plex drop-shadow-md">Ameba</h1>
+            <h1 className="text-6xl md:text-8xl font-bold font-[audiowide]">
+              Algo
+            </h1>
+            <h1 className="text-6xl md:text-8xl font-bold font-plex drop-shadow-md">
+              Ameba
+            </h1>
           </div>
           <p className="text-xl md:text-2xl text-accent-foreground font-plex max-w-xl mt-10 md:mt-20">
-            Vizualize Any Algorithm with <span className="font-semibold">Fluid Animations</span>
+            Vizualize Any Algorithm with{' '}
+            <span className="font-semibold">Fluid Animations</span>
           </p>
         </div>
       </section>
 
-
       {/* Custom Visuals Section */}
       <section className="section-fade py-16 flex flex-col items-center gap-6 mx-10 ">
-
         {/* Search Container */}
         <div
           ref={searchCardRef}
@@ -709,7 +786,7 @@ const Homepage = () => {
           className="flex flex-col w-full justify-center items-center m-5 p-5 card rounded-lg"
         >
           <div className="flex p-1 m-2 flex-row align-center content-center justify-center gap-2 items-stretch border-2 rounded-sm border-wh w-full min-h-[90px]">
-            {["S", "E", "A", "R", "C", "H"].map((char) => (
+            {['S', 'E', 'A', 'R', 'C', 'H'].map((char) => (
               <div
                 key={char}
                 data-char={char}
@@ -720,10 +797,11 @@ const Homepage = () => {
             ))}
           </div>
           <div className="card-name">
-            <h1 className="card-text" onClick={() => navigate('/search')}>Search</h1>
+            <h1 className="card-text" onClick={() => navigate('/search')}>
+              Search
+            </h1>
           </div>
         </div>
-
 
         {/* Stack & Sorting Container */}
         {/* flex-row always — items fill equal width side by side on all screen sizes */}
@@ -736,17 +814,16 @@ const Homepage = () => {
           >
             {/* Stack items: fixed width + explicit height so they never squash */}
             <div className="flex flex-col gap-2 justify-center items-center w-full flex-1 py-2">
-              {["S", "T", "A", "C", "K"].map((char) => (
-                <div
-                  key={char}
-                  className="stack-item stack-node"
-                >
+              {['S', 'T', 'A', 'C', 'K'].map((char) => (
+                <div key={char} className="stack-item stack-node">
                   {char}
                 </div>
               ))}
             </div>
             <div className="self-start w-full p-2">
-              <h1 className="card-text" onClick={() => navigate("/stack")}>Stack</h1>
+              <h1 className="card-text" onClick={() => navigate('/stack')}>
+                Stack
+              </h1>
             </div>
           </div>
 
@@ -769,7 +846,9 @@ const Homepage = () => {
               ))}
             </div>
             <div className="self-start w-full p-2">
-              <h1 className="card-text" onClick={() => navigate("/sort")}>Sorting</h1>
+              <h1 className="card-text" onClick={() => navigate('/sort')}>
+                Sorting
+              </h1>
             </div>
           </div>
         </div>
@@ -782,26 +861,32 @@ const Homepage = () => {
           className="flex flex-col w-full justify-center items-center m-5 p-5 card rounded-lg"
         >
           <div className="flex p-1 m-2 flex-row align-center content-center justify-center gap-2 items-center box-track w-full h-[75px] rounded-sm">
-            {
-              "QUEUE".split("").map((ch) => (
-                <div data-char={ch} className="queue-item queue-node">{ch}</div>
-
-              ))
-            }
+            {'QUEUE'.split('').map((ch) => (
+              <div data-char={ch} className="queue-item queue-node">
+                {ch}
+              </div>
+            ))}
           </div>
           <div className="card-name">
-            <h1 className="card-text" onClick={() => navigate("/queue")}>Queue</h1>
+            <h1 className="card-text" onClick={() => navigate('/queue')}>
+              Queue
+            </h1>
           </div>
         </div>
 
         {/* Tree & Heap Container */}
         <div className="flex flex-row w-full gap-6 items-stretch">
           <div className="flex-1 flex flex-col w-full justify-between items-center p-5 card rounded-lg min-h-[400px] ">
-            <div ref={containerRef} className="h-full w-full flex justify-center items-center">
+            <div
+              ref={containerRef}
+              className="h-full w-full flex justify-center items-center"
+            >
               <svg ref={svgRef} width="600" height="350"></svg>
             </div>
             <div className="card-name">
-              <h1 className="card-text" onClick={() => navigate("/tree")}>Tree</h1>
+              <h1 className="card-text" onClick={() => navigate('/tree')}>
+                Tree
+              </h1>
             </div>
           </div>
 
@@ -809,27 +894,29 @@ const Homepage = () => {
             <div className="h-full w-full flex flex-col justify-center items-center">
               <svg ref={svgHeapRef} width="600" height="350"></svg>
               <div className="flex p-1 m-2 flex-row align-center content-center justify-center gap-2 items-center box-track w-fit h-[60px] rounded-sm">
-                {
-
-                  "HEAP".split("").map((ch) => (
-                    <div data-char={ch} className="heap-node">{ch}</div>
-
-                  ))
-                }
+                {'HEAP'.split('').map((ch) => (
+                  <div data-char={ch} className="heap-node">
+                    {ch}
+                  </div>
+                ))}
               </div>
-
-
             </div>
             <div className="card-name">
-              <h1 className="card-text" onClick={() => navigate("/heap")}>Heap</h1>
+              <h1 className="card-text" onClick={() => navigate('/heap')}>
+                Heap
+              </h1>
             </div>
           </div>
         </div>
 
         {/* Graph Container */}
-        <div className='flex flex-col justify-center items-center w-full h-[500px] rounded-sm ddrag-container card relative'>
+        <div className="flex flex-col justify-center items-center w-full h-[500px] rounded-sm ddrag-container card relative">
           {/* FIXED: using viewBox to lock coordinates so the center is perfectly framed */}
-          <svg viewBox="0 0 1000 400" preserveAspectRatio="xMidYMid meet" style={{ display: 'block', width: '100%', height: '100%' }}>
+          <svg
+            viewBox="0 0 1000 400"
+            preserveAspectRatio="xMidYMid meet"
+            style={{ display: 'block', width: '100%', height: '100%' }}
+          >
             {links.map((link: any, index: number) => {
               const sourceNode = link.source;
               const targetNode = link.target;
@@ -849,7 +936,7 @@ const Homepage = () => {
             })}
 
             {nodes.map((node) => (
-              <g key={node.id} className='ddrag'>
+              <g key={node.id} className="ddrag">
                 <circle
                   cx={node.x}
                   cy={node.y}
@@ -874,7 +961,9 @@ const Homepage = () => {
           </svg>
 
           <div className="card-name absolute bottom-2 left-2">
-            <h1 className="card-text w-fit" onClick={() => navigate("/graph")}>Graph</h1>
+            <h1 className="card-text w-fit" onClick={() => navigate('/graph')}>
+              Graph
+            </h1>
           </div>
         </div>
 
@@ -892,21 +981,23 @@ const Homepage = () => {
             Head
           </div>
           <div className="h-full w-full flex justify-center items-center gap-1 py-4">
-            {["L", "I", "N", "K", "E", "D"].map((char, index) => (
-              <div key={index} className="flex flex-row items-center justify-center gap-2">
-                <div className="linked-node ll-node">
-                  {char}
-                </div>
-                {index !== 5 && <RightArrow className="w-4 h-4 ll-arrow"/>}
+            {['L', 'I', 'N', 'K', 'E', 'D'].map((char, index) => (
+              <div
+                key={index}
+                className="flex flex-row items-center justify-center gap-2"
+              >
+                <div className="linked-node ll-node">{char}</div>
+                {index !== 5 && <RightArrow className="w-4 h-4 ll-arrow" />}
               </div>
             ))}
           </div>
 
           <div className="card-name">
-            <h1 className="card-text" onClick={() => navigate("/linkedlist")}>Linked List</h1>
+            <h1 className="card-text" onClick={() => navigate('/linkedlist')}>
+              Linked List
+            </h1>
           </div>
         </div>
-
       </section>
     </div>
   );

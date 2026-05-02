@@ -1,7 +1,7 @@
 // Merge sort visualization layout using D3 hierarchy for tree structure
 // and position computation. Feed these positions to GSAP for animation.
 
-import * as d3 from "d3-hierarchy";
+import * as d3 from 'd3-hierarchy';
 
 export type MergeSortBarNode = {
   id: string;
@@ -98,13 +98,13 @@ const buildMergeTreeHierarchy = (
 export const computeRangeOffsets = (
   barIds: string[],
   depth: number,
-  phase: "split" | "merge" | "sorted",
+  phase: 'split' | 'merge' | 'sorted',
   levelHeight: number = 84,
   mid?: number
 ): Record<string, { x: number; y: number }> => {
   const offsets: Record<string, { x: number; y: number }> = {};
 
-  if (phase === "split" && typeof mid === "number") {
+  if (phase === 'split' && typeof mid === 'number') {
     const segmentSize = barIds.length;
     const branchShift = Math.max(42, segmentSize * 13);
 

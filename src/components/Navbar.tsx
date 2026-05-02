@@ -1,4 +1,4 @@
-import { Input } from "@/components/ui/input.tsx";
+import { Input } from '@/components/ui/input.tsx';
 import {
   Select,
   SelectContent,
@@ -7,7 +7,7 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select.tsx";
+} from '@/components/ui/select.tsx';
 
 type NavbarProps = {
   inputValue: string;
@@ -33,10 +33,7 @@ const Navbar = ({
           className="max-w-[400px] input"
           placeholder="Enter number"
         />
-        <button
-          onClick={handleInsert}
-          className="btn-primary"
-        >
+        <button onClick={handleInsert} className="btn-primary">
           Insert
         </button>
       </div>

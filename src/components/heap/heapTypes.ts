@@ -1,4 +1,3 @@
-
 export interface HeapNode {
   id: string;
   index: number;
@@ -18,4 +17,3 @@ export interface RenderEdge {
   id: string;
   d: string;
 }
-

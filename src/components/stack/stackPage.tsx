@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from "react";
-import { Input } from "../ui/input.tsx";
+import { useState, useRef, useEffect } from 'react';
+import { Input } from '../ui/input.tsx';
 import {
   Select,
   SelectContent,
@@ -8,27 +8,31 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select.tsx";
-import { useGSAP } from "@gsap/react";
-import gsap from "../../gsapSetup.ts";
-import { toast } from "sonner";
+} from '@/components/ui/select.tsx';
+import { useGSAP } from '@gsap/react';
+import gsap from '../../gsapSetup.ts';
+import { toast } from 'sonner';
 
-type Status = "popping" | "pushing";
+type Status = 'popping' | 'pushing';
 type StackItem = { id: number; value: number; status: Status };
 
 let uid = 0;
-const makeItem = (value: number): StackItem => ({ id: ++uid, value, status: "pushing" });
+const makeItem = (value: number): StackItem => ({
+  id: ++uid,
+  value,
+  status: 'pushing',
+});
 
 const ALGO_OPTIONS: Record<string, string[]> = {
-  stack: ["push", "pop", "peek", "clear"],
-  "monotonic stack": ["push", "pop", "peek", "clear"],
+  stack: ['push', 'pop', 'peek', 'clear'],
+  'monotonic stack': ['push', 'pop', 'peek', 'clear'],
 };
 
-const PRIMARY_GLOW = "0 0 16px var(--brand)";
+const PRIMARY_GLOW = '0 0 16px var(--brand)';
 
 const StackPage = () => {
-  const [algo, setAlgo] = useState("stack");
-  const [input, setInput] = useState("");
+  const [algo, setAlgo] = useState('stack');
+  const [input, setInput] = useState('');
   const [stack, setStack] = useState<StackItem[]>([]);
   const itemRefs = useRef<Map<number, HTMLDivElement>>(new Map());
   const containerRef = useRef<HTMLDivElement>(null);
@@ -36,58 +40,63 @@ const StackPage = () => {
   useGSAP({ scope: containerRef });
 
   const options = ALGO_OPTIONS[algo];
-  const activeS = stack.filter((i) => i.status === "pushing");
+  const activeS = stack.filter((i) => i.status === 'pushing');
   const MAX_STACK_SIZE = 15;
   const isFull = activeS.length >= MAX_STACK_SIZE;
   const isEmpty = activeS.length === 0;
 
   const getRef = (id: number) => itemRefs.current.get(id);
-  const removeFromState = (id: number) => setStack((prev) => prev.filter((i) => i.id !== id));
+  const removeFromState = (id: number) =>
+    setStack((prev) => prev.filter((i) => i.id !== id));
   const markExiting = (id: number) =>
-    setStack((prev) => prev.map((i) => (i.id === id ? { ...i, status: "popping" as Status } : i)));
-
-
-
+    setStack((prev) =>
+      prev.map((i) => (i.id === id ? { ...i, status: 'popping' as Status } : i))
+    );
 
   useEffect(() => {
-    if(stack.length === 0) generateRandom();
-  },[stack])
+    if (stack.length === 0) generateRandom();
+  }, [stack]);
 
   const generateRandom = () => {
     // Clear stack first
     setStack([]);
     itemRefs.current.clear();
     uid = 0;
-    
+
     let size = Math.floor(Math.random() * 8) + 2; // Generate 2-9 items
     while (size > 0) {
       const num = Math.floor(Math.random() * 100);
       push(num);
       size--;
     }
-  }
+  };
   const push = (value: number) => {
-    if (isFull) return toast("Stack is full!");
+    if (isFull) return toast('Stack is full!');
     const item = makeItem(value);
     setStack((prev) => [item, ...prev]);
     setTimeout(() => {
       const el = getRef(item.id);
       if (!el) return;
-      gsap.fromTo(el,
+      gsap.fromTo(
+        el,
         { opacity: 0, y: -60, scale: 0.85 },
-        { opacity: 1, y: 0, scale: 1, duration: 0.45, ease: "back.out(1.7)" }
+        { opacity: 1, y: 0, scale: 1, duration: 0.45, ease: 'back.out(1.7)' }
       );
     }, 20);
   };
 
   const pop = () => {
-    if (isEmpty) return toast("Stack is empty!");
+    if (isEmpty) return toast('Stack is empty!');
     const target = activeS[0];
     const el = getRef(target.id);
     if (!el) return;
     markExiting(target.id);
     gsap.to(el, {
-      opacity: 0, y: -60, scale: 0.85, duration: 0.38, ease: "power2.in",
+      opacity: 0,
+      y: -60,
+      scale: 0.85,
+      duration: 0.38,
+      ease: 'power2.in',
       onComplete: () => {
         removeFromState(target.id);
         itemRefs.current.delete(target.id);
@@ -97,30 +106,41 @@ const StackPage = () => {
   };
 
   const peek = () => {
-    if (isEmpty) return toast("Stack is empty!");
+    if (isEmpty) return toast('Stack is empty!');
     const el = getRef(activeS[0].id);
     if (el) {
-      gsap.fromTo(el,
-        { boxShadow: "0 0 0px rgba(0,255,17,0)" },
-        { boxShadow: PRIMARY_GLOW, duration: 0.25, yoyo: true, repeat: 1, ease: "power1.inOut" }
+      gsap.fromTo(
+        el,
+        { boxShadow: '0 0 0px rgba(0,255,17,0)' },
+        {
+          boxShadow: PRIMARY_GLOW,
+          duration: 0.25,
+          yoyo: true,
+          repeat: 1,
+          ease: 'power1.inOut',
+        }
       );
     }
     toast(`Top: ${activeS[0].value}`);
   };
 
   const clear = () => {
-    if (isEmpty) return toast("Stack is already empty!");
+    if (isEmpty) return toast('Stack is already empty!');
     activeS.forEach((item, i) => {
       const el = getRef(item.id);
       if (!el) return;
       markExiting(item.id);
       gsap.to(el, {
-        opacity: 0, scale: 0.4, y: -50,
-        duration: 0.3, delay: i * 0.06, ease: "back.in(1.7)",
+        opacity: 0,
+        scale: 0.4,
+        y: -50,
+        duration: 0.3,
+        delay: i * 0.06,
+        ease: 'back.in(1.7)',
         onComplete: () => {
           removeFromState(item.id);
           itemRefs.current.delete(item.id);
-          if (i === activeS.length - 1) toast("Stack cleared");
+          if (i === activeS.length - 1) toast('Stack cleared');
         },
       });
     });
@@ -134,13 +154,14 @@ const StackPage = () => {
   };
 
   const handleOperation = (op: string) => {
-    if (op === "push") {
+    if (op === 'push') {
       const num = parseInt(input);
-      if (isNaN(num)) return toast("Enter a valid number");
-      push(num); setInput("");
-    } else if (op === "pop") pop();
-    else if (op === "peek") peek();
-    else if (op === "clear") clear();
+      if (isNaN(num)) return toast('Enter a valid number');
+      push(num);
+      setInput('');
+    } else if (op === 'pop') pop();
+    else if (op === 'peek') peek();
+    else if (op === 'clear') clear();
   };
 
   return (
@@ -153,31 +174,36 @@ const StackPage = () => {
             placeholder="value"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyUp={(e) => { if (e.key === "Enter") handleOperation("push"); }}
+            onKeyUp={(e) => {
+              if (e.key === 'Enter') handleOperation('push');
+            }}
           />
           <button
             className="btn-primary"
-            onClick={() => handleOperation("push")}
+            onClick={() => handleOperation('push')}
           >
             Push
           </button>
-          <button
-            className="btn-neutral"
-            onClick={generateRandom}
-          >
+          <button className="btn-neutral" onClick={generateRandom}>
             Generate Random
           </button>
           <div className="w-px h-6 bg-border" />
           <div className="flex gap-2">
-            {options.filter((o) => o !== "push").map((op) => (
-              <button
-                key={op}
-                className={op === "pop" || op === "clear" ? "btn-danger" : "btn-neutral"}
-                onClick={() => handleOperation(op)}
-              >
-                {op}
-              </button>
-            ))}
+            {options
+              .filter((o) => o !== 'push')
+              .map((op) => (
+                <button
+                  key={op}
+                  className={
+                    op === 'pop' || op === 'clear'
+                      ? 'btn-danger'
+                      : 'btn-neutral'
+                  }
+                  onClick={() => handleOperation(op)}
+                >
+                  {op}
+                </button>
+              ))}
           </div>
         </div>
 
@@ -201,7 +227,6 @@ const StackPage = () => {
       {/* Main canvas */}
       <div className="flex-1 flex canvas border-0 justify-center items-start pt-10 px-8">
         <div className="flex flex-col items-center gap-2">
-
           {/* TOP label */}
           <span className="text-[11px] font-mono mb-1 muted-text">TOP ↓</span>
 
@@ -212,18 +237,22 @@ const StackPage = () => {
               border-2 rounded-2xl viz-canvas px-4 py-5"
           >
             {stack.length === 0 && (
-              <p className="muted-text font-mono text-sm tracking-widest mt-auto mb-auto">— empty —</p>
+              <p className="muted-text font-mono text-sm tracking-widest mt-auto mb-auto">
+                — empty —
+              </p>
             )}
 
             {stack.map((item, idx) => (
               <div
                 key={item.id}
-                ref={(el) => { if (el) itemRefs.current.set(item.id, el); }}
+                ref={(el) => {
+                  if (el) itemRefs.current.set(item.id, el);
+                }}
                 className="w-full flex items-center justify-between rounded-xl viz-item px-4 py-0 flex-shrink-0 border-2 shadow-sm"
                 style={{
                   height: 52,
                   opacity: 0,
-                  transition: "background-color 0.15s, box-shadow 0.15s",
+                  transition: 'background-color 0.15s, box-shadow 0.15s',
                 }}
               >
                 {/* Index badge */}
@@ -233,8 +262,10 @@ const StackPage = () => {
                 {/* Value */}
                 <span className="text-xl font-bold">{item.value}</span>
                 {/* Top indicator */}
-                <span className="text-[10px] font-mono w-8 text-right font-bold"
-                  style={{ color: idx === 0 ? "var(--brand)" : "transparent" }}>
+                <span
+                  className="text-[10px] font-mono w-8 text-right font-bold"
+                  style={{ color: idx === 0 ? 'var(--brand)' : 'transparent' }}
+                >
                   top
                 </span>
               </div>
@@ -248,7 +279,9 @@ const StackPage = () => {
 
       {/* Footer */}
       <footer className="px-8 py-4 border-0  flex justify-between items-center panel-bg">
-        <span className="text-xs font-mono muted-text">{algo.toUpperCase()}</span>
+        <span className="text-xs font-mono muted-text">
+          {algo.toUpperCase()}
+        </span>
         <span className="text-xs font-mono text-brand">
           {activeS.length} / 10 items
         </span>

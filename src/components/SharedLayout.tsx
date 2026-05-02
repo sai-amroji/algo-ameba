@@ -1,4 +1,4 @@
-import { Input } from "@/components/ui/input.tsx";
+import { Input } from '@/components/ui/input.tsx';
 import {
   Select,
   SelectContent,
@@ -7,11 +7,11 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select.tsx";
-import { type ReactNode } from "react";
-import ControllerFooter from "@/components/ControllerFooter.tsx";
-import { Toaster } from "sonner";
-import { useNavigate } from "react-router-dom";
+} from '@/components/ui/select.tsx';
+import { type ReactNode } from 'react';
+import ControllerFooter from '@/components/ControllerFooter.tsx';
+import { Toaster } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 interface Algo {
   name: string;
@@ -20,9 +20,7 @@ interface Algo {
 
 // We will use this to track the state for visual rendering
 //
-export type BarState = "default" | "checking" | "found" | "discarded";
-
-
+export type BarState = 'default' | 'checking' | 'found' | 'discarded';
 
 interface SharedLayoutProps {
   inputValue: string;
@@ -76,7 +74,7 @@ const SharedLayout = ({
     <div className="flex flex-col h-full w-full">
       <div className="nav flex flex-wrap justify-between items-center gap-4 px-6 py-4">
         {/* Input Insert */}
-        <div className={"flex items-center gap-2"}>
+        <div className={'flex items-center gap-2'}>
           <div className="flex items-center gap-2">
             <Input
               value={inputValue}
@@ -84,57 +82,44 @@ const SharedLayout = ({
               className="input w-32"
               placeholder="Insert number"
             />
-            <button
-              onClick={handleInsert}
-              className="btn-primary"
-            >
+            <button onClick={handleInsert} className="btn-primary">
               Insert
             </button>
           </div>
 
-          {typeof searchValue === "string" && setSearchValue && handleSearch && (
-            <div className="flex items-center gap-2">
-              <Input
-                value={searchValue}
-                onChange={(e) => setSearchValue(e.target.value)}
-                className="input w-32"
-                placeholder="Search value"
-              />
-              <button
-                onClick={handleSearch}
-                className="btn-success"
-              >
-                {actionLabel ?? "Search"}
+          {typeof searchValue === 'string' &&
+            setSearchValue &&
+            handleSearch && (
+              <div className="flex items-center gap-2">
+                <Input
+                  value={searchValue}
+                  onChange={(e) => setSearchValue(e.target.value)}
+                  className="input w-32"
+                  placeholder="Search value"
+                />
+                <button onClick={handleSearch} className="btn-success">
+                  {actionLabel ?? 'Search'}
+                </button>
+              </div>
+            )}
+
+          {handleSearch &&
+            !(typeof searchValue === 'string' && setSearchValue) && (
+              <button onClick={handleSearch} className="btn-success">
+                {actionLabel ?? 'Sort'}
               </button>
-            </div>
-          )}
-
-          {handleSearch && !(typeof searchValue === "string" && setSearchValue) && (
-            <button
-              onClick={handleSearch}
-              className="btn-success"
-            >
-              {actionLabel ?? "Sort"}
-            </button>
-          )}
-
-
+            )}
 
           {/* Random Button */}
-          <button
-            onClick={() => generateRandomArray()}
-            className="btn-neutral"
-          >
+          <button onClick={() => generateRandomArray()} className="btn-neutral">
             Generate Random
           </button>
 
           {/* Search */}
         </div>
 
-
         {/* Algorithm Dropdown */}
         <Select
-        
           value={selectedAlgorithm}
           onValueChange={(value) => {
             if (onAlgorithmChange) {
@@ -142,10 +127,9 @@ const SharedLayout = ({
               return;
             }
 
-            const nextPath = value.startsWith("/") ? value : `/${value}`;
+            const nextPath = value.startsWith('/') ? value : `/${value}`;
             navigate(nextPath, { replace: true });
           }}
-  
         >
           <SelectTrigger className="w-44 select-trigger h-9 font-mono text-sm">
             <SelectValue placeholder={algoMap[0].name} />
@@ -154,10 +138,7 @@ const SharedLayout = ({
             <SelectGroup>
               <SelectLabel>Algorithms</SelectLabel>
               {algoMap.map((algo) => (
-                <SelectItem
-                  key={algo.value}
-                  value={algo.value}
-                >
+                <SelectItem key={algo.value} value={algo.value}>
                   {algo.name}
                 </SelectItem>
               ))}
@@ -168,7 +149,7 @@ const SharedLayout = ({
 
       {/* Visualization Area */}
       <div className="flex-1 flex justify-center items-center">{children}</div>
-      <Toaster className={"bg-red-700"} position={"top-center"} />
+      <Toaster className={'bg-red-700'} position={'top-center'} />
 
       {/* Controls */}
       <ControllerFooter

@@ -22,6 +22,7 @@ Algo Ameba visualizes algorithms with **frame-by-frame animations**, letting you
 ## 📚 Algorithms & Data Structures
 
 ### Sorting Algorithms
+
 - **Bubble Sort** - Simple comparison-based sort with visual swaps
 - **Selection Sort** - Find minimum and place in correct position
 - **Insertion Sort** - Build sorted array element by element
@@ -29,10 +30,12 @@ Algo Ameba visualizes algorithms with **frame-by-frame animations**, letting you
 - **Quick Sort** - Partitioning-based sort with pivot selection
 
 ### Searching Algorithms
+
 - **Linear Search** - Sequential search with step highlighting
 - **Binary Search** - Divide-and-conquer with range reduction visualization
 
 ### Data Structures
+
 - **Stack** - LIFO operations with push, pop, and peek
 - **Queue** - FIFO operations with enqueue, dequeue, and peek
 - **Linked List** - Singly, doubly, and circular variants with insert/delete/traverse
@@ -44,17 +47,17 @@ Algo Ameba visualizes algorithms with **frame-by-frame animations**, letting you
 
 ## 🛠 Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| **Frontend** | React 19.1.0, TypeScript 5.8.3 |
-| **Routing** | React Router 7.6.3 |
-| **Animation** | GSAP 3.13.0 + @gsap/react 2.1.2, ScrollTrigger |
-| **Visualization** | D3 7.9.0, Custom SVG |
-| **Styling** | Tailwind CSS 4.1.11, Radix UI |
+| Layer             | Technology                                        |
+| ----------------- | ------------------------------------------------- |
+| **Frontend**      | React 19.1.0, TypeScript 5.8.3                    |
+| **Routing**       | React Router 7.6.3                                |
+| **Animation**     | GSAP 3.13.0 + @gsap/react 2.1.2, ScrollTrigger    |
+| **Visualization** | D3 7.9.0, Custom SVG                              |
+| **Styling**       | Tailwind CSS 4.1.11, Radix UI                     |
 | **UI Components** | shadcn/ui (button, input, select, dropdown, etc.) |
-| **Notifications** | Sonner (toast notifications) |
-| **Build Tool** | Vite 7.0.0 |
-| **Linting** | ESLint |
+| **Notifications** | Sonner (toast notifications)                      |
+| **Build Tool**    | Vite 7.0.0                                        |
+| **Linting**       | ESLint                                            |
 
 ---
 
@@ -106,6 +109,7 @@ algo-ameba/
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - Node.js 18+ and npm 9+
 
 ### Installation
@@ -146,16 +150,15 @@ npm run lint
 npm run lint --fix
 ```
 
-
-
-
 ### Build Verification
+
 ```bash
 npm run build
 # Should complete successfully with no TypeScript errors
 ```
 
 ---
+
 ## 🤝 Contributing
 
 We welcome contributions! Here's how to help:
@@ -168,6 +171,7 @@ We welcome contributions! Here's how to help:
 6. **Submit** a pull request
 
 ### Guidelines
+
 - Keep algorithms modular in dedicated files
 - Use the frame-based pipeline for consistency
 - Add comments for non-obvious logic
@@ -180,7 +184,5 @@ See [AGENTS.md](./AGENTS.md) for detailed development guidelines.
 ## 📝 License
 
 MIT License - see LICENSE file for details
-
-
 
 **Happy learning! 🚀**

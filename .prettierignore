@@ -1,0 +1,23 @@
+# Ignore dependencies
+node_modules/
+
+# Ignore production builds
+dist/
+build/
+
+# Ignore other generated files
+coverage/
+.env
+
+.agents/
+
+src/components/ui/
+
+tsconfig.json
+tsconfig.app.json
+tsconfig.config.js
+
+components.js
+package.js
+package-lock.json
+vite.config.ts

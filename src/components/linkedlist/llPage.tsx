@@ -1,16 +1,21 @@
-import { useState, useRef, useEffect } from "react";
-import { Input } from "../ui/input.tsx";
-import { Button } from "../ui/button";
+import { useState, useRef, useEffect } from 'react';
+import { Input } from '../ui/input.tsx';
+import { Button } from '../ui/button';
 import {
-  Select, SelectContent, SelectGroup,
-  SelectItem, SelectLabel, SelectTrigger, SelectValue,
-} from "@/components/ui/select.tsx";
-import { useGSAP } from "@gsap/react";
-import gsap from "../../gsapSetup.ts";
-import { toast } from "sonner";
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select.tsx';
+import { useGSAP } from '@gsap/react';
+import gsap from '../../gsapSetup.ts';
+import { toast } from 'sonner';
 
 /* ── TYPE DEFINITIONS ────────────────────────────────────────── */
-type ListType = "singly" | "doubly" | "singly-circular" | "doubly-circular";
+type ListType = 'singly' | 'doubly' | 'singly-circular' | 'doubly-circular';
 
 type LLNode = {
   id: number;
@@ -27,10 +32,30 @@ type ListConfig = {
 };
 
 const listTypeConfig: Record<ListType, ListConfig> = {
-  "singly": { type: "singly", isCircular: false, isDoubly: false, label: "Singly Linked List" },
-  "doubly": { type: "doubly", isCircular: false, isDoubly: true, label: "Doubly Linked List" },
-  "singly-circular": { type: "singly-circular", isCircular: true, isDoubly: false, label: "Circular Linked List" },
-  "doubly-circular": { type: "doubly-circular", isCircular: true, isDoubly: true, label: "Doubly Circular Linked List" },
+  singly: {
+    type: 'singly',
+    isCircular: false,
+    isDoubly: false,
+    label: 'Singly Linked List',
+  },
+  doubly: {
+    type: 'doubly',
+    isCircular: false,
+    isDoubly: true,
+    label: 'Doubly Linked List',
+  },
+  'singly-circular': {
+    type: 'singly-circular',
+    isCircular: true,
+    isDoubly: false,
+    label: 'Circular Linked List',
+  },
+  'doubly-circular': {
+    type: 'doubly-circular',
+    isCircular: true,
+    isDoubly: true,
+    label: 'Doubly Circular Linked List',
+  },
 };
 
 const getConfig = (type: ListType): ListConfig => listTypeConfig[type];
@@ -41,28 +66,28 @@ const genAddr = () => Math.floor(Math.random() * 100 + 17 * Math.random());
 const SLOT = 196; // 144px node + 52px arrow gap
 
 const LinkedListPage = () => {
-  const [listType, setListType] = useState<ListType>("singly");
+  const [listType, setListType] = useState<ListType>('singly');
   const config = getConfig(listType);
-  const [input, setInput]   = useState("");
-  const [pos,   setPos]     = useState("");
+  const [input, setInput] = useState('');
+  const [pos, setPos] = useState('');
 
   const [list, setList] = useState<LLNode[]>([]);
 
   const [removingIds, setRemovingIds] = useState<Set<number>>(new Set());
 
-  const screenRef        = useRef<HTMLDivElement>(null);
+  const screenRef = useRef<HTMLDivElement>(null);
   const listContainerRef = useRef<HTMLDivElement>(null);
-  const headRef          = useRef<HTMLDivElement>(null);
-  const newNodeRef       = useRef<HTMLDivElement>(null);
-  const newNodeValRef    = useRef<HTMLSpanElement>(null);
-  const newNodeNextPtrRef    = useRef<HTMLSpanElement>(null);
-  const newNodePrevPtrRef    = useRef<HTMLSpanElement>(null);
+  const headRef = useRef<HTMLDivElement>(null);
+  const newNodeRef = useRef<HTMLDivElement>(null);
+  const newNodeValRef = useRef<HTMLSpanElement>(null);
+  const newNodeNextPtrRef = useRef<HTMLSpanElement>(null);
+  const newNodePrevPtrRef = useRef<HTMLSpanElement>(null);
 
-  const itemRefs  = useRef<Map<number, HTMLDivElement>>(new Map());
+  const itemRefs = useRef<Map<number, HTMLDivElement>>(new Map());
   const nextArrowRefs = useRef<Map<number | string, SVGLineElement>>(new Map());
   const prevArrowRefs = useRef<Map<number | string, SVGLineElement>>(new Map());
-  const nextId    = useRef(3);
-  const pending   = useRef<Set<number>>(new Set());
+  const nextId = useRef(3);
+  const pending = useRef<Set<number>>(new Set());
   const MAX_LL_SIZE = 20;
 
   /* ── GSAP context ───────────────────────────────────────────────────── */
@@ -84,62 +109,73 @@ const LinkedListPage = () => {
   //   pending.current.clear();
   // }, [list]);
 
+  useEffect(() => {
+    if (list.length == 0) {
+      generateRandom();
+    }
+  }, [list]);
 
+  const generateRandom = () => {
+    const size = Math.floor(Math.random() * 10);
+    const randomList: LLNode[] = [];
 
-    useEffect(() => {
-      if (list.length == 0) {
-        generateRandom();
-      }
-    }, [list]);
+    for (let index = 0; index < size; index++) {
+      const value = Math.floor(Math.random() * 10);
+      const node: LLNode = {
+        id: nextId.current++,
+        value,
+        addr: genAddr(),
+        prevAddr: config.isDoubly
+          ? index > 0
+            ? randomList[index - 1].addr
+            : undefined
+          : undefined,
+      };
 
+      randomList.push(node);
+    }
 
-    const generateRandom = () => {
-      const size = Math.floor(Math.random() * 10);
-      const randomList: LLNode[] = [];
-
-      for (let index = 0; index < size; index++) {
-        const value = Math.floor(Math.random() * 10);
-        const node: LLNode = {
-          id: nextId.current++,
-          value,
-          addr: genAddr(),
-          prevAddr:
-            config.isDoubly
-              ? index > 0
-                ? randomList[index - 1].addr
-                : undefined
-              : undefined,
-        };
-
-        randomList.push(node);
-      }
-
-      itemRefs.current.clear();
-      nextArrowRefs.current.clear();
-      prevArrowRefs.current.clear();
-      setRemovingIds(new Set());
-      setList(randomList);
-    };
+    itemRefs.current.clear();
+    nextArrowRefs.current.clear();
+    prevArrowRefs.current.clear();
+    setRemovingIds(new Set());
+    setList(randomList);
+  };
   /* ── INSERT ─────────────────────────────────────────────────────────── */
   const insert = contextSafe((value: number, position: number) => {
     if (list.length >= MAX_LL_SIZE) {
       toast(`LinkedList is full! (max ${MAX_LL_SIZE} nodes)`);
       return;
     }
-    const newNode: LLNode = { 
-      id: nextId.current++, 
-      value, 
+    const newNode: LLNode = {
+      id: nextId.current++,
+      value,
       addr: genAddr(),
-      prevAddr: config.isDoubly ? (position > 0 ? list[position - 1].addr : (config.isCircular && list.length > 0 ? list[list.length - 1].addr : undefined)) : undefined,
+      prevAddr: config.isDoubly
+        ? position > 0
+          ? list[position - 1].addr
+          : config.isCircular && list.length > 0
+            ? list[list.length - 1].addr
+            : undefined
+        : undefined,
     };
 
-    if (newNodeValRef.current) newNodeValRef.current.textContent = String(value);
+    if (newNodeValRef.current)
+      newNodeValRef.current.textContent = String(value);
     if (newNodeNextPtrRef.current)
       newNodeNextPtrRef.current.textContent =
-        position < list.length ? String(list[position].addr) : (config.isCircular && list.length > 0 ? String(list[0].addr) : "NULL");
+        position < list.length
+          ? String(list[position].addr)
+          : config.isCircular && list.length > 0
+            ? String(list[0].addr)
+            : 'NULL';
     if (newNodePrevPtrRef.current && config.isDoubly)
       newNodePrevPtrRef.current.textContent =
-        position > 0 ? String(list[position - 1].addr) : (config.isCircular && list.length > 0 ? String(list[list.length - 1].addr) : "NULL");
+        position > 0
+          ? String(list[position - 1].addr)
+          : config.isCircular && list.length > 0
+            ? String(list[list.length - 1].addr)
+            : 'NULL';
 
     gsap.set(newNodeRef.current, { opacity: 1, x: 0, y: 0 });
 
@@ -149,64 +185,101 @@ const LinkedListPage = () => {
     };
 
     if (position === 0) {
-      gsap.timeline({ defaults: { ease: "power2.out" } })
-        .addLabel("lift")
-        .to(newNodeRef.current,       { y: -120, duration: 0.6 }, "lift")
-        .to(listContainerRef.current, { x: SLOT,  duration: 0.7 }, "lift+=0.1")
-        .addLabel("drop", ">")
-        .to(newNodeRef.current, {
-          y: 0, duration: 0.7, ease: "back.out(1.5)",
-          onComplete: () => {
-            gsap.set(listContainerRef.current, { x: 0 });
-            commit();
-            setList((p) => [newNode, ...p]);
-            // toast.success(`Inserted ${value} at head`);
+      gsap
+        .timeline({ defaults: { ease: 'power2.out' } })
+        .addLabel('lift')
+        .to(newNodeRef.current, { y: -120, duration: 0.6 }, 'lift')
+        .to(listContainerRef.current, { x: SLOT, duration: 0.7 }, 'lift+=0.1')
+        .addLabel('drop', '>')
+        .to(
+          newNodeRef.current,
+          {
+            y: 0,
+            duration: 0.7,
+            ease: 'back.out(1.5)',
+            onComplete: () => {
+              gsap.set(listContainerRef.current, { x: 0 });
+              commit();
+              setList((p) => [newNode, ...p]);
+              // toast.success(`Inserted ${value} at head`);
+            },
           },
-        }, "drop");
-
+          'drop'
+        );
     } else if (position === list.length) {
-      gsap.timeline({ defaults: { ease: "power2.out" } })
-        .addLabel("lift")
-        .to(newNodeRef.current, { y: -120, duration: 0.6 }, "lift")
-        .addLabel("fly", ">")
-        .to(newNodeRef.current, { x: (position +1)* SLOT, duration:2.75, ease: "power2.inOut" }, "fly")
-        .addLabel("drop", ">")
-        .to(newNodeRef.current, {
-          y: 0, duration: 1.7, ease: "back.out(1.5)",
-          onComplete: () => { commit(); setList((p) => [...p, newNode]); /* toast.success(`Inserted ${value} at tail`); */ },
-        }, "drop");
-
+      gsap
+        .timeline({ defaults: { ease: 'power2.out' } })
+        .addLabel('lift')
+        .to(newNodeRef.current, { y: -120, duration: 0.6 }, 'lift')
+        .addLabel('fly', '>')
+        .to(
+          newNodeRef.current,
+          { x: (position + 1) * SLOT, duration: 2.75, ease: 'power2.inOut' },
+          'fly'
+        )
+        .addLabel('drop', '>')
+        .to(
+          newNodeRef.current,
+          {
+            y: 0,
+            duration: 1.7,
+            ease: 'back.out(1.5)',
+            onComplete: () => {
+              commit();
+              setList((p) => [
+                ...p,
+                newNode,
+              ]); /* toast.success(`Inserted ${value} at tail`); */
+            },
+          },
+          'drop'
+        );
     } else {
-      const tl = gsap.timeline({ defaults: { ease: "power2.inOut" } });
-      tl.addLabel("lift")
-        .to(newNodeRef.current, { y: -120, duration: 0.6, ease: "power2.out" }, "lift");
+      const tl = gsap.timeline({ defaults: { ease: 'power2.inOut' } });
+      tl.addLabel('lift').to(
+        newNodeRef.current,
+        { y: -120, duration: 0.6, ease: 'power2.out' },
+        'lift'
+      );
       for (let i = position; i < list.length; i++) {
         const el = itemRefs.current.get(list[i].id);
-        if (el) tl.to(el, { x: "+=196", duration: 0.65 }, "lift");
+        if (el) tl.to(el, { x: '+=196', duration: 0.65 }, 'lift');
       }
-      tl.addLabel("fly", ">")
-        .to(newNodeRef.current, { x: position * SLOT, duration: 0.6 }, "fly")
-        .addLabel("drop", ">")
-        .to(newNodeRef.current, {
-          y: 0, duration: 0.7, ease: "back.out(1.5)",
-          onComplete: () => {
-            for (let i = position; i < list.length; i++) {
-              const el = itemRefs.current.get(list[i].id);
-              if (el) gsap.set(el, { x: 0 });
-            }
-            commit();
-            setList((p) => { const n = [...p]; n.splice(position, 0, newNode); return n; });
-            // toast.success(`Inserted ${value} at index ${position}`);
+      tl.addLabel('fly', '>')
+        .to(newNodeRef.current, { x: position * SLOT, duration: 0.6 }, 'fly')
+        .addLabel('drop', '>')
+        .to(
+          newNodeRef.current,
+          {
+            y: 0,
+            duration: 0.7,
+            ease: 'back.out(1.5)',
+            onComplete: () => {
+              for (let i = position; i < list.length; i++) {
+                const el = itemRefs.current.get(list[i].id);
+                if (el) gsap.set(el, { x: 0 });
+              }
+              commit();
+              setList((p) => {
+                const n = [...p];
+                n.splice(position, 0, newNode);
+                return n;
+              });
+              // toast.success(`Inserted ${value} at index ${position}`);
+            },
           },
-        }, "drop");
+          'drop'
+        );
     }
   });
 
   /* ── DELETE ─────────────────────────────────────────────────────────── */
   const del = contextSafe((position: number) => {
-    if (!list.length) { /* toast.error("List is empty"); */ return; }
+    if (!list.length) {
+      /* toast.error("List is empty"); */ return;
+    }
     const target = list[position];
-    const el     = itemRefs.current.get(target.id);
+    const el = itemRefs.current.get(target.id);
     if (!el) return;
 
     const removeFromState = () => {
@@ -215,76 +288,192 @@ const LinkedListPage = () => {
       nextArrowRefs.current.delete(target.id);
       prevArrowRefs.current.delete(target.id);
       setList((p) => p.filter((n) => n.id !== target.id));
-      setRemovingIds((p) => { const s = new Set(p); s.delete(target.id); return s; });
+      setRemovingIds((p) => {
+        const s = new Set(p);
+        s.delete(target.id);
+        return s;
+      });
     };
 
     if (position === 0) {
       // highlight → pause → HEAD nudges (pointer moving) → fly up
-      gsap.timeline({ defaults: { ease: "power2.out" } })
-        .addLabel("mark")
-        .to(el, { borderColor: "#ef4444", boxShadow: "0 0 12px rgba(239,68,68,0.2)", duration: 0.5 }, "mark")
-        .addLabel("pause", "+=0.55")
-        .addLabel("headNudge", "pause")
-        .to(headRef.current, { x: 14, duration: 0.2 }, "headNudge")
-        .to(headRef.current, { x: 0,  duration: 0.2 }, ">")
-        .addLabel("exit", ">+=0.08")
-        .to(el, {
-          y: -80, opacity: 0, scale: 0.65, duration: 0.65, ease: "power3.in",
-          onComplete: () => { removeFromState(); /* toast.success(`Deleted ${target.value} from head`); */ },
-        }, "exit");
-
+      gsap
+        .timeline({ defaults: { ease: 'power2.out' } })
+        .addLabel('mark')
+        .to(
+          el,
+          {
+            borderColor: '#ef4444',
+            boxShadow: '0 0 12px rgba(239,68,68,0.2)',
+            duration: 0.5,
+          },
+          'mark'
+        )
+        .addLabel('pause', '+=0.55')
+        .addLabel('headNudge', 'pause')
+        .to(headRef.current, { x: 14, duration: 0.2 }, 'headNudge')
+        .to(headRef.current, { x: 0, duration: 0.2 }, '>')
+        .addLabel('exit', '>+=0.08')
+        .to(
+          el,
+          {
+            y: -80,
+            opacity: 0,
+            scale: 0.65,
+            duration: 0.65,
+            ease: 'power3.in',
+            onComplete: () => {
+              removeFromState(); /* toast.success(`Deleted ${target.value} from head`); */
+            },
+          },
+          'exit'
+        );
     } else if (position === list.length - 1) {
       // highlight tail → pause → prev flashes green (→ NULL) → tail falls down
       const prevEl = itemRefs.current.get(list[position - 1].id) ?? null;
-      gsap.timeline({ defaults: { ease: "power2.out" } })
-        .addLabel("markTail")
-        .to(el, { borderColor: "#ef4444", boxShadow: "0 0 12px rgba(239,68,68,0.2)", duration: 0.5 }, "markTail")
-        .addLabel("pause", "+=0.55")
-        .addLabel("ptrNull", "pause")
-        .to(prevEl ?? {}, prevEl ? { borderColor: "#00ff11", boxShadow: "0 0 12px rgba(0,255,17,0.2)", duration: 0.4 } : {}, "ptrNull")
-        .to(prevEl ?? {}, prevEl ? { borderColor: "rgba(14, 116, 144, 0.5)", boxShadow: "none", duration: 0.4 } : {}, ">")
-        .addLabel("exit", ">+=0.08")
-        .to(el, {
-          y: 80, opacity: 0, scale: 0.65, duration: 0.65, ease: "power3.in",
-          onComplete: () => { removeFromState(); /* toast.success(`Deleted ${target.value} from tail`); */ },
-        }, "exit");
-
+      gsap
+        .timeline({ defaults: { ease: 'power2.out' } })
+        .addLabel('markTail')
+        .to(
+          el,
+          {
+            borderColor: '#ef4444',
+            boxShadow: '0 0 12px rgba(239,68,68,0.2)',
+            duration: 0.5,
+          },
+          'markTail'
+        )
+        .addLabel('pause', '+=0.55')
+        .addLabel('ptrNull', 'pause')
+        .to(
+          prevEl ?? {},
+          prevEl
+            ? {
+                borderColor: '#00ff11',
+                boxShadow: '0 0 12px rgba(0,255,17,0.2)',
+                duration: 0.4,
+              }
+            : {},
+          'ptrNull'
+        )
+        .to(
+          prevEl ?? {},
+          prevEl
+            ? {
+                borderColor: 'rgba(14, 116, 144, 0.5)',
+                boxShadow: 'none',
+                duration: 0.4,
+              }
+            : {},
+          '>'
+        )
+        .addLabel('exit', '>+=0.08')
+        .to(
+          el,
+          {
+            y: 80,
+            opacity: 0,
+            scale: 0.65,
+            duration: 0.65,
+            ease: 'power3.in',
+            onComplete: () => {
+              removeFromState(); /* toast.success(`Deleted ${target.value} from tail`); */
+            },
+          },
+          'exit'
+        );
     } else {
       // orange prev (traversing) → pause → red target → pause → green prev (bypass) → restore → fly up
       const prevEl = itemRefs.current.get(list[position - 1].id) ?? null;
-      gsap.timeline({ defaults: { ease: "power2.out" } })
-        .addLabel("traverse")
-        .to(prevEl ?? {}, prevEl ? { borderColor: "#f97316", boxShadow: "0 0 12px rgba(249,115,22,0.2)", duration: 0.45 } : {}, "traverse")
-        .addLabel("pauseTraverse", "+=0.45")
-        .addLabel("markTarget", "pauseTraverse")
-        .to(el, { borderColor: "#ef4444", boxShadow: "0 0 12px rgba(239,68,68,0.2)", duration: 0.45 }, "markTarget")
-        .addLabel("pauseTarget", "+=0.45")
-        .addLabel("bypass", "pauseTarget")
-        .to(prevEl ?? {}, prevEl ? { borderColor: "#00ff11", boxShadow: "0 0 12px rgba(0,255,17,0.2)", duration: 0.38 } : {}, "bypass")
-        .to(prevEl ?? {}, prevEl ? { borderColor: "rgba(14, 116, 144, 0.5)", boxShadow: "none", duration: 0.38 } : {}, ">")
-        .addLabel("exit", ">+=0.08")
-        .to(el, {
-          y: -80, opacity: 0, scale: 0.65, duration: 0.65, ease: "power3.in",
-          onComplete: () => { removeFromState(); /* toast.success(`Deleted ${target.value} from index ${position}`); */ },
-        }, "exit");
+      gsap
+        .timeline({ defaults: { ease: 'power2.out' } })
+        .addLabel('traverse')
+        .to(
+          prevEl ?? {},
+          prevEl
+            ? {
+                borderColor: '#f97316',
+                boxShadow: '0 0 12px rgba(249,115,22,0.2)',
+                duration: 0.45,
+              }
+            : {},
+          'traverse'
+        )
+        .addLabel('pauseTraverse', '+=0.45')
+        .addLabel('markTarget', 'pauseTraverse')
+        .to(
+          el,
+          {
+            borderColor: '#ef4444',
+            boxShadow: '0 0 12px rgba(239,68,68,0.2)',
+            duration: 0.45,
+          },
+          'markTarget'
+        )
+        .addLabel('pauseTarget', '+=0.45')
+        .addLabel('bypass', 'pauseTarget')
+        .to(
+          prevEl ?? {},
+          prevEl
+            ? {
+                borderColor: '#00ff11',
+                boxShadow: '0 0 12px rgba(0,255,17,0.2)',
+                duration: 0.38,
+              }
+            : {},
+          'bypass'
+        )
+        .to(
+          prevEl ?? {},
+          prevEl
+            ? {
+                borderColor: 'rgba(14, 116, 144, 0.5)',
+                boxShadow: 'none',
+                duration: 0.38,
+              }
+            : {},
+          '>'
+        )
+        .addLabel('exit', '>+=0.08')
+        .to(
+          el,
+          {
+            y: -80,
+            opacity: 0,
+            scale: 0.65,
+            duration: 0.65,
+            ease: 'power3.in',
+            onComplete: () => {
+              removeFromState(); /* toast.success(`Deleted ${target.value} from index ${position}`); */
+            },
+          },
+          'exit'
+        );
     }
   });
 
   /* ── CLEAR ──────────────────────────────────────────────────────────── */
   const clear = contextSafe(() => {
     const active = list.filter((n) => !removingIds.has(n.id));
-    if (!active.length) { /* toast("Already empty"); */ return; }
+    if (!active.length) {
+      /* toast("Already empty"); */ return;
+    }
     setRemovingIds(new Set(active.map((n) => n.id)));
     active.forEach((item, i) => {
       const el = itemRefs.current.get(item.id);
       if (!el) return;
       gsap.to(el, {
-        opacity: 0, y: -50, scale: 0.45, duration: 0.45,
-        delay: i * 0.08, ease: "back.in(1.6)",
+        opacity: 0,
+        y: -50,
+        scale: 0.45,
+        duration: 0.45,
+        delay: i * 0.08,
+        ease: 'back.in(1.6)',
         onComplete: () => {
           itemRefs.current.delete(item.id);
           if (i === active.length - 1) {
-            setList([]); setRemovingIds(new Set()); /* toast.success("Cleared"); */
+            setList([]);
+            setRemovingIds(new Set()); /* toast.success("Cleared"); */
           }
         },
       });
@@ -296,37 +485,60 @@ const LinkedListPage = () => {
     const num = parseInt(input);
     const idx = parseInt(pos);
     switch (op) {
-      case "insertAtHead":
-        if (isNaN(num)) { /* toast.error("Enter a value") */ return; }
-        insert(num, 0); setInput(""); break;
-      case "insertAtTail":
-        if (isNaN(num)) { /* toast.error("Enter a value") */ return; }
-        insert(num, list.length); setInput(""); break;
-      case "insertAtIndex":
-        if (isNaN(num)) { /* toast.error("Enter a value") */ return; }
+      case 'insertAtHead':
+        if (isNaN(num)) {
+          /* toast.error("Enter a value") */ return;
+        }
+        insert(num, 0);
+        setInput('');
+        break;
+      case 'insertAtTail':
+        if (isNaN(num)) {
+          /* toast.error("Enter a value") */ return;
+        }
+        insert(num, list.length);
+        setInput('');
+        break;
+      case 'insertAtIndex':
+        if (isNaN(num)) {
+          /* toast.error("Enter a value") */ return;
+        }
         if (isNaN(idx) || idx < 0 || idx > list.length) {
           /* toast.error(`Index must be 0–${list.length}`) */
           return;
         }
-        insert(num, idx); setInput(""); setPos(""); break;
-      case "deleteAtHead":  del(0); break;
-      case "deleteAtTail":  del(list.length - 1); break;
-      case "deleteAtIndex":
+        insert(num, idx);
+        setInput('');
+        setPos('');
+        break;
+      case 'deleteAtHead':
+        del(0);
+        break;
+      case 'deleteAtTail':
+        del(list.length - 1);
+        break;
+      case 'deleteAtIndex':
         if (isNaN(idx) || idx < 0 || idx >= list.length) {
           /* toast.error(`Index must be 0–${list.length - 1}`); */
           return;
         }
-        del(idx); setPos(""); break;
-      case "reverse": setList((p) => [...p].reverse()); /* toast.success("Reversed") */; break;
-      case "clear":   clear(); break;
+        del(idx);
+        setPos('');
+        break;
+      case 'reverse':
+        setList((p) => [...p].reverse()); /* toast.success("Reversed") */
+        break;
+      case 'clear':
+        clear();
+        break;
     }
   };
 
   const switchListType = (type: ListType) => {
-    setListType(type); 
-    setList([]); 
+    setListType(type);
+    setList([]);
     setRemovingIds(new Set());
-    itemRefs.current.clear(); 
+    itemRefs.current.clear();
     nextArrowRefs.current.clear();
     prevArrowRefs.current.clear();
     /* toast(`Switched to ${getConfig(type).label}`); */
@@ -336,35 +548,60 @@ const LinkedListPage = () => {
 
   /* ── JSX ─────────────────────────────────────────────────────────────── */
   return (
-    <div ref={screenRef} className="flex flex-col min-h-screen shell-fg bg-background select-none">
+    <div
+      ref={screenRef}
+      className="flex flex-col min-h-screen shell-fg bg-background select-none"
+    >
       {/* Toaster removed as per request */}
 
       {/* shared SVG defs — arrow markers */}
-      <svg width="0" height="0" style={{ position: "absolute" }}>
+      <svg width="0" height="0" style={{ position: 'absolute' }}>
         <defs>
-          <marker id="ll-arrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+          <marker
+            id="ll-arrow"
+            markerWidth="7"
+            markerHeight="7"
+            refX="6"
+            refY="3.5"
+            orient="auto"
+          >
             <polygon points="0 0, 7 3.5, 0 7" fill="#0e7490" />
           </marker>
-          <marker id="ll-arrow-purple" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+          <marker
+            id="ll-arrow-purple"
+            markerWidth="7"
+            markerHeight="7"
+            refX="6"
+            refY="3.5"
+            orient="auto"
+          >
             <polygon points="0 0, 7 3.5, 0 7" fill="#a78bfa" />
           </marker>
-          <marker id="ll-arrow-pink" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+          <marker
+            id="ll-arrow-pink"
+            markerWidth="7"
+            markerHeight="7"
+            refX="6"
+            refY="3.5"
+            orient="auto"
+          >
             <polygon points="0 0, 7 3.5, 0 7" fill="#ec4899" />
           </marker>
         </defs>
       </svg>
 
       {/* ── Navbar ───────────────────────────────────────────────── */}
-      <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-3
-        bg-background border-0">
-
+      <div
+        className="flex flex-wrap items-center justify-between gap-3 px-6 py-3
+        bg-background border-0"
+      >
         <div className="flex flex-wrap items-center gap-2">
           <Input
             className="input w-28"
             placeholder="Value"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleOp("insertAtTail")}
+            onKeyDown={(e) => e.key === 'Enter' && handleOp('insertAtTail')}
           />
           <Input
             className="input w-24"
@@ -372,29 +609,54 @@ const LinkedListPage = () => {
             value={pos}
             onChange={(e) => setPos(e.target.value)}
           />
-          {(["insertAtHead","insertAtTail","insertAtIndex"] as const).map((op) => (
-            <button key={op} onClick={() => handleOp(op)}
-              className="btn-primary ">
-              {op === "insertAtHead" ? "Insert Head" : op === "insertAtTail" ? "Insert Tail" : "Insert At"}
-            </button>
-          ))}
-          <Button
-            onClick={generateRandom}
-            className="btn-neutral "
-          >
+          {(['insertAtHead', 'insertAtTail', 'insertAtIndex'] as const).map(
+            (op) => (
+              <button
+                key={op}
+                onClick={() => handleOp(op)}
+                className="btn-primary "
+              >
+                {op === 'insertAtHead'
+                  ? 'Insert Head'
+                  : op === 'insertAtTail'
+                    ? 'Insert Tail'
+                    : 'Insert At'}
+              </button>
+            )
+          )}
+          <Button onClick={generateRandom} className="btn-neutral ">
             Generate Random
           </Button>
           <div className="w-px h-6 bg-slate-800 mx-1" />
-          {(["deleteAtHead","deleteAtTail","deleteAtIndex","reverse","clear"] as const).map((op) => (
-            <button key={op} onClick={() => handleOp(op)}
-              className="btn-danger">
-              {op === "deleteAtHead" ? "Del Head" : op === "deleteAtTail" ? "Del Tail"
-                : op === "deleteAtIndex" ? "Del At" : op.charAt(0).toUpperCase() + op.slice(1)}
+          {(
+            [
+              'deleteAtHead',
+              'deleteAtTail',
+              'deleteAtIndex',
+              'reverse',
+              'clear',
+            ] as const
+          ).map((op) => (
+            <button
+              key={op}
+              onClick={() => handleOp(op)}
+              className="btn-danger"
+            >
+              {op === 'deleteAtHead'
+                ? 'Del Head'
+                : op === 'deleteAtTail'
+                  ? 'Del Tail'
+                  : op === 'deleteAtIndex'
+                    ? 'Del At'
+                    : op.charAt(0).toUpperCase() + op.slice(1)}
             </button>
           ))}
         </div>
 
-        <Select value={listType} onValueChange={(type) => switchListType(type as ListType)}>
+        <Select
+          value={listType}
+          onValueChange={(type) => switchListType(type as ListType)}
+        >
           <SelectTrigger className="w-[240px] select-trigger">
             <SelectValue />
           </SelectTrigger>
@@ -413,15 +675,18 @@ const LinkedListPage = () => {
 
       {/* ── Visualization ───────────────────────────────────────── */}
       <div className="flex-1 flex flex-col justify-center px-10 py-8 overflow-hidden relative">
-
         {/* HEAD pointer box */}
         <div className="flex flex-col items-start mb-1">
-          <div ref={headRef}
+          <div
+            ref={headRef}
             className="flex flex-col items-center justify-center w-36 h-16
-              border-2 border-transparent rounded-xl viz-ptr font-mono font-bold">
-            <span className="text-[9px] uppercase tracking-widest mb-0.5 opacity-60">HEAD</span>
+              border-2 border-transparent rounded-xl viz-ptr font-mono font-bold"
+          >
+            <span className="text-[9px] uppercase tracking-widest mb-0.5 opacity-60">
+              HEAD
+            </span>
             <span className="text-sm font-semibold">
-              {list.length > 0 ? list[0].addr : "NULL"}
+              {list.length > 0 ? list[0].addr : 'NULL'}
             </span>
           </div>
           {/* tick down to list */}
@@ -429,75 +694,109 @@ const LinkedListPage = () => {
         </div>
 
         {/* Staging node (used only during insert animation) */}
-        <div ref={newNodeRef}
-          style={{ opacity: 0, position: "absolute", top: 112, left: 40, zIndex: 30 }}
-          className="flex flex-col items-center mt-25">
+        <div
+          ref={newNodeRef}
+          style={{
+            opacity: 0,
+            position: 'absolute',
+            top: 112,
+            left: 40,
+            zIndex: 30,
+          }}
+          className="flex flex-col items-center mt-25"
+        >
           {config.isDoubly ? (
-            <div className="flex w-48 h-16 border-2 border-transparent rounded-xl bg-[#00ff11] text-black font-bold
-              items-center justify-around" style={{ boxShadow: "0 0 15px rgba(0,255,17,0.6)" }}>
-              <span ref={newNodePrevPtrRef} className="text-xs font-mono px-1">NULL</span>
+            <div
+              className="flex w-48 h-16 border-2 border-transparent rounded-xl bg-[#00ff11] text-black font-bold
+              items-center justify-around"
+              style={{ boxShadow: '0 0 15px rgba(0,255,17,0.6)' }}
+            >
+              <span ref={newNodePrevPtrRef} className="text-xs font-mono px-1">
+                NULL
+              </span>
               <div className="w-px h-8 bg-black/30" />
               <span className="text-xl">-</span>
               <div className="w-px h-8 bg-black/30" />
-              <span ref={newNodeNextPtrRef} className="text-xs font-mono px-1">NULL</span>
+              <span ref={newNodeNextPtrRef} className="text-xs font-mono px-1">
+                NULL
+              </span>
             </div>
           ) : (
-            <div className="flex w-36 h-16 border-2 border-transparent rounded-xl bg-[#00ff11] text-black font-bold
-              items-center justify-around" style={{ boxShadow: "0 0 15px rgba(0,255,17,0.6)" }}>
+            <div
+              className="flex w-36 h-16 border-2 border-transparent rounded-xl bg-[#00ff11] text-black font-bold
+              items-center justify-around"
+              style={{ boxShadow: '0 0 15px rgba(0,255,17,0.6)' }}
+            >
               <span className="text-xl">-</span>
               <div className="w-px h-8 bg-black/30" />
-              <span ref={newNodeNextPtrRef} className="text-xs font-mono px-1">NULL</span>
+              <span ref={newNodeNextPtrRef} className="text-xs font-mono px-1">
+                NULL
+              </span>
             </div>
           )}
           <span className="text-[10px] font-mono text-[#00ff11] mt-1">new</span>
         </div>
 
         {/* The list */}
-        <div ref={listContainerRef}
+        <div
+          ref={listContainerRef}
           className="flex items-end flex-nowrap overflow-x-auto pb-2"
-          style={{ minHeight: 90 }}>
-
+          style={{ minHeight: 90 }}
+        >
           {list.length === 0 && (
-            <p className="muted-text font-mono text-sm tracking-wider self-center">— empty —</p>
+            <p className="muted-text font-mono text-sm tracking-wider self-center">
+              — empty —
+            </p>
           )}
 
           {list.map((item, index) => {
             const isLast = index === list.length - 1;
-            const nextAddr = isLast ? (config.isCircular ? list[0].addr : undefined) : list[index + 1].addr;
-            const prevAddr = index === 0 ? (config.isCircular && list.length > 1 ? list[list.length - 1].addr : undefined) : list[index - 1].addr;
+            const nextAddr = isLast
+              ? config.isCircular
+                ? list[0].addr
+                : undefined
+              : list[index + 1].addr;
+            const prevAddr =
+              index === 0
+                ? config.isCircular && list.length > 1
+                  ? list[list.length - 1].addr
+                  : undefined
+                : list[index - 1].addr;
 
             return (
               <div key={item.id} className="flex items-center flex-shrink-0">
                 {/* node + addr label stacked */}
                 <div className="flex flex-col items-center">
                   <div
-                    ref={(el) => { if (el) itemRefs.current.set(item.id, el); }}
+                    ref={(el) => {
+                      if (el) itemRefs.current.set(item.id, el);
+                    }}
                     className="flex border-2 border-transparent rounded-xl viz-ll-node font-bold
                       items-center justify-around"
-                    style={{ 
-                      width: config.isDoubly ? "200px" : "144px",
-                      height: "64px",
-                      transition: "background-color 0.15s, box-shadow 0.15s" 
+                    style={{
+                      width: config.isDoubly ? '200px' : '144px',
+                      height: '64px',
+                      transition: 'background-color 0.15s, box-shadow 0.15s',
                     }}
                   >
                     {config.isDoubly && (
                       <>
                         <span className="text-sm font-mono px-1">
-                          {prevAddr !== undefined ? prevAddr : "NULL"}
+                          {prevAddr !== undefined ? prevAddr : 'NULL'}
                         </span>
                         <div className="w-px h-8 viz-ll-divider" />
                       </>
                     )}
-                    
+
                     <span className="text-xl leading-none">{item.value}</span>
-                    
+
                     <div className="w-px h-8 viz-ll-divider" />
-                    
+
                     <span className="text-sm font-mono px-1">
-                      {nextAddr !== undefined ? nextAddr : "NULL"}
+                      {nextAddr !== undefined ? nextAddr : 'NULL'}
                     </span>
                   </div>
-                  
+
                   {/* own address below node */}
                   <span className="text-[11px] font-mono muted-text mt-1">
                     addr: {item.addr}
@@ -506,33 +805,64 @@ const LinkedListPage = () => {
 
                 {/* arrows (next for singly/circular, both prev+next for doubly) */}
                 {config.isDoubly ? (
-                  <svg className="flex-shrink-0" width="52" height="56" viewBox="0 0 52 56">
+                  <svg
+                    className="flex-shrink-0"
+                    width="52"
+                    height="56"
+                    viewBox="0 0 52 56"
+                  >
                     {/* prev arrow (top) — points left. Show on all doubly nodes except first (unless circular) */}
                     {(index > 0 || (config.isCircular && list.length > 1)) && (
                       <line
-                        ref={(el) => { if (el) prevArrowRefs.current.set(item.id, el); }}
-                        x1="44" y1="8" x2="2" y2="8"
-                        stroke="#a78bfa" strokeWidth="2" strokeLinecap="round"
+                        ref={(el) => {
+                          if (el) prevArrowRefs.current.set(item.id, el);
+                        }}
+                        x1="44"
+                        y1="8"
+                        x2="2"
+                        y2="8"
+                        stroke="#a78bfa"
+                        strokeWidth="2"
+                        strokeLinecap="round"
                         markerEnd="url(#ll-arrow-purple)"
                       />
                     )}
                     {/* next arrow (bottom) — points right. Show on all doubly nodes except last (unless circular) */}
                     {(index < list.length - 1 || config.isCircular) && (
                       <line
-                        ref={(el) => { if (el) nextArrowRefs.current.set(item.id, el); }}
-                        x1="2" y1="48" x2="44" y2="48"
-                        stroke="#0e7490" strokeWidth="2" strokeLinecap="round"
+                        ref={(el) => {
+                          if (el) nextArrowRefs.current.set(item.id, el);
+                        }}
+                        x1="2"
+                        y1="48"
+                        x2="44"
+                        y2="48"
+                        stroke="#0e7490"
+                        strokeWidth="2"
+                        strokeLinecap="round"
                         markerEnd="url(#ll-arrow)"
                       />
                     )}
                   </svg>
                 ) : (
                   index < list.length - 1 && (
-                    <svg className="flex-shrink-0 mb-5" width="52" height="28" viewBox="0 0 52 28">
+                    <svg
+                      className="flex-shrink-0 mb-5"
+                      width="52"
+                      height="28"
+                      viewBox="0 0 52 28"
+                    >
                       <line
-                        ref={(el) => { if (el) nextArrowRefs.current.set(item.id, el); }}
-                        x1="2" y1="14" x2="44" y2="14"
-                        stroke="#0e7490" strokeWidth="2" strokeLinecap="round"
+                        ref={(el) => {
+                          if (el) nextArrowRefs.current.set(item.id, el);
+                        }}
+                        x1="2"
+                        y1="14"
+                        x2="44"
+                        y2="14"
+                        stroke="#0e7490"
+                        strokeWidth="2"
+                        strokeLinecap="round"
                         markerEnd="url(#ll-arrow)"
                       />
                     </svg>
@@ -547,13 +877,13 @@ const LinkedListPage = () => {
         {config.isCircular && list.length > 0 && (
           <svg
             style={{
-              position: "absolute",
-              top: "100px",
-              left: "0px",
-              width: "100%",
-              height: "280px",
-              pointerEvents: "none",
-              overflow: "visible",
+              position: 'absolute',
+              top: '100px',
+              left: '0px',
+              width: '100%',
+              height: '280px',
+              pointerEvents: 'none',
+              overflow: 'visible',
               zIndex: 5,
             }}
             viewBox={`0 0 ${Math.max(800, 40 + list.length * SLOT + 150)} 280`}
@@ -596,20 +926,42 @@ const LinkedListPage = () => {
 
         {/* Legend */}
         <div className="flex gap-5 mt-8 text-[11px] font-mono muted-text">
-          <span><span className="text-cyan-500">■</span> active</span>
-          <span><span className="text-orange-500">■</span> traversing</span>
-          <span><span className="text-red-500">■</span> deleting</span>
-          <span><span className="text-cyan-400">■</span> pointer update</span>
-          <span><span style={{ color: "#00ff11" }}>■</span> inserting</span>
-          {config.isDoubly && <span><span className="text-purple-400">■</span> prev pointer</span>}
-          {config.isCircular && <span><span className="text-pink-500">■</span> circular link</span>}
+          <span>
+            <span className="text-cyan-500">■</span> active
+          </span>
+          <span>
+            <span className="text-orange-500">■</span> traversing
+          </span>
+          <span>
+            <span className="text-red-500">■</span> deleting
+          </span>
+          <span>
+            <span className="text-cyan-400">■</span> pointer update
+          </span>
+          <span>
+            <span style={{ color: '#00ff11' }}>■</span> inserting
+          </span>
+          {config.isDoubly && (
+            <span>
+              <span className="text-purple-400">■</span> prev pointer
+            </span>
+          )}
+          {config.isCircular && (
+            <span>
+              <span className="text-pink-500">■</span> circular link
+            </span>
+          )}
         </div>
       </div>
 
       {/* ── Footer ───────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between px-8 py-4 border-0 border-slate-800
-        text-xs font-mono text-slate-500">
-        <span>nodes: <span className="text-cyan-500">{activeLen}</span></span>
+      <div
+        className="flex items-center justify-between px-8 py-4 border-0 border-slate-800
+        text-xs font-mono text-slate-500"
+      >
+        <span>
+          nodes: <span className="text-cyan-500">{activeLen}</span>
+        </span>
         <span>{config.label}</span>
       </div>
     </div>

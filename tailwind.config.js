@@ -14,7 +14,7 @@ export default {
       },
       colors: {
         brand: 'var(--color-brand)',
-        
+
         // Algo specific standard classes mapped to CSS variables
         algo: {
           shell: 'var(--algo-shell-bg)',
@@ -62,4 +62,4 @@ export default {
     },
   },
   plugins: [require('tailwindcss-animate')],
-}
+};

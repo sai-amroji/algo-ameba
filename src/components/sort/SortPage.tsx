@@ -1,16 +1,16 @@
-import { useEffect, useRef, useState } from "react";
-import { useSearchParams } from "react-router-dom";
-import gsap from "@/gsapSetup";
-import Flip from "gsap/Flip";
-import { useGSAP } from "@gsap/react";
-import SharedLayout from "@/components/SharedLayout";
+import { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import gsap from '@/gsapSetup';
+import Flip from 'gsap/Flip';
+import { useGSAP } from '@gsap/react';
+import SharedLayout from '@/components/SharedLayout';
 import {
   sortAlgorithmBuilders,
   type SortFrame,
   type SortAlgorithmKey,
   type SortBar,
   type SortBarState,
-} from "./SortAlgos";
+} from './SortAlgos';
 
 gsap.registerPlugin(Flip, useGSAP);
 
@@ -18,50 +18,50 @@ const createBarId = () =>
   `bar-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
 const algoMap = [
-  { name: "Bubble Sort",     value: "bubble"    },
-  { name: "Selection Sort",  value: "selection" },
-  { name: "Insertion Sort",  value: "insertion" },
-  { name: "Merge Sort",      value: "merge"     },
-  { name: "Quick Sort",      value: "quick"     },
+  { name: 'Bubble Sort', value: 'bubble' },
+  { name: 'Selection Sort', value: 'selection' },
+  { name: 'Insertion Sort', value: 'insertion' },
+  { name: 'Merge Sort', value: 'merge' },
+  { name: 'Quick Sort', value: 'quick' },
 ] as const;
 
 const getBarColor = (state: SortBarState | undefined) => {
   switch (state) {
-    case "pivot":
+    case 'pivot':
       // gold — the chosen pivot, visually distinct from everything else
-      return "viz-bar-pivot border-2 border-transparent font-bold";
-    case "checking":
-      return "viz-bar-checking shadow-sm border-2 border-transparent font-bold";
-    case "comparing":
-      return "viz-bar-comparing shadow-sm border-2 border-transparent font-bold";
-    case "swapping":
-      return "viz-bar-swapping border-2 border-transparent font-bold";
-    case "placed":
-      return "viz-bar-placed border-2 border-transparent font-bold";
-    case "active":
+      return 'viz-bar-pivot border-2 border-transparent font-bold';
+    case 'checking':
+      return 'viz-bar-checking shadow-sm border-2 border-transparent font-bold';
+    case 'comparing':
+      return 'viz-bar-comparing shadow-sm border-2 border-transparent font-bold';
+    case 'swapping':
+      return 'viz-bar-swapping border-2 border-transparent font-bold';
+    case 'placed':
+      return 'viz-bar-placed border-2 border-transparent font-bold';
+    case 'active':
       // active range background (dimmed) in quick sort
-      return "viz-bar-active border-2 border-transparent";
-    case "splitting":
-      return "viz-bar-splitting shadow-sm border-2 border-transparent font-bold";
-    case "merging":
-      return "viz-bar-merging shadow-sm border-2 border-transparent font-bold";
-    case "sorted":
-      return "viz-bar-sorted border-2 border-transparent font-bold";
+      return 'viz-bar-active border-2 border-transparent';
+    case 'splitting':
+      return 'viz-bar-splitting shadow-sm border-2 border-transparent font-bold';
+    case 'merging':
+      return 'viz-bar-merging shadow-sm border-2 border-transparent font-bold';
+    case 'sorted':
+      return 'viz-bar-sorted border-2 border-transparent font-bold';
     default:
-      return "viz-bar border-2 border-transparent";
+      return 'viz-bar border-2 border-transparent';
   }
 };
 
 const SortPage = () => {
   const [, setSearchParams] = useSearchParams();
-  const initialMode: SortAlgorithmKey = "bubble";
+  const initialMode: SortAlgorithmKey = 'bubble';
   const [mode, setMode] = useState<SortAlgorithmKey>(initialMode);
   const [bars, setBars] = useState<SortBar[]>([]);
   const [barStates, setBarStates] = useState<Record<string, SortBarState>>({});
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState(0.75);
-  const [inputValue, setInputValue] = useState("");
-  const [phaseLabel, setPhaseLabel] = useState("");
+  const [inputValue, setInputValue] = useState('');
+  const [phaseLabel, setPhaseLabel] = useState('');
 
   const barsContainerRef = useRef<HTMLDivElement>(null);
   const barRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -74,8 +74,8 @@ const SortPage = () => {
       .filter((el): el is HTMLDivElement => Boolean(el));
 
   const getAllBarElements = () =>
-    Object.values(barRefs.current).filter(
-      (el): el is HTMLDivElement => Boolean(el)
+    Object.values(barRefs.current).filter((el): el is HTMLDivElement =>
+      Boolean(el)
     );
 
   // ── Merge sort frame animator ───────────────────────────────────────────────
@@ -87,12 +87,15 @@ const SortPage = () => {
   const animateMergeFrame = (frame: SortFrame) => {
     if (!barsContainerRef.current) return;
 
-    const container    = barsContainerRef.current;
-    const containerW   = container.getBoundingClientRect().width;
-    const barCount     = frame.bars.length;
+    const container = barsContainerRef.current;
+    const containerW = container.getBoundingClientRect().width;
+    const barCount = frame.bars.length;
     // Spread factor: at barCount=15, SPREAD_PX ≈ 160px. Scales with bar count.
-    const SPREAD_PX    = Math.min(containerW * 0.45, (containerW / barCount) * 3.2);
-    const LIFT_PX      = 52; // how high a selected bar rises
+    const SPREAD_PX = Math.min(
+      containerW * 0.45,
+      (containerW / barCount) * 3.2
+    );
+    const LIFT_PX = 52; // how high a selected bar rises
 
     const { offsets, bars: frameBars } = frame;
 
@@ -102,14 +105,14 @@ const SortPage = () => {
 
       const off = offsets?.[bar.id];
       const targetX = off ? off.xFraction * SPREAD_PX : 0;
-      const targetY = off ? -(off.yLevel * LIFT_PX)   : 0;
+      const targetY = off ? -(off.yLevel * LIFT_PX) : 0;
 
       gsap.to(el, {
-        x:         targetX,
-        y:         targetY,
-        duration:  Math.max(0.35, frame.duration * 0.7),
-        ease:      "power3.inOut",
-        overwrite: "auto",
+        x: targetX,
+        y: targetY,
+        duration: Math.max(0.35, frame.duration * 0.7),
+        ease: 'power3.inOut',
+        overwrite: 'auto',
       });
     });
   };
@@ -130,7 +133,7 @@ const SortPage = () => {
   useEffect(() => {
     if (bars.length > 0) return;
     const randomBars = Array.from({ length: 12 }, () => ({
-      id:    createBarId(),
+      id: createBarId(),
       value: Math.floor(Math.random() * 50) + 1,
     }));
     setBars(randomBars);
@@ -138,11 +141,19 @@ const SortPage = () => {
 
   const clampSpeed = (v: number) => Math.min(3, Math.max(0.25, v));
 
-  const validModes = new Set<SortAlgorithmKey>(["bubble", "selection", "insertion", "merge", "quick"]);
+  const validModes = new Set<SortAlgorithmKey>([
+    'bubble',
+    'selection',
+    'insertion',
+    'merge',
+    'quick',
+  ]);
   const updateMode = (next: string) => {
-    const normalised: SortAlgorithmKey = validModes.has(next as SortAlgorithmKey)
+    const normalised: SortAlgorithmKey = validModes.has(
+      next as SortAlgorithmKey
+    )
       ? (next as SortAlgorithmKey)
-      : "bubble";
+      : 'bubble';
     setMode(normalised);
     setSearchParams({ mode: normalised }, { replace: true });
     resetTimeline();
@@ -158,20 +169,20 @@ const SortPage = () => {
     setLabels([]);
     setIsPlaying(false);
     setBarStates({});
-    setPhaseLabel("");
+    setPhaseLabel('');
   };
 
   const handleInsert = () => {
     const parsed = Number.parseInt(inputValue.trim(), 10);
     if (Number.isNaN(parsed) || parsed < -50 || parsed > 50) return;
     setBars((prev) => [...prev, { id: createBarId(), value: parsed }]);
-    setInputValue("");
+    setInputValue('');
     resetTimeline();
   };
 
   const generateRandomArray = () => {
     const randomBars = Array.from({ length: 12 }, () => ({
-      id:    createBarId(),
+      id: createBarId(),
       value: Math.floor(Math.random() * 50) + 1,
     }));
     setBars(randomBars);
@@ -186,13 +197,13 @@ const SortPage = () => {
     if (frames.length === 0) return;
 
     timeline.clear().pause(0);
-    timeline.eventCallback("onComplete", () => {
+    timeline.eventCallback('onComplete', () => {
       setIsPlaying(false);
-      setPhaseLabel("");
+      setPhaseLabel('');
     });
-    timeline.eventCallback("onInterrupt", () => {
+    timeline.eventCallback('onInterrupt', () => {
       setIsPlaying(false);
-      setPhaseLabel("");
+      setPhaseLabel('');
     });
 
     const nextLabels: string[] = [];
@@ -209,7 +220,7 @@ const SortPage = () => {
           if (frame.phaseLabel !== undefined) setPhaseLabel(frame.phaseLabel);
 
           requestAnimationFrame(() => {
-            if (mode === "merge") {
+            if (mode === 'merge') {
               animateMergeFrame(frame);
               return;
             }
@@ -221,7 +232,7 @@ const SortPage = () => {
             Flip.from(flipState, {
               targets: getExistingBarElements(frame.bars.map((b) => b.id)),
               duration: Math.max(0.2, frame.duration * 0.45),
-              ease:     "power2.inOut",
+              ease: 'power2.inOut',
               absolute: false,
               overwrite: true,
             });
@@ -239,8 +250,18 @@ const SortPage = () => {
     timeline.play(0);
   };
 
-  const playSteps  = () => { if (!isPlaying) { timelineRef.current?.play(); setIsPlaying(true); } };
-  const pauseSteps = () => { if (isPlaying)  { timelineRef.current?.pause(); setIsPlaying(false); } };
+  const playSteps = () => {
+    if (!isPlaying) {
+      timelineRef.current?.play();
+      setIsPlaying(true);
+    }
+  };
+  const pauseSteps = () => {
+    if (isPlaying) {
+      timelineRef.current?.pause();
+      setIsPlaying(false);
+    }
+  };
 
   const nextStep = () => {
     const tl = timelineRef.current;
@@ -279,14 +300,17 @@ const SortPage = () => {
         onSpeedIncrease={() => setSpeed((p) => clampSpeed(p + 0.25))}
         onSpeedDecrease={() => setSpeed((p) => clampSpeed(p - 0.25))}
       >
-        <div className="w-full flex flex-col justify-center items-center max-w-[1600px] px-6 md:px-12 py-4 overflow-visible"
-             style={{ minHeight: (mode === "merge" || mode === "quick") ? "600px" : "400px" }}>
-
+        <div
+          className="w-full flex flex-col justify-center items-center max-w-[1600px] px-6 md:px-12 py-4 overflow-visible"
+          style={{
+            minHeight: mode === 'merge' || mode === 'quick' ? '600px' : '400px',
+          }}
+        >
           {/* Phase label — merge sort split/merge context + quick sort pivot announcement */}
-          {(mode === "merge" || mode === "quick") && (
+          {(mode === 'merge' || mode === 'quick') && (
             <div
               className="mb-6 text-sm font-mono tracking-wide transition-all duration-500 min-h-[1.5rem]"
-              style={{ color: "var(--brand)", opacity: phaseLabel ? 1 : 0 }}
+              style={{ color: 'var(--brand)', opacity: phaseLabel ? 1 : 0 }}
             >
               {phaseLabel}
             </div>
@@ -295,13 +319,18 @@ const SortPage = () => {
           <div
             ref={barsContainerRef}
             className="relative bar-container flex gap-2 justify-center items-end p-4 overflow-visible"
-            style={{ minHeight: (mode === "merge" || mode === "quick") ? "360px" : "260px" }}
+            style={{
+              minHeight:
+                mode === 'merge' || mode === 'quick' ? '360px' : '260px',
+            }}
           >
             {bars.map((bar) => (
               <div
                 key={bar.id}
                 data-barid={bar.id}
-                ref={(node) => { barRefs.current[bar.id] = node; }}
+                ref={(node) => {
+                  barRefs.current[bar.id] = node;
+                }}
                 className={`bar w-10 rounded-lg flex items-center justify-center font-mono text-sm ${getBarColor(barStates[bar.id])}`}
                 style={{ height: `${Math.max(Math.abs(bar.value) * 4, 30)}px` }}
               >
