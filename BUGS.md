@@ -24,3 +24,16 @@ Even in dark mode there are color mismatchs and doesnt always cohesive
 ## 5.Reduancy and Question marks
 
 -- we have utils which just has one file most of css in index.css we have prefixed with viz for vizulation color but is viz nesscary its not and makes its more verbose than nesscary simpler names would be enough we have comparing and checking are both nesscaery and what is use of useDimesion is that releveant and some logic is repeted with different apporch and some are verbose for no reasons
+
+## Missing Implementations
+
+--- Monotonic Stack,Monotonic Queue,Circular Queue & Graph Algo's
+No Feedback on Queue Full or Invalid Inputs need of Toasts or Alerts
+Regeneration on Clear Automatically
+Need of parsing Csv values
+
+## Improvement in Animation
+
+--- Heappush is missing animation
+-- Merge Sort and Binary Search need improvement in animation
+-- All sorting need in improement in animations

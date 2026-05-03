@@ -92,7 +92,7 @@ After modifying visualizer logic:
 
 ## Animation Rules
 
-- Animation should be explict its should be subtle
+- Animation should be explict its should'nt be subtle
 - Animation should have time to breath its should'nt rush to finish line
 - Animations should be detailed and highlight the process
 - Animations should be creative and intutive to understand
