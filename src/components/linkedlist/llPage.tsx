@@ -13,50 +13,12 @@ import {
 import { useGSAP } from '@gsap/react';
 import gsap from '../../gsapSetup.ts';
 import { toast } from 'sonner';
-
-/* ── TYPE DEFINITIONS ────────────────────────────────────────── */
-type ListType = 'singly' | 'doubly' | 'singly-circular' | 'doubly-circular';
-
-type LLNode = {
-  id: number;
-  value: number;
-  addr: number;
-  prevAddr?: number; // Only populated for doubly variants
-};
-
-type ListConfig = {
-  type: ListType;
-  isCircular: boolean;
-  isDoubly: boolean;
-  label: string;
-};
-
-const listTypeConfig: Record<ListType, ListConfig> = {
-  singly: {
-    type: 'singly',
-    isCircular: false,
-    isDoubly: false,
-    label: 'Singly Linked List',
-  },
-  doubly: {
-    type: 'doubly',
-    isCircular: false,
-    isDoubly: true,
-    label: 'Doubly Linked List',
-  },
-  'singly-circular': {
-    type: 'singly-circular',
-    isCircular: true,
-    isDoubly: false,
-    label: 'Circular Linked List',
-  },
-  'doubly-circular': {
-    type: 'doubly-circular',
-    isCircular: true,
-    isDoubly: true,
-    label: 'Doubly Circular Linked List',
-  },
-};
+import {
+  type ListConfig,
+  type LLNode,
+  type ListType,
+  listTypeConfig,
+} from './llConfig';
 
 const getConfig = (type: ListType): ListConfig => listTypeConfig[type];
 
@@ -90,24 +52,7 @@ const LinkedListPage = () => {
   const pending = useRef<Set<number>>(new Set());
   const MAX_LL_SIZE = 20;
 
-  /* ── GSAP context ───────────────────────────────────────────────────── */
   const { contextSafe } = useGSAP({ scope: screenRef });
-
-  /* run entrance anims after React commits new nodes */
-  // useEffect(() => {
-  //   if (!pending.current.size) return;
-  //   pending.current.forEach((id) => {
-  //     const el   = itemRefs.current.get(id);
-  //     const nextLine = nextArrowRefs.current.get(id);
-  //     const prevLine = prevArrowRefs.current.get(id);
-  //     if (el) animNodeIn(el);
-  //     if (nextLine) animArrowIn(nextLine);
-  //     if (prevLine) animArrowIn(prevLine);
-  //   });
-  //   if (headRef.current)
-  //     gsap.fromTo(headRef.current, { scale: 1.12 }, { scale: 1, duration: 0.55, ease: "elastic.out(1,0.5)" });
-  //   pending.current.clear();
-  // }, [list]);
 
   useEffect(() => {
     if (list.length == 0) {
@@ -141,10 +86,14 @@ const LinkedListPage = () => {
     setRemovingIds(new Set());
     setList(randomList);
   };
+
   /* ── INSERT ─────────────────────────────────────────────────────────── */
   const insert = contextSafe((value: number, position: number) => {
     if (list.length >= MAX_LL_SIZE) {
-      toast(`LinkedList is full! (max ${MAX_LL_SIZE} nodes)`);
+      toast(`LinkedList is full! (max ${MAX_LL_SIZE} nodes)`, {
+        position: 'bottom-right',
+        closeButton: true,
+      });
       return;
     }
     const newNode: LLNode = {
@@ -480,34 +429,115 @@ const LinkedListPage = () => {
     });
   });
 
+  const insertMultiple = (values: number[], startPos: number) => {
+    setList((prev) => {
+      const newList = [...prev];
+      for (let i = 0; i < values.length; i++) {
+        const value = values[i];
+        const position = startPos + i;
+        const newNode: LLNode = {
+          id: nextId.current++,
+          value,
+          addr: genAddr(),
+          prevAddr: undefined,
+        };
+        newList.splice(position, 0, newNode);
+      }
+      if (config.isDoubly) {
+        for (let i = 0; i < newList.length; i++) {
+          if (i > 0) {
+            newList[i].prevAddr = newList[i - 1].addr;
+          } else if (config.isCircular && newList.length > 0) {
+            newList[i].prevAddr = newList[newList.length - 1].addr;
+          } else {
+            newList[i].prevAddr = undefined;
+          }
+        }
+      }
+      return newList;
+    });
+  };
+
   /* ── HANDLERS ────────────────────────────────────────────────────────── */
   const handleOp = (op: string) => {
-    const num = parseInt(input);
+    const values = input
+      .split(',')
+      .map((v) => parseInt(v.trim()))
+      .filter((v) => !isNaN(v));
     const idx = parseInt(pos);
+
     switch (op) {
       case 'insertAtHead':
-        if (isNaN(num)) {
-          /* toast.error("Enter a value") */ return;
+        if (values.length === 0) {
+          toast.error('Please enter valid numbers', {
+            position: 'bottom-right',
+            closeButton: true,
+          });
+          return;
         }
-        insert(num, 0);
+        if (list.length + values.length > MAX_LL_SIZE) {
+          toast.error(`LinkedList is full! (max ${MAX_LL_SIZE} nodes)`, {
+            position: 'bottom-right',
+            closeButton: true,
+          });
+          return;
+        }
+        if (values.length === 1) {
+          insert(values[0], 0);
+        } else {
+          insertMultiple(values, 0);
+        }
         setInput('');
         break;
       case 'insertAtTail':
-        if (isNaN(num)) {
-          /* toast.error("Enter a value") */ return;
+        if (values.length === 0) {
+          toast.error('Please enter valid numbers', {
+            position: 'bottom-right',
+            closeButton: true,
+          });
+          return;
         }
-        insert(num, list.length);
+        if (list.length + values.length > MAX_LL_SIZE) {
+          toast.error(`LinkedList is full! (max ${MAX_LL_SIZE} nodes)`, {
+            position: 'bottom-right',
+            closeButton: true,
+          });
+          return;
+        }
+        if (values.length === 1) {
+          insert(values[0], list.length);
+        } else {
+          insertMultiple(values, list.length);
+        }
         setInput('');
         break;
       case 'insertAtIndex':
-        if (isNaN(num)) {
-          /* toast.error("Enter a value") */ return;
-        }
-        if (isNaN(idx) || idx < 0 || idx > list.length) {
-          /* toast.error(`Index must be 0–${list.length}`) */
+        if (values.length === 0) {
+          toast.error('Please enter valid numbers', {
+            position: 'bottom-right',
+            closeButton: true,
+          });
           return;
         }
-        insert(num, idx);
+        if (isNaN(idx) || idx < 0 || idx > list.length) {
+          toast.error(`Index must be 0–${list.length}`, {
+            position: 'bottom-right',
+            closeButton: true,
+          });
+          return;
+        }
+        if (list.length + values.length > MAX_LL_SIZE) {
+          toast.error(`LinkedList is full! (max ${MAX_LL_SIZE} nodes)`, {
+            position: 'bottom-right',
+            closeButton: true,
+          });
+          return;
+        }
+        if (values.length === 1) {
+          insert(values[0], idx);
+        } else {
+          insertMultiple(values, idx);
+        }
         setInput('');
         setPos('');
         break;
@@ -519,7 +549,10 @@ const LinkedListPage = () => {
         break;
       case 'deleteAtIndex':
         if (isNaN(idx) || idx < 0 || idx >= list.length) {
-          /* toast.error(`Index must be 0–${list.length - 1}`); */
+          toast(`Index must be 0–${list.length - 1}`, {
+            position: 'bottom-right',
+            closeButton: true,
+          });
           return;
         }
         del(idx);
@@ -597,14 +630,14 @@ const LinkedListPage = () => {
       >
         <div className="flex flex-wrap items-center gap-2">
           <Input
-            className="input w-28"
+            className="input w-fit p-2"
             placeholder="Value"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleOp('insertAtTail')}
           />
           <Input
-            className="input w-24"
+            className="input w-fit p-2"
             placeholder="Index"
             value={pos}
             onChange={(e) => setPos(e.target.value)}
@@ -888,13 +921,9 @@ const LinkedListPage = () => {
             }}
             viewBox={`0 0 ${Math.max(800, 40 + list.length * SLOT + 150)} 280`}
           >
-            {/* Curved path from last node (right side) down-left back to HEAD */}
-            {/* Tail starts at right edge of last node */}
-            {/* HEAD center is at x ~72 (halfway through w-36 = 144px box) */}
             <path
               ref={(el) => {
                 if (el) {
-                  // Initialize stroke-dasharray for DrawSVG animation
                   const length = el.getTotalLength?.() || 200;
                   el.setAttribute('stroke-dasharray', String(length));
                   el.setAttribute('stroke-dashoffset', String(length));

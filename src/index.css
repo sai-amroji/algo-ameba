@@ -6,8 +6,8 @@
 
 /* ── Global Custom Scrollbar ── */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 2px;
+  height: 2px;
 }
 
 ::-webkit-scrollbar-track {
@@ -93,7 +93,7 @@ body {
 :root {
   --radius: 0.625rem;
   /* Softer off‑white background for light mode */
-  --background: #f3f4f8;
+  --background: rgba(243, 244, 248, 0.6);
   --foreground: oklch(0.2 0.008 265);
   /* near-black text */
   --card: #ffffff;
@@ -487,7 +487,7 @@ body {
 
   /* ── Unified Input Styling ── */
   .input {
-    @apply h-9 px-3 py-2 rounded-lg border font-mono text-sm transition-all duration-200;
+    @apply w-fit h-9 px-3 py-2 rounded-lg border font-mono text-sm transition-all duration-200;
     background-color: var(--input-bg);
     border-color: var(--input-border);
     color: var(--input-fg);

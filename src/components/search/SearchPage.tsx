@@ -11,8 +11,6 @@ import {
   type SearchFrame,
 } from '@/components/search/searchAlgorithms';
 
-// DrawSVGPlugin is already registered globally via gsapSetup
-
 type SearchMode = 'linear' | 'binary';
 
 const algoMap = [
@@ -63,7 +61,6 @@ const SearchPage = () => {
   }, [initialMode]);
 
   const { contextSafe } = useGSAP({ scope: barsContainerRef });
-  // Ref for the active dotted path that highlights the current focus range
   const activeLineRef = useRef<SVGPathElement>(null);
 
   const getExistingBarElements = (ids: string[]) =>
@@ -71,7 +68,6 @@ const SearchPage = () => {
       .map((id) => barRefs.current[id])
       .filter((element): element is HTMLDivElement => Boolean(element));
 
-  // Clear the dotted underline path — called on reset and animation complete
   const clearActiveLine = contextSafe(() => {
     const path = activeLineRef.current;
     if (!path) return;
@@ -79,7 +75,6 @@ const SearchPage = () => {
     gsap.set(path, { attr: { d: '' }, opacity: 0 });
   });
 
-  // ── Celebration: all bars return, found bar rises green ──
   const animateFoundCelebration = contextSafe((frame: SearchFrame) => {
     const foundId = frame.focusId;
     const allDiscarded = [
@@ -371,7 +366,10 @@ const SearchPage = () => {
         resetBarTweens();
       }
       if (!result.found) {
-        toast('Value not found');
+        toast.error('Value not found', {
+          position: 'bottom-right',
+          closeButton: true,
+        });
       }
     });
     timeline.eventCallback('onInterrupt', finishTimeline);
@@ -392,12 +390,18 @@ const SearchPage = () => {
   const handleSearch = () => {
     const target = Number.parseInt(searchValue.trim(), 10);
     if (Number.isNaN(target) || target > 50 || target < -50) {
-      toast('Enter a valid target between -50 and 50');
+      toast.error('Enter a valid target between -50 and 50', {
+        position: 'bottom-right',
+        closeButton: true,
+      });
       return;
     }
 
     if (bars.length === 0) {
-      toast('No bars available. Generate or insert values first.');
+      toast.error('No bars available. Generate or insert values first.', {
+        position: 'bottom-right',
+        closeButton: true,
+      });
       return;
     }
 

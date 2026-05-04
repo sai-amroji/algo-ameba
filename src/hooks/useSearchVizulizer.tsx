@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from 'react';
 import gsap from 'gsap';
 import { type BarState } from '@/components/SharedLayout';
+import { toast } from 'sonner';
 
 type Bar = {
   value: number;
@@ -18,6 +19,7 @@ export const useSearchVizulizer = () => {
 
   const MIN_VALUE = -50;
   const MAX_VALUE = 50;
+  const MAX_ARR_SIZE = 25;
 
   const timelineRef = useRef(gsap.timeline({ paused: true }));
   const labelsRef = useRef<string[]>([]);
@@ -39,20 +41,81 @@ export const useSearchVizulizer = () => {
   };
 
   const handleInsert = () => {
-    const trimmed = inputValue.trim();
-    const parsed =
-      trimmed === ''
-        ? Math.floor(Math.random() * (MAX_VALUE - MIN_VALUE + 1)) + MIN_VALUE
-        : parseInt(trimmed, 10);
+    const values = inputValue
+      .split(',')
+      .map((num) => Number(num.trim()))
+      .filter((num) => !isNaN(num) && num.toString() !== '');
 
-    if (isNaN(parsed) || parsed > MAX_VALUE || parsed < MIN_VALUE) {
+    if (values.length === 0) {
+      const trimmed = inputValue.trim();
+      if (trimmed !== '') {
+        toast.error('Please enter a valid number', {
+          position: 'bottom-right',
+          closeButton: true,
+          duration: 2000,
+        });
+        return;
+      }
+
+      // If empty input, generate random number
+      if (bars.length >= MAX_ARR_SIZE) {
+        toast.error('Array size exceeds maximum limit', {
+          position: 'bottom-right',
+          closeButton: true,
+          duration: 2000,
+        });
+        return;
+      }
+
+      const parsed =
+        Math.floor(Math.random() * (MAX_VALUE - MIN_VALUE + 1)) + MIN_VALUE;
+      const newBar: Bar = {
+        value: parsed,
+        id: (Date.now() + Math.random()).toString(),
+      };
+      setBars((prev) => [...prev, newBar]);
+      resetAnimation();
+      setInputValue('');
       return;
     }
 
-    const val = Date.now() + Math.random();
-    const newBar: Bar = { value: parsed, id: val.toString() };
-    const updated = [...bars, newBar];
-    setBars(updated);
+    let outOfBounds = false;
+    const validValues = values.filter((n) => {
+      if (n < MIN_VALUE || n > MAX_VALUE) {
+        outOfBounds = true;
+        return false;
+      }
+      return true;
+    });
+
+    if (outOfBounds) {
+      toast.error(
+        `Please enter numbers between ${MIN_VALUE} and ${MAX_VALUE}`,
+        {
+          position: 'bottom-right',
+          closeButton: true,
+          duration: 2000,
+        }
+      );
+      if (validValues.length === 0) return;
+    }
+
+    setBars((prev) => {
+      const availableSpace = MAX_ARR_SIZE - prev.length;
+      if (validValues.length > availableSpace) {
+        toast.error('Array size exceeds maximum limit', {
+          position: 'bottom-right',
+          closeButton: true,
+          duration: 2000,
+        });
+      }
+      const toAdd = validValues.slice(0, availableSpace);
+      const newBars = toAdd.map((v) => ({
+        value: v,
+        id: (Date.now() + Math.random()).toString(),
+      }));
+      return [...prev, ...newBars];
+    });
 
     resetAnimation();
     setInputValue('');

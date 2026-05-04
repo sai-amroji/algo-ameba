@@ -330,7 +330,7 @@ const GraphPage = () => {
     node
       .append('circle')
       .attr('id', (d: any) => `node-${d.id}`)
-      .attr('r', 25)
+      .attr('r', 30)
       .attr('fill', getCSSVar('--node'))
       .attr('stroke', getCSSVar('--node-stroke'))
       .attr('stroke-width', 2);
@@ -341,7 +341,7 @@ const GraphPage = () => {
       .attr('text-anchor', 'middle')
       .attr('dy', '.35em')
       .attr('fill', getCSSVar('--text'))
-      .attr('font-size', '14px')
+      .attr('font-size', '22px')
       .attr('font-family', 'monospace');
 
     // Only render weights if the configuration allows it AND the toggle is on
@@ -352,7 +352,8 @@ const GraphPage = () => {
       .enter()
       .append('text')
       .text((d: any) => (isWeighted ? d.weight : ''))
-      .attr('font-size', '12px')
+      .attr('font-size', '16px')
+      .attr('font-weight', 'bold')
       .attr('fill', getCSSVar('--foreground'));
 
     simulation.on('tick', () => {
@@ -380,7 +381,11 @@ const GraphPage = () => {
 
     if (!isNaN(parsedInput) && parsedInput > MAX_GRAPH_NODES) {
       toast.error(
-        `Max ${MAX_GRAPH_NODES} nodes for Graph. Using ${MAX_GRAPH_NODES} instead.`
+        `Max ${MAX_GRAPH_NODES} nodes for Graph. Using ${MAX_GRAPH_NODES} instead.`,
+        {
+          position: 'bottom-right',
+          closeButton: true,
+        }
       );
       setGraphData(generateRandomGraph());
       return;
@@ -466,7 +471,7 @@ const GraphPage = () => {
 
           <div className="flex gap-2 ml-4">
             <input
-              className="input w-[150px]"
+              className="input w-fit p-2"
               placeholder="Number of Nodes"
               value={numNodes}
               onChange={(e) => setNumNodes(e.target.value)}

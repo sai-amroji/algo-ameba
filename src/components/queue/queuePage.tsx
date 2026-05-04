@@ -69,10 +69,12 @@ const QueuePage = () => {
     nextId.current = 0;
 
     let num = Math.floor(Math.random() * 8) + 2; // Generate 2-9 items
+    const vals: number[] = [];
     while (num > 0) {
-      enqueue(Math.floor(Math.random() * 100));
+      vals.push(Math.floor(Math.random() * 100));
       num -= 1;
     }
+    enqueue(vals);
   };
   const animateIn = contextSafe((el: HTMLDivElement) => {
     gsap.fromTo(
@@ -100,27 +102,41 @@ const QueuePage = () => {
     setQueue([]);
     setRemovingIds(new Set());
     itemRefs.current.clear();
-    toast(`Switched to ${algo}`);
+    toast(`Switched to ${algo}`, {
+      position: 'bottom-right',
+      closeButton: true,
+    });
   };
 
-  const enqueue = (value: number, toFront = false) => {
-    if (active.length >= MAX_QUEUE_SIZE) {
-      toast.error(`Queue is full! (max ${MAX_QUEUE_SIZE} items)`);
+  const enqueue = (values: number[], toFront = false) => {
+    if (active.length + values.length > MAX_QUEUE_SIZE) {
+      toast.error(`Queue is full! (max ${MAX_QUEUE_SIZE} items)`, {
+        position: 'bottom-right',
+        closeButton: true,
+      });
       return;
     }
-    const id = nextId.current++;
+    const newItems = values.map((value) => ({ id: nextId.current++, value }));
     setQueue((prev) =>
-      toFront ? [{ id, value }, ...prev] : [...prev, { id, value }]
+      toFront ? [...newItems, ...prev] : [...prev, ...newItems]
     );
-    setTimeout(() => {
-      const el = itemRefs.current.get(id);
-      if (el) animateIn(el);
-    }, 20);
+    newItems.forEach((item, idx) => {
+      setTimeout(
+        () => {
+          const el = itemRefs.current.get(item.id);
+          if (el) animateIn(el);
+        },
+        20 + idx * 50
+      );
+    });
   };
 
   const dequeue = (fromBack = false) => {
     if (active.length === 0) {
-      toast('Queue is empty!');
+      toast('Queue is empty!', {
+        position: 'bottom-right',
+        closeButton: true,
+      });
       return;
     }
     const target = fromBack ? active[active.length - 1] : active[0];
@@ -135,13 +151,19 @@ const QueuePage = () => {
         return n;
       });
       itemRefs.current.delete(target.id);
-      toast(`Dequeued ${target.value} from ${fromBack ? 'back' : 'front'}`);
+      toast(`Dequeued ${target.value} from ${fromBack ? 'back' : 'front'}`, {
+        position: 'bottom-right',
+        closeButton: true,
+      });
     });
   };
 
   const peek = () => {
     if (active.length === 0) {
-      toast('Queue is empty!');
+      toast('Queue is empty!', {
+        position: 'bottom-right',
+        closeButton: true,
+      });
       return;
     }
     const el = itemRefs.current.get(active[0].id);
@@ -158,12 +180,18 @@ const QueuePage = () => {
         }
       );
     }
-    toast(`Front: ${active[0].value}`);
+    toast(`Front: ${active[0].value}`, {
+      position: 'bottom-right',
+      closeButton: true,
+    });
   };
 
   const clear = () => {
     if (active.length === 0) {
-      toast('Queue is already empty!');
+      toast('Queue is already empty!', {
+        position: 'bottom-right',
+        closeButton: true,
+      });
       return;
     }
     const allIds = new Set(active.map((i) => i.id));
@@ -183,7 +211,10 @@ const QueuePage = () => {
           if (idx === active.length - 1) {
             setQueue([]);
             setRemovingIds(new Set());
-            toast('Queue cleared');
+            toast('Queue cleared', {
+              position: 'bottom-right',
+              closeButton: true,
+            });
           }
         },
       });
@@ -194,22 +225,34 @@ const QueuePage = () => {
     switch (op) {
       case 'enqueue':
       case 'enqueueLast': {
-        const n = parseInt(input);
-        if (isNaN(n)) {
-          toast('Enter a valid number');
+        const values = input
+          .split(',')
+          .map((v) => parseInt(v.trim()))
+          .filter((v) => !isNaN(v));
+        if (values.length === 0) {
+          toast.error('Enter valid numbers', {
+            position: 'bottom-right',
+            closeButton: true,
+          });
           return;
         }
-        enqueue(n, false);
+        enqueue(values, false);
         setInput('');
         break;
       }
       case 'enqueueFirst': {
-        const n = parseInt(input);
-        if (isNaN(n)) {
-          toast('Enter a valid number');
+        const values = input
+          .split(',')
+          .map((v) => parseInt(v.trim()))
+          .filter((v) => !isNaN(v));
+        if (values.length === 0) {
+          toast.error('Enter valid numbers', {
+            position: 'bottom-right',
+            closeButton: true,
+          });
           return;
         }
-        enqueue(n, true);
+        enqueue(values, true);
         setInput('');
         break;
       }

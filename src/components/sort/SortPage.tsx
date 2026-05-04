@@ -4,6 +4,7 @@ import gsap from '@/gsapSetup';
 import Flip from 'gsap/Flip';
 import { useGSAP } from '@gsap/react';
 import SharedLayout from '@/components/SharedLayout';
+import { toast } from 'sonner';
 import {
   sortAlgorithmBuilders,
   type SortFrame,
@@ -173,8 +174,49 @@ const SortPage = () => {
   };
 
   const handleInsert = () => {
+    if (inputValue.includes(',')) {
+      const numbers = inputValue
+        .split(',')
+        .map((num) => parseInt(num.trim(), 10));
+      if (numbers.some(isNaN)) {
+        toast('Please enter a valid number', {
+          position: 'bottom-right',
+          closeButton: true,
+        });
+        return;
+      }
+      if (numbers.some((num) => num < -50 || num > 50)) {
+        toast('Enter a value between -50 and 50', {
+          position: 'bottom-right',
+          closeButton: true,
+        });
+        return;
+      }
+      setBars((prev) => [
+        ...prev,
+        ...numbers.map((num) => ({ id: createBarId(), value: num })),
+      ]);
+      setInputValue('');
+      resetTimeline();
+      return;
+    }
+
     const parsed = Number.parseInt(inputValue.trim(), 10);
-    if (Number.isNaN(parsed) || parsed < -50 || parsed > 50) return;
+
+    if (Number.isNaN(parsed)) {
+      toast('Please enter a valid number', {
+        position: 'bottom-right',
+        closeButton: true,
+      });
+      return;
+    }
+    if (parsed < -50 || parsed > 50) {
+      toast('Enter a value between -50 and 50', {
+        position: 'bottom-right',
+        closeButton: true,
+      });
+      return;
+    }
     setBars((prev) => [...prev, { id: createBarId(), value: parsed }]);
     setInputValue('');
     resetTimeline();

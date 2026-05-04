@@ -12,6 +12,7 @@ import { useRef, useMemo, useState, useEffect } from 'react';
 import * as d3 from 'd3';
 import { useGSAP } from '@gsap/react';
 import gsap from '../../gsapSetup';
+import { toast } from 'sonner';
 
 interface TreeNode {
   id: string;
@@ -146,7 +147,10 @@ const TreePage = () => {
   const [traversal, setTraversal] = useState('Preorder');
   const [inputValue, setInputValue] = useState('');
   const [treeRoot, setTreeRoot] = useState<TreeNode | null>(null);
+
+  // Two refs needed: one for the canvas, one for the moveable group
   const containerRef = useRef<SVGSVGElement>(null);
+  const zoomGroupRef = useRef<SVGGElement>(null);
 
   const traversalOptions: Record<string, (node: TreeNode | null) => number[]> =
     {
@@ -165,11 +169,12 @@ const TreePage = () => {
     'Fenwick Tree': ['Preorder', 'Inorder', 'Postorder'],
   };
 
-  // ─── D3 LAYOUT ENGINE ────────────────────────────────────────────────────
+  // ─── D3 LAYOUT ENGINE ───────────────────────────────────────────────────
 
   const { nodes, edges } = useMemo(() => {
-    if (!treeRoot)
+    if (!treeRoot) {
       return { nodes: [] as RenderNode[], edges: [] as RenderEdge[] };
+    }
 
     const hierarchyRoot = d3.hierarchy(treeRoot, (d) => {
       const children = [];
@@ -178,7 +183,7 @@ const TreePage = () => {
       return children.length > 0 ? children : null;
     });
 
-    const treeLayout = d3.tree<TreeNode>().nodeSize([60, 80]);
+    const treeLayout = d3.tree<TreeNode>().nodeSize([80, 100]);
     treeLayout(hierarchyRoot);
 
     const pathGenerator = d3
@@ -203,15 +208,42 @@ const TreePage = () => {
     return { nodes: calculatedNodes, edges: calculatedEdges };
   }, [treeRoot]);
 
-  // ─── GSAP SETUP — must come before any handler that uses contextSafe ──────
-  // FIX 1: useGSAP (and therefore contextSafe) must be declared BEFORE the
-  // handlers that reference it. JS hoisting does not apply to const declarations.
+  // ─── D3 PAN & ZOOM INTEGRATION ──────────────────────────────────────────
+
+  useEffect(() => {
+    if (!containerRef.current || !zoomGroupRef.current) return;
+
+    const svg = d3.select(containerRef.current);
+    const zoomGroup = d3.select(zoomGroupRef.current);
+
+    const zoom = d3
+      .zoom<SVGSVGElement, unknown>()
+      .scaleExtent([0.2, 3]) // Limit zoom from 0.2x to 3x
+      .on('zoom', (event) => {
+        zoomGroup.attr('transform', event.transform);
+      });
+
+    svg.call(zoom);
+
+    // Initial centering calculation
+    const containerWidth =
+      containerRef.current.clientWidth || window.innerWidth;
+    const initialTransform = d3.zoomIdentity
+      .translate(containerWidth / 2, 80)
+      .scale(1);
+
+    // Apply initial transform instantly
+    svg.call(zoom.transform, initialTransform);
+  }, []); // Run once on mount
+
+  // ─── EFFECTS & GSAP ─────────────────────────────────────────────────────
 
   useEffect(() => {
     if (treeRoot == null) {
       onRandom();
     }
   }, [treeRoot]);
+
   const { contextSafe } = useGSAP(
     () => {
       if (edges.length === 0) return;
@@ -222,7 +254,6 @@ const TreePage = () => {
         { opacity: 1, duration: 0.8, stagger: 0.05, ease: 'power1.out' }
       );
 
-      // FIX 4: Node entrance animation was missing — added scale-in for nodes
       gsap.fromTo(
         '.node circle',
         { scale: 0, transformOrigin: '50% 50%' },
@@ -232,26 +263,38 @@ const TreePage = () => {
     { scope: containerRef, dependencies: [edges] }
   );
 
-  // ─── HANDLERS ────────────────────────────────────────────────────────────
-
-  const MAX_TREE_SIZE = 20;
+  const MAX_TREE_SIZE = 40; // Increased max tree size for infinite canvas
 
   const onInsert = (val: string) => {
-    const num = Number(val);
-    if (val.trim() === '' || isNaN(num)) {
-      alert('Please enter a valid number.');
+    const vals = val
+      .split(',')
+      .map((v) => Number(v.trim()))
+      .filter((v) => !isNaN(v) && v.toString() !== '');
+    if (vals.length === 0) {
+      toast('Please enter a valid number', {
+        position: 'bottom-right',
+        closeButton: true,
+      });
       return;
     }
-    // Count current nodes in tree
     const countNodes = (node: TreeNode | null): number => {
       if (!node) return 0;
       return 1 + countNodes(node.left) + countNodes(node.right);
     };
-    if (countNodes(treeRoot) >= MAX_TREE_SIZE) {
-      alert(`Tree is full! (max ${MAX_TREE_SIZE} nodes)`);
+    if (countNodes(treeRoot) + vals.length > MAX_TREE_SIZE) {
+      toast(`Tree is full! (max ${MAX_TREE_SIZE} nodes)`, {
+        position: 'bottom-right',
+        closeButton: true,
+      });
       return;
     }
-    setTreeRoot((prev) => insertBST(prev, num));
+    setTreeRoot((prev) => {
+      let curr = prev;
+      vals.forEach((num) => {
+        curr = insertBST(curr, num);
+      });
+      return curr;
+    });
     setInputValue('');
   };
 
@@ -267,12 +310,6 @@ const TreePage = () => {
     setTreeRoot(newTree);
   };
 
-  // FIX 2: Compute deleteBST result synchronously before setTreeRoot so that
-  // successorId is reliably captured — setState updaters run asynchronously and
-  // closures inside them are not guaranteed to write back to outer variables in
-  // time for the GSAP call that follows.
-  // FIX 3: Wrapped with contextSafe so the GSAP tween is tracked by the context
-  // and properly cleaned up on unmount / re-render.
   const onDelete = contextSafe((val: string) => {
     if (val.trim() === '') return;
 
@@ -296,24 +333,20 @@ const TreePage = () => {
     const traversalFn = traversalOptions[traversal];
     if (!treeRoot || !traversalFn) return;
 
-    // Reset all nodes to default state first
     gsap.killTweensOf(".node circle, [id*='node-']");
     gsap.set('.node circle', {
       fill: 'var(--node)',
       stroke: 'var(--node-stroke)',
       strokeWidth: 2,
       filter: 'none',
-      r: 20,
+      r: 24, // Matches the default radius
     });
 
     const sequence = traversalFn(treeRoot);
     const pathStr = sequence.join(' → ');
     console.log(`🌳 ${traversal} Traversal Started: [${pathStr}]`);
 
-    // Build GSAP timeline for detailed, breathing traversal animation
     const timeline = gsap.timeline();
-
-    // Map values to node IDs
     const nodeMap = new Map<number, string>();
     nodes.forEach((node) => {
       nodeMap.set(node.val, node.id);
@@ -324,7 +357,6 @@ const TreePage = () => {
       const nodeId = nodeMap.get(val);
       if (!nodeId) return;
 
-      // ─── STEP 1: Approach animation (0.5s breathing room) ───
       const startTime = stepIndex * 1.2;
       timeline.to(
         `#node-${nodeId}`,
@@ -341,7 +373,6 @@ const TreePage = () => {
         startTime
       );
 
-      // ─── STEP 2: Active glow (0.4s - shows deliberate pause) ───
       timeline.to(
         `#node-${nodeId}`,
         {
@@ -352,11 +383,10 @@ const TreePage = () => {
         startTime + 0.1
       );
 
-      // ─── STEP 3: Scale pulse during visit (emphasizes process) ───
       timeline.to(
         `#node-${nodeId}`,
         {
-          r: 26,
+          r: 30, // Updated pulse to match r=24 scaling
           duration: 0.25,
           ease: 'back.out',
           yoyo: true,
@@ -365,7 +395,6 @@ const TreePage = () => {
         startTime + 0.15
       );
 
-      // ─── STEP 4: Mark as visited (0.3s transition) ───
       timeline.to(
         `#node-${nodeId}`,
         {
@@ -379,13 +408,10 @@ const TreePage = () => {
         startTime + 0.65
       );
 
-      // ─── STEP 5: Breathing pause before next node ───
       timeline.to({}, { duration: 0.15 }, startTime + 0.95);
-
       stepIndex++;
     });
 
-    // Final cleanup - return all to default state
     timeline.to(
       '.node circle',
       {
@@ -393,7 +419,7 @@ const TreePage = () => {
         stroke: 'var(--node-stroke)',
         strokeWidth: 2,
         filter: 'none',
-        r: 20,
+        r: 24, // Matches the default radius
         duration: 0.5,
         ease: 'power1.out',
       },
@@ -427,7 +453,10 @@ const TreePage = () => {
         ease: 'power1.inOut',
       });
     } else {
-      alert('Value not found!');
+      toast('Value not found!', {
+        position: 'bottom-right',
+        closeButton: true,
+      });
     }
   });
 
@@ -437,7 +466,7 @@ const TreePage = () => {
         <div className="flex justify-between items-center">
           <div className="flex justify-start items-center gap-2 px-3 py-2 mx-2">
             <Input
-              className="input w-[400px] md:w-[100px]"
+              className="input w-fit  px-2 py-1 "
               placeholder="Enter Number"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
@@ -521,56 +550,53 @@ const TreePage = () => {
         </div>
       </div>
 
-      <div className="flex flex-1 min-h-0 flex-row justify-center items-center viz-canvas overflow-auto">
-        <div className="flex flex-row tree-container justify-center items-center w-full h-full">
-          <svg
-            ref={containerRef}
-            className="tree canvas border-0"
-            width="100%"
-            height="100%"
-            viewBox="0 0 800 800"
-          >
-            <g transform="translate(400, 50)">
-              {edges.map((edge: RenderEdge) => (
-                <path
-                  className="edge"
-                  key={edge.id}
-                  d={edge.d}
-                  id={`edge-${edge.id}`}
-                  stroke="var(--edge)"
-                  strokeWidth="2"
-                  fill="none"
-                />
-              ))}
+      {/* FIXED WRAPPER: relative positioning allows absolute children to fill perfectly */}
+      <div className="flex flex-1 min-h-0 relative w-full viz-canvas overflow-hidden bg-background">
+        <svg
+          ref={containerRef}
+          // FIXED SVG: absolute inset-0 forces it to cover the parent exactly
+          className="tree canvas border-0 absolute inset-0 w-full h-full m-0 p-0 cursor-grab active:cursor-grabbing block"
+        >
+          <g ref={zoomGroupRef}>
+            {edges.map((edge: RenderEdge) => (
+              <path
+                className="edge"
+                key={edge.id}
+                d={edge.d}
+                id={`edge-${edge.id}`}
+                stroke="var(--edge)"
+                strokeWidth="2"
+                fill="none"
+              />
+            ))}
 
-              {nodes.map((node: RenderNode) => (
-                <g
-                  key={node.id}
-                  className="node"
-                  transform={`translate(${node.x}, ${node.y})`}
+            {nodes.map((node: RenderNode) => (
+              <g
+                key={node.id}
+                className="node"
+                transform={`translate(${node.x}, ${node.y})`}
+              >
+                <circle
+                  id={`node-${node.id}`}
+                  r={24}
+                  fill="var(--node)"
+                  stroke="var(--node-stroke)"
+                  strokeWidth="2"
+                />
+                <text
+                  textAnchor="middle"
+                  dy=".3em"
+                  fill="var(--text)"
+                  fontSize="16px"
+                  fontFamily="sans-serif"
+                  fontWeight="bold"
                 >
-                  <circle
-                    id={`node-${node.id}`}
-                    r={20}
-                    fill="var(--node)"
-                    stroke="var(--node-stroke)"
-                    strokeWidth="2"
-                  />
-                  <text
-                    textAnchor="middle"
-                    dy=".3em"
-                    fill="var(--text)"
-                    fontSize="13px"
-                    fontFamily="sans-serif"
-                    fontWeight="bold"
-                  >
-                    {node.val}
-                  </text>
-                </g>
-              ))}
-            </g>
-          </svg>
-        </div>
+                  {node.val}
+                </text>
+              </g>
+            ))}
+          </g>
+        </svg>
       </div>
     </div>
   );

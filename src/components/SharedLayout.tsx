@@ -10,8 +10,9 @@ import {
 } from '@/components/ui/select.tsx';
 import { type ReactNode } from 'react';
 import ControllerFooter from '@/components/ControllerFooter.tsx';
-import { Toaster } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+
+
 
 interface Algo {
   name: string;
@@ -79,8 +80,13 @@ const SharedLayout = ({
             <Input
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              className="input w-32"
+              className="input w-fit pl-3 pr-2 px-2"
               placeholder="Insert number"
+              onKeyUp={(e) => {
+                if (e.code === 'Enter') {
+                  handleInsert();
+                }
+              }}
             />
             <button onClick={handleInsert} className="btn-primary">
               Insert
@@ -94,7 +100,7 @@ const SharedLayout = ({
                 <Input
                   value={searchValue}
                   onChange={(e) => setSearchValue(e.target.value)}
-                  className="input w-32"
+                  className="input w-fit pl-3 pr-2 px-2"
                   placeholder="Search value"
                 />
                 <button onClick={handleSearch} className="btn-success">
@@ -149,7 +155,6 @@ const SharedLayout = ({
 
       {/* Visualization Area */}
       <div className="flex-1 flex justify-center items-center">{children}</div>
-      <Toaster className={'bg-red-700'} position={'top-center'} />
 
       {/* Controls */}
       <ControllerFooter

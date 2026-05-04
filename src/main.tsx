@@ -1,11 +1,13 @@
 import { createRoot } from 'react-dom/client';
 import './index.css';
+import 'sonner/dist/styles.css';
 import { ThemeProvider } from '@/components/ui/theme-provider.tsx';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import SortPage from '@/components/sort/SortPage.tsx';
 import SearchPage from '@/components/search/SearchPage.tsx';
 import QueuePage from '@/components/queue/queuePage.tsx';
 import StackPage from '@/components/stack/stackPage.tsx';
+import { Toaster } from '@/components/ui/sonner.tsx';
 import LinkedListPage from '@/components/linkedlist/llPage.tsx';
 import GraphPage from '@/components/graph/GraphPage.tsx';
 import HeapPage from '@/components/heap/HeapPage.tsx';
@@ -35,5 +37,6 @@ createRoot(document.getElementById('root')!).render(
         <Route path="*" element={<Navigate to={ROUTES.landing} replace />} />
       </Routes>
     </BrowserRouter>
+    <Toaster />
   </ThemeProvider>
 );

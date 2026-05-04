@@ -12,27 +12,25 @@ import { useRef, useMemo, useState, useEffect } from 'react';
 import * as d3 from 'd3';
 import { useGSAP } from '@gsap/react';
 import gsap from '../../gsapSetup';
+import { toast } from 'sonner';
 import { pushToHeap, popFromHeap, buildTreeFromArray } from './heapAlgorithms';
 import { type HeapNode, type RenderNode, type RenderEdge } from './heapTypes';
 
 const HeapPage = () => {
+  const MAX_HEAP_SIZE = 15;
   const [algo, setAlgo] = useState('Min-Heap');
   const [inputValue, setInputValue] = useState('');
 
-  // Single source of truth for the heap data structure
   const [heap, setHeap] = useState<number[]>([]);
 
   const containerRef = useRef<SVGSVGElement>(null);
 
   const algorithms: Record<string, string[]> = {
-    'Min-Heap': ['Preorder', 'Inorder', 'Postorder'],
-    'Max-Heap': ['Preorder', 'Inorder', 'Postorder'],
+    'Min-Heap': [],
+    'Max-Heap': [],
   };
 
-  // Automatically rebuild the node tree whenever the array changes
   const heapRoot = useMemo(() => buildTreeFromArray(heap), [heap]);
-
-  // ─── D3 LAYOUT ENGINE ───────────────────────────────────────────────────
 
   useEffect(() => {
     if (heap.length == 0) {
@@ -51,7 +49,7 @@ const HeapPage = () => {
       return children.length > 0 ? children : null;
     });
 
-    const treeLayout = d3.tree<HeapNode>().nodeSize([60, 80]);
+    const treeLayout = d3.tree<HeapNode>().nodeSize([80, 100]);
     treeLayout(hierarchyRoot);
 
     const pathGenerator = d3
@@ -75,8 +73,6 @@ const HeapPage = () => {
 
     return { nodes: calculatedNodes, edges: calculatedEdges };
   }, [heapRoot]);
-
-  // ─── GSAP SETUP ─────────────────────────────────────────────────────────
 
   const pendingAnimationRef = useRef<{
     type: 'push' | 'pop';
@@ -103,7 +99,6 @@ const HeapPage = () => {
     { scope: containerRef, dependencies: [nodes, edges] }
   );
 
-  // Play a pending heap animation immediately (so it runs on the current DOM state)
   const playPendingAnimation = (
     pending: typeof pendingAnimationRef.current,
     onComplete?: () => void
@@ -211,56 +206,69 @@ const HeapPage = () => {
     );
   };
 
-  // ─── HANDLERS ───────────────────────────────────────────────────────────
-
-  const MAX_HEAP_SIZE = 15;
-
   const onInsert = contextSafe((val: string) => {
-    const num = Number(val);
-    if (val.trim() === '' || isNaN(num)) {
-      alert('Please enter a valid number.');
+    const values = val
+      .split(',')
+      .map((v) => Number(v.trim()))
+      .filter((v) => !isNaN(v) && val.trim() !== '');
+    if (values.length === 0) {
+      toast.error('Please enter valid numbers', {
+        position: 'bottom-right',
+        closeButton: true,
+      });
       return;
     }
-    if (heap.length >= MAX_HEAP_SIZE) {
-      alert(`Heap is full! (max ${MAX_HEAP_SIZE} nodes)`);
+    if (heap.length + values.length > MAX_HEAP_SIZE) {
+      toast.error(`Heap is full! (max ${MAX_HEAP_SIZE} nodes)`, {
+        position: 'bottom-right',
+        closeButton: true,
+      });
       return;
     }
-    const { newHeap, animateNodes } = pushToHeap(
-      heap,
-      num,
-      algo === 'Max-Heap'
-    );
 
-    console.log(`🔺 ${algo} Heappush: Inserting [${num}]`);
-    console.log(`  Before: [${heap.join(', ')}]`);
+    if (values.length === 1) {
+      const num = values[0];
+      const { newHeap, animateNodes } = pushToHeap(
+        heap,
+        num,
+        algo === 'Max-Heap'
+      );
 
-    // Log the bubble-up path
-    if (animateNodes.length > 0) {
-      const path = animateNodes
-        .map(({ childIdx }) => newHeap[childIdx])
-        .join(' ← ');
-      console.log(`  Bubble path: ${num} ← ${path}`);
+      console.log(`🔺 ${algo} Heappush: Inserting [${num}]`);
+      console.log(`  Before: [${heap.join(', ')}]`);
+
+      if (animateNodes.length > 0) {
+        const path = animateNodes
+          .map(({ childIdx }) => newHeap[childIdx])
+          .join(' ← ');
+        console.log(`  Bubble path: ${num} ← ${path}`);
+      } else {
+        console.log(`  Inserted at end (no bubbling needed)`);
+      }
+
+      pendingAnimationRef.current = {
+        type: 'push',
+        animateNodes,
+        newIndex: newHeap.length - 1,
+      };
+
+      gsap.delayedCall(0.1, () => {
+        setHeap(newHeap);
+      });
+
+      setInputValue('');
+
+      gsap.delayedCall(0.5 + animateNodes.length * 0.6, () => {
+        console.log(`  After:  [${newHeap.join(', ')}]`);
+      });
     } else {
-      console.log(`  Inserted at end (no bubbling needed)`);
+      let currentHeap = [...heap];
+      for (const num of values) {
+        currentHeap = pushToHeap(currentHeap, num, algo === 'Max-Heap').newHeap;
+      }
+      setHeap(currentHeap);
+      setInputValue('');
     }
-
-    // Set pending animation first
-    pendingAnimationRef.current = {
-      type: 'push',
-      animateNodes,
-      newIndex: newHeap.length - 1,
-    };
-
-    // DELAY heap update so animation plays on current DOM structure first
-    gsap.delayedCall(0.1, () => {
-      setHeap(newHeap);
-    });
-
-    setInputValue('');
-
-    gsap.delayedCall(0.5 + animateNodes.length * 0.6, () => {
-      console.log(`  After:  [${newHeap.join(', ')}]`);
-    });
   });
 
   const onDelete = contextSafe(() => {
@@ -272,13 +280,11 @@ const HeapPage = () => {
     console.log(`🔻 ${algo} Heappop: Removing root [${rootValue}]`);
     console.log(`  Before: [${heap.join(', ')}]`);
 
-    // Set pending animation BEFORE updating heap
     pendingAnimationRef.current = {
       type: 'pop',
       animateNodes,
     };
 
-    // Pre-highlight the root node being removed so user notices selection
     gsap.to('#node-0', {
       fill: '#ef4444',
       stroke: '#dc2626',
@@ -289,7 +295,6 @@ const HeapPage = () => {
       ease: 'power2.out',
     });
 
-    // Highlight replacement candidate (last leaf) briefly, then run the full pending animation
     const replacementIdx = Math.max(0, heap.length - 1);
     gsap.delayedCall(0.35, () => {
       gsap.to(`#node-${replacementIdx}`, {
@@ -301,11 +306,9 @@ const HeapPage = () => {
         ease: 'power2.out',
       });
 
-      // Give the user a short moment to see highlights, then play the swap/path animation
       gsap.delayedCall(0.45, () => {
         const pending = pendingAnimationRef.current;
         playPendingAnimation(pending, () => {
-          // update heap state after animations complete
           setHeap(newHeap);
           console.log(`  After:  [${newHeap.join(', ')}]`);
         });
@@ -381,16 +384,17 @@ const HeapPage = () => {
         </div>
       </div>
 
-      <div className="flex flex-1 min-h-0 flex-row justify-center items-center viz-canvas overflow-auto">
-        <div className="flex flex-row tree-container justify-center items-center w-full h-full">
+      <div className="flex flex-1 min-h-0 flex-row justify-center items-start viz-canvas overflow-auto bg-background">
+        <div className="flex flex-row tree-container justify-center items-start w-full min-h-full pt-5 ">
           <svg
             ref={containerRef}
-            className="tree canvas border-0"
+            className="tree canvas flex overflow-hidden justify-center items-start border-0  w-full h-full m-0 p-0 max-h-[800px]"
             width="100%"
             height="100%"
-            viewBox="0 0 800 800"
+            viewBox="0 0 700 450"
+            preserveAspectRatio="xMidYMin meet"
           >
-            <g transform="translate(400, 50)">
+            <g transform="translate(350, 60)">
               {edges.map((edge: RenderEdge) => (
                 <path
                   className="edge"
@@ -420,7 +424,7 @@ const HeapPage = () => {
                     textAnchor="middle"
                     dy=".3em"
                     fill="var(--text)"
-                    fontSize="13px"
+                    fontSize="16px"
                     fontFamily="sans-serif"
                     fontWeight="bold"
                   >

@@ -17,6 +17,7 @@ type Status = 'popping' | 'pushing';
 type StackItem = { id: number; value: number; status: Status };
 
 let uid = 0;
+
 const makeItem = (value: number): StackItem => ({
   id: ++uid,
   value,
@@ -58,7 +59,6 @@ const StackPage = () => {
   }, [stack]);
 
   const generateRandom = () => {
-    // Clear stack first
     setStack([]);
     itemRefs.current.clear();
     uid = 0;
@@ -70,8 +70,13 @@ const StackPage = () => {
       size--;
     }
   };
+
   const push = (value: number) => {
-    if (isFull) return toast('Stack is full!');
+    if (isFull)
+      return toast('Stack is full!', {
+        position: 'bottom-right',
+        closeButton: true,
+      });
     const item = makeItem(value);
     setStack((prev) => [item, ...prev]);
     setTimeout(() => {
@@ -86,7 +91,11 @@ const StackPage = () => {
   };
 
   const pop = () => {
-    if (isEmpty) return toast('Stack is empty!');
+    if (isEmpty)
+      return toast('Stack is empty!', {
+        position: 'bottom-right',
+        closeButton: true,
+      });
     const target = activeS[0];
     const el = getRef(target.id);
     if (!el) return;
@@ -100,13 +109,20 @@ const StackPage = () => {
       onComplete: () => {
         removeFromState(target.id);
         itemRefs.current.delete(target.id);
-        toast(`Popped ${target.value}`);
+        toast(`Popped ${target.value}`, {
+          position: 'bottom-right',
+          closeButton: true,
+        });
       },
     });
   };
 
   const peek = () => {
-    if (isEmpty) return toast('Stack is empty!');
+    if (isEmpty)
+      return toast('Stack is empty!', {
+        position: 'bottom-right',
+        closeButton: true,
+      });
     const el = getRef(activeS[0].id);
     if (el) {
       gsap.fromTo(
@@ -121,11 +137,18 @@ const StackPage = () => {
         }
       );
     }
-    toast(`Top: ${activeS[0].value}`);
+    toast(`Top: ${activeS[0].value}`, {
+      position: 'bottom-right',
+      closeButton: true,
+    });
   };
 
   const clear = () => {
-    if (isEmpty) return toast('Stack is already empty!');
+    if (isEmpty)
+      return toast('Stack is already empty!', {
+        position: 'bottom-right',
+        closeButton: true,
+      });
     activeS.forEach((item, i) => {
       const el = getRef(item.id);
       if (!el) return;
@@ -140,24 +163,52 @@ const StackPage = () => {
         onComplete: () => {
           removeFromState(item.id);
           itemRefs.current.delete(item.id);
-          if (i === activeS.length - 1) toast('Stack cleared');
+          if (i === activeS.length - 1)
+            toast('Stack cleared', {
+              position: 'bottom-right',
+              closeButton: true,
+            });
         },
       });
     });
   };
 
+
   const handleAlgoChange = (next: string) => {
     setAlgo(next);
     setStack([]);
     itemRefs.current.clear();
-    toast(`Switched to ${next}`);
+    toast(`Switched to ${next}`, {
+      position: 'bottom-right',
+      closeButton: true,
+    });
   };
 
   const handleOperation = (op: string) => {
     if (op === 'push') {
-      const num = parseInt(input);
-      if (isNaN(num)) return toast('Enter a valid number');
-      push(num);
+      const vals = input
+        .split(',')
+        .map((v) => parseInt(v.trim()))
+        .filter((v) => !isNaN(v));
+      if (vals.length === 0) {
+        return toast('Enter a valid number', {
+          position: 'bottom-right',
+          closeButton: true,
+        });
+      }
+
+      const availableSpace = MAX_STACK_SIZE - activeS.length;
+      if (vals.length > availableSpace) {
+        toast('Stack is full or not enough space!', {
+          position: 'bottom-right',
+          closeButton: true,
+        });
+      }
+
+      const toPush = vals.slice(0, availableSpace);
+      toPush.forEach((num, index) => {
+        setTimeout(() => push(num), index * 150);
+      });
       setInput('');
     } else if (op === 'pop') pop();
     else if (op === 'peek') peek();
