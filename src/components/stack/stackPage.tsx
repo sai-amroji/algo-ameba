@@ -24,10 +24,11 @@ const makeItem = (value: number): StackItem => ({
   status: 'pushing',
 });
 
-const ALGO_OPTIONS: Record<string, string[]> = {
-  stack: ['push', 'pop', 'peek', 'clear'],
-  'monotonic stack': ['push', 'pop', 'peek', 'clear'],
-};
+const ALGO_OPTIONS: string[] = [
+  'stack',
+  'monotonic inc stack',
+  'monotonic dec stack',
+];
 
 const PRIMARY_GLOW = '0 0 16px var(--brand)';
 
@@ -40,7 +41,7 @@ const StackPage = () => {
 
   useGSAP({ scope: containerRef });
 
-  const options = ALGO_OPTIONS[algo];
+  const options = ['pop', 'push', 'clear', 'peek'];
   const activeS = stack.filter((i) => i.status === 'pushing');
   const MAX_STACK_SIZE = 15;
   const isFull = activeS.length >= MAX_STACK_SIZE;
@@ -64,14 +65,52 @@ const StackPage = () => {
     uid = 0;
 
     let size = Math.floor(Math.random() * 8) + 2; // Generate 2-9 items
-    while (size > 0) {
-      const num = Math.floor(Math.random() * 100);
-      push(num);
-      size--;
+    let nums: number[] = [];
+    for (let i = 0; i < size; i++) {
+      nums.push(Math.floor(Math.random() * 100));
     }
+
+    if (algo === 'monotonic inc stack') {
+      nums.sort((a, b) => b - a);
+    } else if (algo === 'monotonic dec stack') {
+      nums.sort((a, b) => a - b);
+    }
+
+    const newItems = nums.map((value) => ({
+      id: ++uid,
+      value,
+      status: 'pushing' as Status,
+    }));
+
+    setStack(newItems);
+
+    setTimeout(() => {
+      newItems.forEach((item, i) => {
+        const el = getRef(item.id);
+        if (!el) return;
+        const staggerIndex = newItems.length - 1 - i;
+        gsap.fromTo(
+          el,
+          { opacity: 0, y: -60, scale: 0.85 },
+          {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            duration: 0.45,
+            delay: staggerIndex * 0.1,
+            ease: 'back.out(1.7)',
+          }
+        );
+      });
+    }, 20);
   };
 
-  const push = (value: number) => {
+  const push = (value: number, forceBase = false) => {
+    if (!forceBase && algo != 'stack') {
+      monotonicStack(value, algo == 'monotonic inc stack');
+      return;
+    }
+
     if (isFull)
       return toast('Stack is full!', {
         position: 'bottom-right',
@@ -173,6 +212,77 @@ const StackPage = () => {
     });
   };
 
+  const compare = (a: number, b: number, isIncreasing: boolean) => {
+    return isIncreasing ? a > b : a < b;
+  };
+
+  const monotonicStack = (value: number, isInc: boolean) => {
+    if (activeS.length === 0) {
+      push(value, true);
+      return;
+    }
+
+    if (isFull) {
+      return toast('Stack full', {
+        position: 'bottom-right',
+        closeButton: true,
+      });
+    }
+
+    let popCount = 0;
+    while (
+      popCount < activeS.length &&
+      compare(activeS[popCount].value, value, isInc)
+    ) {
+      popCount++;
+    }
+
+    if (popCount === 0) {
+      push(value, true);
+      return;
+    }
+
+    // 2. Animate the pops sequentially
+    const itemsToPop = activeS.slice(0, popCount);
+
+    itemsToPop.forEach((target, i) => {
+      const el = getRef(target.id);
+      if (!el) return;
+
+      markExiting(target.id);
+
+      gsap.to(el, {
+        opacity: 0,
+        y: -60,
+        scale: 0.85,
+        duration: 0.38,
+        delay: i * 0.15, // Stagger the pop animations slightly
+        ease: 'power2.in',
+        onComplete: () => {
+          removeFromState(target.id);
+          itemRefs.current.delete(target.id);
+        },
+      });
+    });
+
+    // 3. Wait for the pops to finish, THEN push the new item
+    const totalPopAnimationTime = popCount * 150 + 380; // (delay * count) + duration
+
+    setTimeout(() => {
+      const item = makeItem(value);
+      setStack((prev) => [item, ...prev]);
+
+      setTimeout(() => {
+        const el = getRef(item.id);
+        if (!el) return;
+        gsap.fromTo(
+          el,
+          { opacity: 0, y: -60, scale: 0.85 },
+          { opacity: 1, y: 0, scale: 1, duration: 0.45, ease: 'back.out(1.7)' }
+        );
+      }, 20); // Small DOM render delay
+    }, totalPopAnimationTime);
+  };
 
   const handleAlgoChange = (next: string) => {
     setAlgo(next);
@@ -206,10 +316,21 @@ const StackPage = () => {
       }
 
       const toPush = vals.slice(0, availableSpace);
-      toPush.forEach((num, index) => {
-        setTimeout(() => push(num), index * 150);
-      });
-      setInput('');
+      if (algo !== 'stack' && toPush.length > 1) {
+        toast(
+          'Monotonic animations work best one at a time. Processing first item only.',
+          {
+            position: 'bottom-right',
+          }
+        );
+        push(toPush[0]);
+        setInput(toPush.slice(1).join(', '));
+      } else {
+        toPush.forEach((num, index) => {
+          setTimeout(() => push(num), index * 150);
+        });
+        setInput('');
+      }
     } else if (op === 'pop') pop();
     else if (op === 'peek') peek();
     else if (op === 'clear') clear();
@@ -265,7 +386,7 @@ const StackPage = () => {
           <SelectContent className="select-content">
             <SelectGroup>
               <SelectLabel>Stack</SelectLabel>
-              {Object.keys(ALGO_OPTIONS).map((a) => (
+              {ALGO_OPTIONS.map((a) => (
                 <SelectItem key={a} value={a}>
                   {a}
                 </SelectItem>

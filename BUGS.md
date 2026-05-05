@@ -4,13 +4,13 @@
 
 -- Nothing is responsive only has been optimized for laptop nothing else need to start using select and dropdown for consitents experience
 
-## 2.Inconsitences
+<!-- ## 2.Inconsitences
 
--- queue Page altogether uses some different color in nav bar sorting page doesnt take up full spaces and linked list arrow in case of double are in consitency
--- Tree and heap pages there have big nodes and you can scroll down and you get empty section why so much overflow when there is even nothing and pages in general are inconsitent on size
---Generate random button when an array or stack is consitent of elements it appends new instead of clearing and adding rando
-elemets
--- Graph has hardcoded graph on start we should generate new one entirly like rest
+-- queue Page altogether uses some different color in nav bar sorting page doesnt take up full spaces and linked list arrow in case of double are in consitency -->
+<!-- -- Tree and heap pages there have big nodes and you can scroll down and you get empty section why so much overflow when there is even nothing and pages in general are inconsitent on size -->
+<!-- --Generate random button when an array or stack is consitent of elements it appends new instead of clearing and adding rando -->
+<!-- elemets -->
+<!-- -- Graph has hardcoded graph on start we should generate new one entirly like rest -->
 
 ## 4. Themeing
 
@@ -28,9 +28,12 @@ Even in dark mode there are color mismatchs and doesnt always cohesive
 ## Missing Implementations
 
 --- Monotonic Stack,Monotonic Queue,Circular Queue & Graph Algo's
-No Feedback on Queue Full or Invalid Inputs need of Toasts or Alerts
+
+<!-- No Feedback on Queue Full or Invalid Inputs need of Toasts or Alerts -->
+
 Regeneration on Clear Automatically
-Need of parsing Csv values
+
+<!-- Need of parsing Csv values -->
 
 ## Improvement in Animation
 

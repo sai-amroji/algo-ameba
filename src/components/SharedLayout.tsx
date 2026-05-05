@@ -12,8 +12,6 @@ import { type ReactNode } from 'react';
 import ControllerFooter from '@/components/ControllerFooter.tsx';
 import { useNavigate } from 'react-router-dom';
 
-
-
 interface Algo {
   name: string;
   value: string;

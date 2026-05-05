@@ -15,6 +15,8 @@ import gsap from '../../gsapSetup';
 import { toast } from 'sonner';
 import { pushToHeap, popFromHeap, buildTreeFromArray } from './heapAlgorithms';
 import { type HeapNode, type RenderNode, type RenderEdge } from './heapTypes';
+import { Draggable } from 'gsap/Draggable';
+import { EyeIcon, EyeOffIcon } from 'lucide-react';
 
 const HeapPage = () => {
   const MAX_HEAP_SIZE = 15;
@@ -25,10 +27,9 @@ const HeapPage = () => {
 
   const containerRef = useRef<SVGSVGElement>(null);
 
-  const algorithms: Record<string, string[]> = {
-    'Min-Heap': [],
-    'Max-Heap': [],
-  };
+  const algorithms: string[] = ['Min-Heap', 'Max-Heap'];
+
+  const [showHelper, setShowHelper] = useState<boolean>(true);
 
   const heapRoot = useMemo(() => buildTreeFromArray(heap), [heap]);
 
@@ -37,6 +38,13 @@ const HeapPage = () => {
       onRandom();
     }
   }, [heap]);
+
+  useGSAP(() => {
+    Draggable.create('.draggable', {
+      type: 'x,y',
+      bounds: '.viz-canvas',
+    });
+  });
 
   const { nodes, edges } = useMemo(() => {
     if (!heapRoot)
@@ -84,17 +92,22 @@ const HeapPage = () => {
     () => {
       if (nodes.length === 0) return;
 
-      gsap.fromTo(
-        '.edge',
-        { opacity: 0 },
-        { opacity: 1, duration: 0.5, stagger: 0.05, ease: 'power1.out' }
-      );
+      const pending = pendingAnimationRef.current;
+      if (pending && pending.type === 'push') {
+        playPendingAnimation(pending);
+      } else if (!pending) {
+        gsap.fromTo(
+          '.edge',
+          { opacity: 0 },
+          { opacity: 1, duration: 0.5, stagger: 0.05, ease: 'power1.out' }
+        );
 
-      gsap.fromTo(
-        '.node circle',
-        { scale: 0, transformOrigin: '50% 50%' },
-        { scale: 1, duration: 0.4, stagger: 0.04, ease: 'back.out(1.7)' }
-      );
+        gsap.fromTo(
+          '.node circle',
+          { scale: 0, transformOrigin: '50% 50%' },
+          { scale: 1, duration: 0.4, stagger: 0.04, ease: 'back.out(1.7)' }
+        );
+      }
     },
     { scope: containerRef, dependencies: [nodes, edges] }
   );
@@ -134,6 +147,17 @@ const HeapPage = () => {
       pending.animateNodes.length === 0 &&
       pending.newIndex !== undefined
     ) {
+      heapTimeline.call(
+        () => {
+          const helperText = document.getElementById('helper-text');
+          if (helperText) {
+            helperText.textContent = `Inserted at correct position (No swaps needed).`;
+          }
+        },
+        undefined,
+        '<'
+      );
+
       heapTimeline.addLabel('inserted');
       heapTimeline.to(
         `#node-${pending.newIndex}`,
@@ -154,34 +178,68 @@ const HeapPage = () => {
     } else {
       pending.animateNodes.forEach(({ childIdx, parentIdx }, i) => {
         heapTimeline.addLabel(`swap-${i}`);
-        heapTimeline.to(
-          `#node-${parentIdx}`,
-          {
-            fill: 'var(--compare)',
-            scale: 1.1,
-            duration: 0.3,
-            yoyo: true,
-            repeat: 1,
+
+        heapTimeline.call(
+          () => {
+            const helperText = document.getElementById('helper-text');
+            if (helperText) {
+              // FIXED: text-node-[index]
+              const pVal = document.getElementById(
+                `text-node-${parentIdx}`
+              )?.textContent;
+              const cVal = document.getElementById(
+                `text-node-${childIdx}`
+              )?.textContent;
+              if (pVal && cVal) {
+                helperText.textContent = `Node ${cVal} is ${algo === 'Max-Heap' ? 'Greater' : 'Smaller'} than Node ${pVal} | Swap`;
+              } else {
+                helperText.textContent = `Swapping Nodes...`;
+              }
+            }
           },
-          i === 0 ? '<' : '>'
-        );
-        heapTimeline.to(
-          `#edge-${parentIdx}-${childIdx}`,
-          { stroke: 'var(--node-visited)', strokeWidth: 4, duration: 0.4 },
-          '+=0.1'
-        );
-        heapTimeline.to(
-          `#node-${childIdx}`,
-          {
-            fill: 'var(--node-visited)',
-            scale: 1.08,
-            duration: 0.3,
-            yoyo: true,
-            repeat: 1,
-          },
+          undefined,
           '<'
         );
-        heapTimeline.to({}, { duration: 0.2 });
+
+        // 1. Highlight both nodes being compared with a different color (e.g., Amber)
+        heapTimeline.to(
+          [`#node-${parentIdx}`, `#node-${childIdx}`],
+          {
+            fill: '#f59e0b',
+            scale: 1.15,
+            duration: 0.8,
+            yoyo: true,
+            repeat: 1,
+          },
+          '>'
+        );
+
+        // 2. Visually swap the text exactly at the peak of the animation
+        heapTimeline.call(
+          () => {
+            // FIXED: text-node-[index]
+            const parentText = document.getElementById(
+              `text-node-${parentIdx}`
+            );
+            const childText = document.getElementById(`text-node-${childIdx}`);
+            if (parentText && childText) {
+              const temp = parentText.textContent;
+              parentText.textContent = childText.textContent;
+              childText.textContent = temp;
+            }
+          },
+          undefined,
+          '-=0.8'
+        );
+
+        // 3. Highlight the edge connecting them
+        const minIdx = Math.min(parentIdx, childIdx);
+        const maxIdx = Math.max(parentIdx, childIdx);
+        heapTimeline.to(
+          `#edge-${minIdx}-${maxIdx}`,
+          { stroke: 'var(--node-visited)', strokeWidth: 4, duration: 0.3 },
+          '-=0.8'
+        );
       });
     }
 
@@ -204,6 +262,13 @@ const HeapPage = () => {
       },
       '<'
     );
+    heapTimeline.call(() => {
+      const helperText = document.getElementById('helper-text');
+      if (helperText) {
+        helperText.textContent =
+          pending.type === 'push' ? `Push complete.` : `Pop complete.`;
+      }
+    });
   };
 
   const onInsert = contextSafe((val: string) => {
@@ -233,6 +298,11 @@ const HeapPage = () => {
         num,
         algo === 'Max-Heap'
       );
+
+      const helperText = document.getElementById('helper-text');
+      if (helperText) {
+        helperText.textContent = `Pushing ${num} into Heap...`;
+      }
 
       console.log(`🔺 ${algo} Heappush: Inserting [${num}]`);
       console.log(`  Before: [${heap.join(', ')}]`);
@@ -275,45 +345,89 @@ const HeapPage = () => {
     if (heap.length === 0) return;
 
     const rootValue = heap[0];
+    const lastIdx = heap.length - 1;
     const { newHeap, animateNodes } = popFromHeap(heap, algo === 'Max-Heap');
 
-    console.log(`🔻 ${algo} Heappop: Removing root [${rootValue}]`);
-    console.log(`  Before: [${heap.join(', ')}]`);
+    const helperText = document.getElementById('helper-text');
+    if (helperText) {
+      helperText.textContent = `Popping root (${rootValue})...`;
+    }
 
     pendingAnimationRef.current = {
       type: 'pop',
       animateNodes,
     };
 
-    gsap.to('#node-0', {
-      fill: '#ef4444',
-      stroke: '#dc2626',
-      strokeWidth: 4,
-      filter: 'drop-shadow(0 0 12px rgba(239, 68, 68, 0.9))',
-      scale: 1.15,
-      duration: 0.45,
-      ease: 'power2.out',
-    });
-
-    const replacementIdx = Math.max(0, heap.length - 1);
-    gsap.delayedCall(0.35, () => {
-      gsap.to(`#node-${replacementIdx}`, {
-        fill: 'var(--node-visited)',
-        scale: 1.12,
-        duration: 0.35,
-        yoyo: true,
-        repeat: 1,
-        ease: 'power2.out',
-      });
-
-      gsap.delayedCall(0.45, () => {
+    const tl = gsap.timeline({
+      onComplete: () => {
         const pending = pendingAnimationRef.current;
         playPendingAnimation(pending, () => {
           setHeap(newHeap);
-          console.log(`  After:  [${newHeap.join(', ')}]`);
         });
-      });
+      },
     });
+
+    if (heap.length === 1) {
+      tl.to('#node-0', { scale: 0, opacity: 0, duration: 0.3 });
+      return;
+    }
+
+    tl.to(
+      '#node-0',
+      {
+        fill: '#ef4444',
+        stroke: '#dc2626',
+        strokeWidth: 4,
+        filter: 'drop-shadow(0 0 12px rgba(239, 68, 68, 0.9))',
+        scale: 1.15,
+        duration: 0.5,
+        ease: 'power2.out',
+      },
+      'start'
+    ).to(
+      `#node-${lastIdx}`,
+      {
+        fill: '#22c55e',
+        stroke: '#16a34a',
+        strokeWidth: 4,
+        filter: 'drop-shadow(0 0 12px rgba(34, 197, 94, 0.9))',
+        scale: 1.15,
+        duration: 0.5,
+        ease: 'power2.out',
+      },
+      'start'
+    );
+
+    // Step 2: Swap the root text, revert root color, and hide the last node
+    // FIXED: text-node-[index]
+    tl.to(
+      `#text-node-0`,
+      {
+        textContent: String(heap[lastIdx]),
+        duration: 0, // instantaneous text swap
+      },
+      '+=0.4'
+    )
+      .to(
+        '#node-0',
+        {
+          fill: 'var(--node-visited)', // Set to visited color for the sift-down journey
+          stroke: 'var(--node-stroke)',
+          filter: 'none',
+          scale: 1.1,
+          duration: 0.6,
+        },
+        '<'
+      )
+      .to(
+        [`#node-${lastIdx}`, `#text-node-${lastIdx}`],
+        {
+          // FIXED: text-node-[index]
+          opacity: 0,
+          duration: 0.6,
+        },
+        '<'
+      );
   });
 
   const onRandom = () => {
@@ -368,7 +482,7 @@ const HeapPage = () => {
               <SelectContent className="select-content">
                 <SelectGroup>
                   <SelectLabel>Heap Algorithm</SelectLabel>
-                  {Object.keys(algorithms).map((a) => (
+                  {algorithms.map((a) => (
                     <SelectItem key={a} value={a}>
                       {a}
                     </SelectItem>
@@ -378,14 +492,27 @@ const HeapPage = () => {
             </Select>
 
             <div className="flex justify-center items-center gap-2">
-              <button className="btn-success h-fit px-4 py-2">Run</button>
+              <button
+                className="btn-success h-fit px-4 py-2"
+                onClick={() => onRandom()}
+              >
+                Run
+              </button>
+              {!showHelper && (
+                <button
+                  className="btn-neutral h-fit px-4 py-2 flex items-center gap-2 hidden"
+                  onClick={() => setShowHelper(true)}
+                >
+                  <EyeIcon className="w-4 h-4" /> Helper
+                </button>
+              )}
             </div>
           </div>
         </div>
       </div>
 
       <div className="flex flex-1 min-h-0 flex-row justify-center items-start viz-canvas overflow-auto bg-background">
-        <div className="flex flex-row tree-container justify-center items-start w-full min-h-full pt-5 ">
+        <div className="flex flex-row tree-container justify-center items-start w-full min-h-full pt-5 relative">
           <svg
             ref={containerRef}
             className="tree canvas flex overflow-hidden justify-center items-start border-0  w-full h-full m-0 p-0 max-h-[800px]"
@@ -423,6 +550,7 @@ const HeapPage = () => {
                   <text
                     textAnchor="middle"
                     dy=".3em"
+                    id={`text-${node.id}`}
                     fill="var(--text)"
                     fontSize="16px"
                     fontFamily="sans-serif"
@@ -434,6 +562,33 @@ const HeapPage = () => {
               ))}
             </g>
           </svg>
+
+          {showHelper && (
+            <div
+              className="draggable flex flex-col w-fit h-fit px-6 py-4 m-3 bg-background absolute z-10 rounded-lg top-4 right-4 border-2 border-brand shadow-md shadow-brand/40 cursor-move hidden"
+              style={{ touchAction: 'none' }}
+            >
+              <div
+                className="flex w-full justify-end"
+                onClick={() => setShowHelper(false)}
+              >
+                <EyeOffIcon className="w-5 h-5 cursor-pointer text-muted-foreground hover:text-foreground transition-colors" />
+              </div>
+              <div className="flex justify-center items-center gap-3 text-center mt-2">
+                <img
+                  src="/Ameba.svg"
+                  alt="ameba"
+                  className="w-10 h-10 drop-shadow-md"
+                />
+                <h3
+                  className="font-normal text-foreground text-lg leading-tight"
+                  id="helper-text"
+                >
+                  Waiting for input...
+                </h3>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

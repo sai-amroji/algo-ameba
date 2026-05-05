@@ -697,7 +697,7 @@ body {
     justify-content: center;
     align-items: center;
     width: 100%;
-    max-width: 240px;
+    max-width: 15rem;
     height: 3.5rem;
     font-size: 1.25rem;
   }
@@ -712,23 +712,23 @@ body {
     justify-content: center;
     align-items: flex-end;
     padding-bottom: 0.25rem;
-    width: 35px;
-    font-size: 0.75rem;
+    flex: 1;
+    max-width: 2.5rem;
+    min-width: 1rem;
+    font-size: clamp(0.6rem, 2vw, 0.75rem);
   }
 
   .ll-node {
-    background-color: var(--box-bg);
-    border: 2px solid var(--box-border);
-    color: var(--box-color);
+    color: var(--viz-item-text);
+    background-color: var(--viz-item-bg);
+    border: 2px solid var(--viz-item-border);
     border-radius: 0.5rem;
-    font-weight: 700;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 60px;
-    width: 100px;
-    padding: 0.5rem;
-    font-size: 1.875rem;
+    width: clamp(3.5rem, 12vw, 6.25rem);
+    height: clamp(2.5rem, 8vw, 3.75rem);
+    font-size: clamp(1rem, 4vw, 1.875rem);
   }
 
   .heap-node {
@@ -741,8 +741,9 @@ body {
     justify-content: center;
     align-items: center;
     height: 100%;
-    padding: 0 2.5rem;
-    width: 160px;
+    padding: 0 1rem;
+    flex: 1;
+    max-width: 10rem;
   }
 
   .queue-node {
@@ -755,8 +756,9 @@ body {
     justify-content: center;
     align-items: center;
     height: 100%;
-    width: 100%;
-    padding: 0 2.5rem;
+    flex: 1;
+    max-width: 10rem;
+    padding: 0 1rem;
   }
 
   /* ── Sort bar states ── */

@@ -688,7 +688,7 @@ const Homepage = () => {
           .y((d: any) => d.y)
       )
       .attr('fill', 'none')
-      .attr('stroke', 'white') // Cohesive black lines
+      .attr('stroke', 'var(--edge)') // Use variable for edge line
       .attr('stroke-width', 2);
 
     const nodes = svg
@@ -702,8 +702,8 @@ const Homepage = () => {
     nodes
       .append('circle')
       .attr('r', 25) // Cohesive larger sizing
-      .attr('fill', '#1d4ed8') // Tailwind bg-blue-700 to match other cards
-      .attr('stroke', 'white')
+      .attr('fill', 'var(--viz-item-bg)')
+      .attr('stroke', 'var(--viz-item-border)')
       .attr('stroke-width', 2);
 
     nodes
@@ -712,12 +712,12 @@ const Homepage = () => {
       .attr('text-anchor', 'middle')
       .text((d: any) => d.data.num)
       .attr('font-size', '18px')
-      .attr('fill', 'white') // White text inside blue node
+      .attr('fill', 'var(--viz-item-text)')
       .attr('font-weight', 'bold');
   };
 
   return (
-    <div className="algo-shell page-enter  ">
+    <div className="algo-shell page-enter ">
       {/* Navbar */}
       <div className="page-nav fixed top-0 w-full h-16 flex justify-between items-center px-6 py-2 z-50">
         <div className="flex items-center gap-6">
@@ -729,24 +729,24 @@ const Homepage = () => {
           />
           <Input
             name="search"
-            className="app-input h-10 w-[min(60vw,900px)] md:w-[400px]"
+            className="app-input h-10 w-[min(60vw,900px)] lg:w-[400px] hidden lg:block"
           />
         </div>
         <div className="flex items-center gap-6 font-[audiowide] text-lg">
           <p
-            className="nav-link cursor-pointer"
+            className="nav-link cursor-pointer hidden lg:block"
             onClick={() => navigate(ROUTES.home)}
           >
             Home
           </p>
           <p
-            className="nav-link cursor-pointer"
+            className="nav-link cursor-pointer hidden lg:block"
             onClick={() => navigate(ROUTES.algorithms)}
           >
             Algorithms
           </p>
           <p
-            className="nav-link cursor-pointer"
+            className="nav-link cursor-pointer hidden lg:block"
             onClick={() => navigate(ROUTES.about)}
           >
             About
@@ -760,8 +760,8 @@ const Homepage = () => {
       {/* Hero Section */}
       <section id="hero" className="section-fade pt-32 pb-16 px-8 md:px-12">
         {/* <img src="../../public/Ameba.png" width={10} height={10} className="z-100" /> */}
-        <div className="flex items-center font-[audiowide] text-accent-foreground justify-start gap-12">
-          <div className="flex flex-col items-start">
+        <div className="flex flex-col md:flex-row items-center md:items-start justify-center md:justify-start font-[audiowide] text-accent-foreground gap-2 md:gap-12">
+          <div className="flex flex-col items-center md:items-start">
             <h1 className="text-6xl md:text-8xl font-bold font-[audiowide]">
               Algo
             </h1>
@@ -769,21 +769,21 @@ const Homepage = () => {
               Ameba
             </h1>
           </div>
-          <p className="text-xl md:text-2xl text-accent-foreground font-plex max-w-xl mt-10 md:mt-20">
+          <p className="text-xl md:text-2xl text-accent-foreground font-plex max-w-xl mt-2 md:mt-20 text-center md:text-left italic opacity-90">
             Vizualize Any Algorithm with{' '}
-            <span className="font-semibold">Fluid Animations</span>
+            <span className="font-semibold text-primary">Fluid Animations</span>
           </p>
         </div>
       </section>
 
       {/* Custom Visuals Section */}
-      <section className="section-fade py-16 flex flex-col items-center gap-6 mx-10 ">
+      <section className="section-fade py-16 flex flex-col items-center gap-3 md:gap-6 mx-10 ">
         {/* Search Container */}
         <div
           ref={searchCardRef}
           onMouseEnter={playSearchHover}
           onMouseLeave={resetSearchLetters}
-          className="flex flex-col w-full justify-center items-center m-5 p-5 card rounded-lg"
+          className="flex flex-col w-full justify-center items-center p-3 md:p-5 card rounded-lg"
         >
           <div className="flex p-1 m-2 flex-row align-center content-center justify-center gap-2 items-stretch border-2 rounded-sm border-wh w-full min-h-[90px]">
             {['S', 'E', 'A', 'R', 'C', 'H'].map((char) => (
@@ -804,13 +804,12 @@ const Homepage = () => {
         </div>
 
         {/* Stack & Sorting Container */}
-        {/* flex-row always — items fill equal width side by side on all screen sizes */}
-        <div className="flex flex-row w-full gap-6 items-stretch">
+        <div className="flex flex-col md:flex-row w-full gap-3 md:gap-6 items-stretch">
           <div
             ref={stackCardRef}
             onMouseEnter={playStackHover}
             onMouseLeave={resetStackHover}
-            className="flex-1 flex flex-col justify-between items-center p-5 card rounded-lg min-h-[340px]"
+            className="flex-1 flex flex-col justify-between items-center p-3 md:p-5 card rounded-lg min-h-[250px] md:min-h-[340px]"
           >
             {/* Stack items: fixed width + explicit height so they never squash */}
             <div className="flex flex-col gap-2 justify-center items-center w-full flex-1 py-2">
@@ -831,7 +830,7 @@ const Homepage = () => {
             ref={sortCardRef}
             onMouseEnter={playSortingHover}
             onMouseLeave={resetSortingBars}
-            className="flex-1 flex flex-col justify-between items-center p-5 card rounded-lg min-h-[340px]"
+            className="flex-1 flex flex-col justify-between items-center p-3 md:p-5 card rounded-lg min-h-[250px] md:min-h-[340px]"
           >
             <div className="flex flex-row rounded-lg items-end justify-center gap-2 w-full flex-1 py-2">
               {sortingBars.map((bar) => (
@@ -858,9 +857,9 @@ const Homepage = () => {
           ref={queueCardRef}
           onMouseEnter={playQueueHover}
           onMouseLeave={resetQueueHover}
-          className="flex flex-col w-full justify-center items-center m-5 p-5 card rounded-lg"
+          className="flex flex-col w-full justify-center items-center p-3 md:p-5 card rounded-lg overflow-hidden"
         >
-          <div className="flex p-1 m-2 flex-row align-center content-center justify-center gap-2 items-center box-track w-full h-[75px] rounded-sm">
+          <div className="flex p-1 my-2 mx-0 md:m-2 flex-row align-center content-center justify-center gap-1 md:gap-2 items-center  w-full h-[75px] rounded-sm overflow-x-auto overflow-y-hidden">
             {'QUEUE'.split('').map((ch) => (
               <div data-char={ch} className="queue-item queue-node">
                 {ch}
@@ -875,13 +874,18 @@ const Homepage = () => {
         </div>
 
         {/* Tree & Heap Container */}
-        <div className="flex flex-row w-full gap-6 items-stretch">
-          <div className="flex-1 flex flex-col w-full justify-between items-center p-5 card rounded-lg min-h-[400px] ">
+        <div className="flex flex-col md:flex-row w-full gap-3 md:gap-6 items-stretch">
+          <div className="flex-1 flex flex-col w-full justify-between items-center p-3 md:p-5 card rounded-lg min-h-[300px] md:min-h-[400px]">
             <div
               ref={containerRef}
-              className="h-full w-full flex justify-center items-center"
+              className="h-full w-full flex justify-center items-center overflow-hidden"
             >
-              <svg ref={svgRef} width="600" height="350"></svg>
+              <svg
+                ref={svgRef}
+                viewBox="0 0 600 350"
+                preserveAspectRatio="xMidYMid meet"
+                className="w-full h-full max-w-[600px] max-h-[350px]"
+              ></svg>
             </div>
             <div className="card-name">
               <h1 className="card-text" onClick={() => navigate('/tree')}>
@@ -890,10 +894,15 @@ const Homepage = () => {
             </div>
           </div>
 
-          <div className="flex-1 flex flex-col w-full justify-between items-center p-5 card rounded-lg min-h-[400px] ">
-            <div className="h-full w-full flex flex-col justify-center items-center">
-              <svg ref={svgHeapRef} width="600" height="350"></svg>
-              <div className="flex p-1 m-2 flex-row align-center content-center justify-center gap-2 items-center box-track w-fit h-[60px] rounded-sm">
+          <div className="flex-1 flex flex-col w-full justify-between items-center p-3 md:p-5 card rounded-lg min-h-[300px] md:min-h-[400px]">
+            <div className="h-full w-full flex flex-col justify-center items-center overflow-hidden">
+              <svg
+                ref={svgHeapRef}
+                viewBox="0 0 600 350"
+                preserveAspectRatio="xMidYMid meet"
+                className="w-full h-full max-w-[600px] max-h-[350px]"
+              ></svg>
+              <div className="flex p-1 m-2 flex-row align-center content-center justify-center gap-2 items-center  w-fit h-[60px] rounded-sm">
                 {'HEAP'.split('').map((ch) => (
                   <div data-char={ch} className="heap-node">
                     {ch}
@@ -910,7 +919,7 @@ const Homepage = () => {
         </div>
 
         {/* Graph Container */}
-        <div className="flex flex-col justify-center items-center w-full h-[500px] rounded-sm ddrag-container card relative">
+        <div className="flex flex-col justify-center items-center w-full min-h-[350px] md:h-[500px] rounded-sm ddrag-container card relative overflow-hidden">
           {/* FIXED: using viewBox to lock coordinates so the center is perfectly framed */}
           <svg
             viewBox="0 0 1000 400"
@@ -929,7 +938,7 @@ const Homepage = () => {
                   className="d3-link"
                   d={`M ${sourceNode.x} ${sourceNode.y} L ${targetNode.x} ${targetNode.y}`}
                   fill="none"
-                  stroke="white"
+                  stroke="var(--edge)"
                   strokeWidth="3"
                 />
               );
@@ -941,8 +950,8 @@ const Homepage = () => {
                   cx={node.x}
                   cy={node.y}
                   r="25"
-                  fill="#1d4ed8" // bg-blue-700
-                  stroke="black"
+                  fill="var(--viz-item-bg)"
+                  stroke="var(--viz-item-border)"
                   strokeWidth="2"
                 />
                 <text
@@ -950,7 +959,7 @@ const Homepage = () => {
                   y={node.y}
                   textAnchor="middle"
                   dominantBaseline="middle"
-                  fill="white"
+                  fill="var(--viz-item-text)"
                   fontSize="16"
                   fontWeight="700"
                 >
@@ -972,7 +981,7 @@ const Homepage = () => {
           ref={linkedListCardRef}
           onMouseEnter={playLinkedListHover}
           onMouseLeave={resetLinkedListHover}
-          className="relative flex flex-col justify-between items-center h-[250px] w-full card rounded-lg p-5 mt-6"
+          className="relative flex flex-col justify-between items-center h-[250px] w-full card rounded-lg p-3 md:p-5 overflow-hidden"
         >
           <div
             ref={linkedListPointerRef}
